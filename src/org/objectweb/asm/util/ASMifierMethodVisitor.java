@@ -59,7 +59,7 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor
    */
 
   public ASMifierMethodVisitor () {
-    super("cv");
+    super("mv");
     this.labelNames = new HashMap();
   }
 

@@ -80,10 +80,10 @@ abstract class Exp implements Constants {
     // class header
     String[] itfs = {Expression.class.getName()};
     ClassWriter cw = new ClassWriter(true);
-    cw.visit(V1_1, ACC_PUBLIC, name, "java/lang/Object", itfs, null);
+    cw.visit(V1_1, ACC_PUBLIC, name, "java/lang/Object", itfs);
 
     // default public constructor
-    CodeVisitor mw = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+    CodeVisitor mw = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null);
     mw.visitVarInsn(ALOAD, 0);
     mw.visitMethodInsn(
       INVOKESPECIAL,
@@ -92,7 +92,7 @@ abstract class Exp implements Constants {
     mw.visitMaxs(1, 1);
 
     // eval method
-    mw = cw.visitMethod(ACC_PUBLIC, "eval", "(II)I", null, null);
+    mw = cw.visitMethod(ACC_PUBLIC, "eval", "(II)I", null);
     compile(mw);
     mw.visitInsn(IRETURN);
     // max stack and max locals automatically computed
@@ -215,11 +215,11 @@ class GT extends BinaryExp {
     Label end = new Label();
     mw.visitJumpInsn(IF_ICMPGT, iftrue);
     // case where e1 <= e2 : pushes false and jump to "end"
-    mw.visitInsn(ICONST_0);
+    mw.visitLdcInsn(new Integer(0));
     mw.visitJumpInsn(GOTO, end);
     // case where e1 > e2 : pushes true
     mw.visitLabel(iftrue);
-    mw.visitInsn(ICONST_1);
+    mw.visitLdcInsn(new Integer(1));
     mw.visitLabel(end);
   }
 }
@@ -290,7 +290,7 @@ class Not extends Exp {
 
   void compile (CodeVisitor mw) {
     // computes !e1 by evaluating 1 - e1
-    mw.visitInsn(ICONST_1);
+    mw.visitLdcInsn(new Integer(1));
     e.compile(mw);
     mw.visitInsn(ISUB);
   }

@@ -31,7 +31,6 @@
 package org.objectweb.asm.tree;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Attribute;
 
 /**
  * A node that represents a field.
@@ -39,7 +38,7 @@ import org.objectweb.asm.Attribute;
  * @author Eric Bruneton
  */
 
-public class FieldNode {
+public class FieldNode extends AttributeNode {
 
   /**
    * The field's access flags (see {@link org.objectweb.asm.Constants}). This
@@ -70,12 +69,6 @@ public class FieldNode {
   public Object value;
 
   /**
-   * The non standard attributes of the field.
-   */
-
-  public Attribute attrs;
-
-  /**
    * Constructs a new {@link FieldNode FieldNode} object.
    *
    * @param access the field's access flags (see {@link
@@ -89,21 +82,18 @@ public class FieldNode {
    *      {@link java.lang.Integer Integer}, a {@link java.lang.Float Float}, a
    *      {@link java.lang.Long Long}, a {@link java.lang.Double Double} or a
    *      {@link String String}.
-   * @param attrs the non standard attributes of the field.
    */
 
   public FieldNode (
     final int access,
     final String name,
     final String desc,
-    final Object value,
-    final Attribute attrs)
+    final Object value)
   {
     this.access = access;
     this.name = name;
     this.desc = desc;
     this.value = value;
-    this.attrs = attrs;
   }
 
   /**
@@ -113,6 +103,6 @@ public class FieldNode {
    */
 
   public void accept (final ClassVisitor cv) {
-    cv.visitField(access, name, desc, value, attrs);
+    accept(cv.visitField(access, name, desc, value));
   }
 }

@@ -112,6 +112,7 @@
       <classpath refid="classpath"/>
       <src path="${src}"/>
       <include name="**/*.java"/>
+      <exclude name="**/xml/*.java"/>
     </javac>
   </target>
 

@@ -44,9 +44,7 @@ public class InsnNode extends AbstractInsnNode {
    * Constructs a new {@link InsnNode InsnNode} object.
    *
    * @param opcode the opcode of the instruction to be constructed. This opcode
-   *      must be NOP, ACONST_NULL, ICONST_M1, ICONST_0, ICONST_1, ICONST_2,
-   *      ICONST_3, ICONST_4, ICONST_5, LCONST_0, LCONST_1, FCONST_0, FCONST_1,
-   *      FCONST_2, DCONST_0, DCONST_1,
+   *      must be NOP, ACONST_NULL
    *
    *      IALOAD, LALOAD, FALOAD, DALOAD, AALOAD, BALOAD, CALOAD, SALOAD,
    *      IASTORE, LASTORE, FASTORE, DASTORE, AASTORE, BASTORE, CASTORE,
@@ -81,9 +79,7 @@ public class InsnNode extends AbstractInsnNode {
    * Sets the opcode of this instruction.
    *
    * @param opcode the new instruction opcode. This opcode must be NOP,
-   *      ACONST_NULL, ICONST_M1, ICONST_0, ICONST_1, ICONST_2,
-   *      ICONST_3, ICONST_4, ICONST_5, LCONST_0, LCONST_1, FCONST_0, FCONST_1,
-   *      FCONST_2, DCONST_0, DCONST_1,
+   *      ACONST_NULL
    *
    *      IALOAD, LALOAD, FALOAD, DALOAD, AALOAD, BALOAD, CALOAD, SALOAD,
    *      IASTORE, LASTORE, FASTORE, DASTORE, AASTORE, BASTORE, CASTORE,

@@ -33,6 +33,8 @@ package org.objectweb.asm.util;
 import java.io.FileInputStream;
 import java.util.List;
 
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.AttributeVisitor;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -42,7 +44,7 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.TreeClassAdapter;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.SimpleVerifier;
 import org.objectweb.asm.tree.analysis.Frame;
@@ -95,16 +97,16 @@ public class CheckClassAdapter extends ClassAdapter {
       cr = new ClassReader(args[0]);
     }
     
-    TreeClassAdapter ca = new TreeClassAdapter(null);
-    cr.accept(new CheckClassAdapter(ca), true);
+    ClassNode cn = new ClassNode();
+    cr.accept(new CheckClassAdapter(cn), true);
     
-    List methods = ca.classNode.methods;
+    List methods = cn.methods;
     for (int i = 0; i < methods.size(); ++i) {
       MethodNode method = (MethodNode)methods.get(i);
       if (method.instructions.size() > 0) {
         Analyzer a = new Analyzer(new SimpleVerifier());
         try {
-          a.analyze(ca.classNode, method);
+          a.analyze(cn, method);
           continue;
         } catch (Exception e) {
           e.printStackTrace();
@@ -161,8 +163,7 @@ public class CheckClassAdapter extends ClassAdapter {
     final int access,
     final String name,
     final String superName,
-    final String[] interfaces,
-    final String sourceFile)
+    final String[] interfaces)
   {
     if (start) {
       throw new IllegalStateException("visit must be called only once");
@@ -202,9 +203,23 @@ public class CheckClassAdapter extends ClassAdapter {
           interfaces[i], "interface name at index " + i);
       }
     }
-    cv.visit(version, access, name, superName, interfaces, sourceFile);
+    cv.visit(version, access, name, superName, interfaces);
   }
 
+  public void visitSource (final String file, final String debug) {
+    // TODO check called only once, after visit()
+    cv.visitSource(file, debug);
+  }
+  
+  public void visitOuterClass (
+    final String owner, 
+    final String name, 
+    final String desc) 
+  {
+    // TODO check called only once, after visit(); check arguments
+    cv.visitOuterClass(owner, name, desc);
+  }
+  
   public void visitInnerClass (
     final String name,
     final String outerName,
@@ -234,12 +249,11 @@ public class CheckClassAdapter extends ClassAdapter {
     cv.visitInnerClass(name, outerName, innerName, access);
   }
 
-  public void visitField (
+  public AttributeVisitor visitField (
     final int access,
     final String name,
     final String desc,
-    final Object value,
-    final Attribute attrs)
+    final Object value)
   {
     checkState();
     checkAccess(
@@ -259,15 +273,16 @@ public class CheckClassAdapter extends ClassAdapter {
     if (value != null) {
       CheckCodeAdapter.checkConstant(value);
     }
-    cv.visitField(access, name, desc, value, attrs);
+    AttributeVisitor av = cv.visitField(access, name, desc, value);
+    // TODO return checkadapter(av)
+    return av;
   }
 
   public CodeVisitor visitMethod (
     final int access,
     final String name,
     final String desc,
-    final String[] exceptions,
-    final Attribute attrs)
+    final String[] exceptions)
   {
     checkState();
     checkAccess(
@@ -294,9 +309,17 @@ public class CheckClassAdapter extends ClassAdapter {
       }
     }
     return new CheckCodeAdapter(
-      cv.visitMethod(access, name, desc, exceptions, attrs));
+      cv.visitMethod(access, name, desc, exceptions));
   }
 
+  public AnnotationVisitor visitAnnotation (
+    final String type, 
+    final boolean visible) 
+  {
+    // TODO
+    return cv.visitAnnotation(type, visible);
+  }
+  
   public void visitAttribute (final Attribute attr) {
     checkState();
     if (attr == null) {

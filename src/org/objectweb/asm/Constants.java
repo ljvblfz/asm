@@ -77,38 +77,27 @@ public interface Constants {
   
   int ACC_DEPRECATED =   131072; // class, field, method
 
-  // types for NEWARRAY
-
-  int T_BOOLEAN = 4;
-  int T_CHAR = 5;
-  int T_FLOAT = 6;
-  int T_DOUBLE = 7;
-  int T_BYTE = 8;
-  int T_SHORT = 9;
-  int T_INT = 10;
-  int T_LONG = 11;
-
   // opcodes                  // visit method (- = idem)
 
   int NOP = 0;                // visitInsn
   int ACONST_NULL = 1;        // -
-  int ICONST_M1 = 2;          // -
-  int ICONST_0 = 3;           // -
-  int ICONST_1 = 4;           // -
-  int ICONST_2 = 5;           // -
-  int ICONST_3 = 6;           // -
-  int ICONST_4 = 7;           // -
-  int ICONST_5 = 8;           // -
-  int LCONST_0 = 9;           // -
-  int LCONST_1 = 10;          // -
-  int FCONST_0 = 11;          // -
-  int FCONST_1 = 12;          // -
-  int FCONST_2 = 13;          // -
-  int DCONST_0 = 14;          // -
-  int DCONST_1 = 15;          // -
-  int BIPUSH = 16;            // visitIntInsn
-  int SIPUSH = 17;            // -
-  int LDC = 18;               // visitLdcInsn
+  //int ICONST_M1 = 2;        // visitLdcInsn
+  //int ICONST_0 = 3;         // -
+  //int ICONST_1 = 4;         // -
+  //int ICONST_2 = 5;         // -
+  //int ICONST_3 = 6;         // -
+  //int ICONST_4 = 7;         // -
+  //int ICONST_5 = 8;         // -
+  //int LCONST_0 = 9;         // -
+  //int LCONST_1 = 10;        // -
+  //int FCONST_0 = 11;        // -
+  //int FCONST_1 = 12;        // -
+  //int FCONST_2 = 13;        // -
+  //int DCONST_0 = 14;        // -
+  //int DCONST_1 = 15;        // -
+  //int BIPUSH = 16;          // -
+  //int SIPUSH = 17;          // -
+  int LDC = 18;               // -
   //int LDC_W = 19;           // -
   //int LDC2_W = 20;          // -
   int ILOAD = 21;             // visitVarInsn

@@ -1,0 +1,25 @@
+<project name="conform" default="test">
+
+  <target name="test">
+    <mkdir dir="${out.test}/reports"/>
+    <path id="classpath">
+      <pathelement location="${out.build}"/>
+      <pathelement location="${out.test}"/>
+      <fileset dir="${test}">
+        <include name="lib/*.jar"/>
+      </fileset>
+    </path>
+    <junit fork="yes" printsummary="yes"
+           errorproperty="test.failed"
+           failureproperty="test.failed">
+      <batchtest fork="yes" todir="${out.test}/reports">
+        <fileset dir="${test}/conform">
+          <include name="**/ClassAdapterTest.java"/>
+        </fileset>
+      </batchtest>
+      <formatter type="xml"/>
+      <classpath refid="classpath"/>
+    </junit>  
+  </target>
+
+</project>

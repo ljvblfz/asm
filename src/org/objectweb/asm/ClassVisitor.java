@@ -32,14 +32,15 @@ package org.objectweb.asm;
 
 /**
  * A visitor to visit a Java class. The methods of this interface must be called
- * in the following order: <tt>visit</tt> (<tt>visitField</tt> |
- * <tt>visitMethod</tt> | <tt>visitInnerClass</tt> | <tt>visitAttribute</tt>)*
+ * in the following order: <tt>visit</tt> [<tt>visitSource</tt>] 
+ * [<tt>visitOuterClass</tt>] (<tt>visitInnerClass</tt>  | <tt>visitField</tt> |
+ * <tt>visitMethod</tt> | <tt>visitAnnotation</tt> | <tt>visitAttribute</tt>)* 
  * <tt>visitEnd</tt>.
- * 
+ *
  * @author Eric Bruneton
  */
 
-public interface ClassVisitor extends MetadataVisitor {
+public interface ClassVisitor extends AttributeVisitor {
 
   /**
    * Visits the header of the class.
@@ -55,8 +56,6 @@ public interface ClassVisitor extends MetadataVisitor {
    *      Object java.lang.Object} class.
    * @param interfaces the internal names of the class's interfaces (see {@link
    *      Type#getInternalName() getInternalName}). May be <tt>null</tt>.
-   * @param sourceFile the name of the source file from which this class was
-   *      compiled. May be <tt>null</tt>.
    */
 
   void visit (
@@ -64,9 +63,30 @@ public interface ClassVisitor extends MetadataVisitor {
     int access,
     String name,
     String superName,
-    String[] interfaces,
-    String sourceFile);
+    String[] interfaces);
 
+  /**
+   * TODO.
+   * @param file the name of the source file from which this class was
+   *      compiled. May be <tt>null</tt>.
+   * @param debug
+   */
+  
+  void visitSource (String file, String debug);
+  
+  /**
+   * TODO.
+   * 
+   * @param owner
+   * @param name
+   * @param desc
+   */
+  
+  void visitOuterClass (
+    String owner,
+    String name,
+    String desc);
+  
   /**
    * Visits information about an inner class. This inner class is not
    * necessarily a member of the class being visited.
@@ -94,26 +114,25 @@ public interface ClassVisitor extends MetadataVisitor {
    * @param access the field's access flags (see {@link Constants}). This
    *      parameter also indicates if the field is synthetic and/or deprecated.
    * @param name the field's name.
-   * @param desc the field's descriptor (see {@link Type Type}).
+   * @param signature the field's signature (see {@link Type Type}).
    * @param value the field's initial value. This parameter, which may be
    *      <tt>null</tt> if the field does not have an initial value, must be an
    *      {@link java.lang.Integer Integer}, a {@link java.lang.Float Float}, a
    *      {@link java.lang.Long Long}, a {@link java.lang.Double Double} or a
    *      {@link String String} (for <tt>int</tt>, <tt>float</tt>, <tt>long</tt>
-   *      or <tt>String</tt> fields respectively). <i>This parameter is only 
-   *      used for static fields</i>. Its value is ignored for non static 
-   *      fields, which must be initialized through bytecode instructions in 
+   *      or <tt>String</tt> fields respectively). <i>This parameter is only
+   *      used for static fields</i>. Its value is ignored for non static
+   *      fields, which must be initialized through bytecode instructions in
    *      constructors or methods.
    * @param attrs the non standard method attributes, linked together by their
    *      <tt>next</tt> field. May be <tt>null</tt>.
    */
 
-  MetadataVisitor visitField (
+  AttributeVisitor visitField (
     int access,
     String name,
-    String desc,
-    Object value,
-    Attribute attrs);
+    String signature,
+    Object value);
 
   /**
    * Visits a method of the class. This method <i>must</i> return a new
@@ -123,7 +142,7 @@ public interface ClassVisitor extends MetadataVisitor {
    * @param access the method's access flags (see {@link Constants}). This
    *      parameter also indicates if the method is synthetic and/or deprecated.
    * @param name the method's name.
-   * @param desc the method's descriptor (see {@link Type Type}).
+   * @param signature the method's signature (see {@link Type Type}).
    * @param exceptions the internal names of the method's exception
    *      classes (see {@link Type#getInternalName() getInternalName}). May be
    *      <tt>null</tt>.
@@ -137,18 +156,8 @@ public interface ClassVisitor extends MetadataVisitor {
   CodeVisitor visitMethod (
     int access,
     String name,
-    String desc,
-    String[] exceptions,
-    Attribute attrs);
-
-  /**
-   * Visits a non standard attribute of the class. This method must visit only
-   * the first attribute in the given attribute list.
-   *
-   * @param attr a non standard class attribute. Must not be <tt>null</tt>.
-   */
-
-  void visitAttribute (Attribute attr);
+    String signature,
+    String[] exceptions);
 
   /**
    * Visits the end of the class. This method, which is the last one to be

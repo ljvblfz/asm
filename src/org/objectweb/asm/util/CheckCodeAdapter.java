@@ -30,6 +30,7 @@
 
 package org.objectweb.asm.util;
 
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.CodeAdapter;
 import org.objectweb.asm.CodeVisitor;
@@ -287,30 +288,39 @@ public class CheckCodeAdapter extends CodeAdapter {
     this.labels = new HashMap();
   }
 
+  public AnnotationVisitor visitAnnotation (
+    final String type, 
+    final boolean visible) 
+  {
+    // TODO
+    return cv.visitAnnotation(type, visible);
+  }
+  
+  public AnnotationVisitor visitAnnotationDefault () {
+    // TODO
+    return cv.visitAnnotationDefault();
+  }
+
+  public AnnotationVisitor visitParameterAnnotation (
+    final int parameter,
+    final String type,
+    final boolean visible) 
+  {
+    // TODO
+    return cv.visitParameterAnnotation(parameter, type, visible);
+  }
+  
+  public void visitAttribute (Attribute attr) {
+    if (attr == null) {
+      throw new IllegalArgumentException(
+      "Invalid attribute (must not be null)");
+    }
+  }
+  
   public void visitInsn (final int opcode) {
     checkEnd();
     checkOpcode(opcode, 0);
     cv.visitInsn(opcode);
-  }
-
-  public void visitIntInsn (final int opcode, final int operand) {
-    checkEnd();
-    checkOpcode(opcode, 1);
-    switch (opcode) {
-      case Constants.BIPUSH:
-        checkSignedByte(operand, "Invalid operand");
-        break;
-      case Constants.SIPUSH:
-        checkSignedShort(operand, "Invalid operand");
-        break;
-      //case Constants.NEWARRAY:
-      default:
-        if (operand < Constants.T_BOOLEAN || operand > Constants.T_LONG) {
-          throw new IllegalArgumentException(
-            "Invalid operand (must be an array type code T_...): " + operand);
-        }
-    }
-    cv.visitIntInsn(opcode, operand);
   }
 
   public void visitVarInsn (final int opcode, final int var) {
@@ -322,6 +332,7 @@ public class CheckCodeAdapter extends CodeAdapter {
 
   public void visitTypeInsn (final int opcode, final String desc) {
     checkEnd();
+    // TODO checks for NEWARRAY
     checkOpcode(opcode, 3);
     if (desc != null && desc.length() > 0 && desc.charAt(0) == '[') {
       checkDesc(desc, false);
@@ -507,13 +518,6 @@ public class CheckCodeAdapter extends CodeAdapter {
     checkUnsignedShort(line, "Invalid line number");
     checkLabel(start, true, "start label");
     cv.visitLineNumber(line, start);
-  }
-
-  public void visitAttribute (Attribute attr) {
-    if (attr == null) {
-      throw new IllegalArgumentException(
-        "Invalid attribute (must not be null)");
-    }
   }
 
   // ---------------------------------------------------------------------------

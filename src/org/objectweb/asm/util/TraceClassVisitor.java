@@ -33,7 +33,9 @@ package org.objectweb.asm.util;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
 
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
+import org.objectweb.asm.AttributeVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.CodeVisitor;
@@ -87,7 +89,9 @@ import org.objectweb.asm.Constants;
  * @author Eric Bruneton, Eugene Kuleshov
  */
 
-public class TraceClassVisitor extends PrintClassVisitor {
+public class TraceClassVisitor extends TraceAttributeVisitor 
+  implements ClassVisitor
+{
 
   /**
    * The {@link ClassVisitor ClassVisitor} to which this visitor delegates
@@ -96,6 +100,12 @@ public class TraceClassVisitor extends PrintClassVisitor {
 
   protected final ClassVisitor cv;
 
+  /**
+   * The print writer to be used to print the class.
+   */
+
+  protected final PrintWriter pw;
+  
   /**
    * Prints a disassembled view of the given class to the standard output.
    * <p>
@@ -147,8 +157,9 @@ public class TraceClassVisitor extends PrintClassVisitor {
    */
 
   public TraceClassVisitor (final ClassVisitor cv, final PrintWriter pw) {
-    super(pw);
+    super(cv);
     this.cv = cv;
+    this.pw = pw;
   }
 
   public void visit (
@@ -156,8 +167,7 @@ public class TraceClassVisitor extends PrintClassVisitor {
     final int access,
     final String name,
     final String superName,
-    final String[] interfaces,
-    final String sourceFile)
+    final String[] interfaces)
   {
     int major = version & 0xFFFF;
     int minor = version >>> 16;
@@ -165,9 +175,6 @@ public class TraceClassVisitor extends PrintClassVisitor {
     buf.append("// class version " + major + "." + minor + " (" + version + ")\n");
     if ((access & Constants.ACC_DEPRECATED) != 0) {
       buf.append("// DEPRECATED\n");
-    }
-    if (sourceFile != null) {
-      buf.append("// compiled from ").append(sourceFile).append("\n");
     }
     buf.append("// access flags ").append(access).append("\n");
     appendAccess(access & ~Constants.ACC_SUPER);
@@ -192,10 +199,47 @@ public class TraceClassVisitor extends PrintClassVisitor {
     text.add(buf.toString());
 
     if (cv != null) {
-      cv.visit(version, access, name, superName, interfaces, sourceFile);
+      cv.visit(version, access, name, superName, interfaces);
     }
   }
 
+  public void visitSource (final String file, final String debug) {
+    buf.setLength(0);
+    if (file != null) {
+      buf.append("  // compiled from: ").append(file).append("\n");
+    }
+    if (debug != null) {
+      buf.append("  // debug info: ").append(debug).append("\n");
+    }
+    if (buf.length() > 0) {
+      text.add(buf.toString());
+    }
+    
+    if (cv != null) {
+      cv.visitSource(file, debug);
+    }
+  }
+  
+  public void visitOuterClass (
+    final String owner, 
+    final String name, 
+    final String desc) 
+  {
+    buf.setLength(0);
+    buf.append("  OUTERCLASS ")
+      .append(owner)
+      .append(" ")
+      .append(name)
+      .append(" ")
+      .append(desc)
+      .append("\n");
+    text.add(buf.toString());    
+    
+    if (cv != null) {
+      cv.visitOuterClass(owner, name, desc);
+    }
+  }
+    
   public void visitInnerClass (
     final String name,
     final String outerName,
@@ -219,14 +263,14 @@ public class TraceClassVisitor extends PrintClassVisitor {
     }
   }
 
-  public void visitField (
+  public AttributeVisitor visitField (
     final int access,
     final String name,
     final String desc,
-    final Object value,
-    final Attribute attrs)
+    final Object value)
   {
     buf.setLength(0);
+    buf.append("\n");
     if ((access & Constants.ACC_DEPRECATED) != 0) {
       buf.append("  // DEPRECATED\n");
     }
@@ -247,28 +291,23 @@ public class TraceClassVisitor extends PrintClassVisitor {
         buf.append(value);
       }
     }
-    Attribute attr = attrs;
-    while (attr != null) {
-      buf.append("  FIELD ATTRIBUTE ").append(attr.type).append(" : ")
-        .append(attr.toString()).append("\n");
-      attr = attr.next;
-    }
     buf.append("\n");
     text.add(buf.toString());
 
-    if (cv != null) {
-      cv.visitField(access, name, desc, value, attrs);
-    }
+    TraceAttributeVisitor tav = new TraceAttributeVisitor(
+      cv == null ? null : cv.visitField(access, name, desc, value));
+    text.add(tav.getText());
+    return tav;
   }
 
   public CodeVisitor visitMethod (
     final int access,
     final String name,
     final String desc,
-    final String[] exceptions,
-    final Attribute attrs)
+    final String[] exceptions)
   {
     buf.setLength(0);
+    buf.append("\n");
     if ((access & Constants.ACC_DEPRECATED) != 0) {
       buf.append("  // DEPRECATED\n");
     }
@@ -295,37 +334,26 @@ public class TraceClassVisitor extends PrintClassVisitor {
     }
     buf.append("\n");
     text.add(buf.toString());
-    Attribute attr = attrs;
-    while (attr != null) {
-      buf.setLength(0);
-      buf.append("    METHOD ATTRIBUTE ").append(attr.type).append(" : ")
-        .append(attr.toString()).append("\n");
-      text.add(buf.toString());
-      attr = attr.next;
-    }
 
-    CodeVisitor cv;
-    if (this.cv != null) {
-      cv = this.cv.visitMethod(access, name, desc, exceptions, attrs);
-    } else {
-      cv = null;
-    }
-    PrintCodeVisitor pcv = new TraceCodeVisitor(cv);
-    text.add(pcv.getText());
-    return pcv;
+    TraceCodeVisitor tcv = new TraceCodeVisitor(
+      cv == null ? null : cv.visitMethod(access, name, desc, exceptions));
+    text.add(tcv.getText());
+    return tcv;
   }
 
+  public AnnotationVisitor visitAnnotation (
+    final String type, 
+    final boolean visible) 
+  {
+    text.add("\n");
+    return super.visitAnnotation(type, visible);
+  }
+  
   public void visitAttribute (final Attribute attr) {
-    buf.setLength(0);
-    buf.append("  CLASS ATTRIBUTE ").append(attr.type).append(" : ")
-      .append(attr.toString()).append("\n");
-    text.add(buf.toString());
-
-    if (cv != null) {
-      cv.visitAttribute(attr);
-    }
+    text.add("\n");
+    super.visitAttribute(attr);
   }
-
+  
   public void visitEnd () {
     text.add("}\n");
 
@@ -333,7 +361,8 @@ public class TraceClassVisitor extends PrintClassVisitor {
       cv.visitEnd();
     }
 
-    super.visitEnd();
+    printList(pw, text);
+    pw.flush();
   }
 
   /**

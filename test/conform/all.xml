@@ -1,28 +1,114 @@
-<project name="conform" default="test">
+<project name="conform" default="all">
 
-  <target name="test" depends="junit,junitreport">
-  </target>
+  <target name="all" depends="read,writer,adapter,checkadapter,classnode,analysis,verifier,junitreport"/>
 
-  <target name="junit">
+  <target name="inittest">
     <mkdir dir="${out.test}/reports"/>
+    <path id="classpath">
+      <pathelement location="${out.build}"/>
+      <pathelement location="${out.test}"/>
+      <fileset dir="${test}">
+        <include name="lib/*.jar"/>
+      </fileset>
+    </path>
+  </target>
+  
+  <target name="reader" depends="inittest">
     <junit fork="yes" printsummary="yes"
            errorproperty="test.failed"
            failureproperty="test.failed">
       <batchtest fork="yes" todir="${out.test}/reports">
         <fileset dir="${test}/conform">
-          <include name="**/*Test.java"/>
+          <include name="**/ClassReaderTest.java"/>
         </fileset>
       </batchtest>
       <formatter type="xml"/>
-      <classpath>
-        <pathelement location="${out.build}"/>
-        <pathelement location="${out.test}"/>
-        <fileset dir="${test}">
-          <include name="lib/*.jar"/>
+      <classpath refid="classpath"/>
+    </junit>  
+  </target>
+
+  <target name="writer" depends="inittest">
+    <junit fork="yes" printsummary="yes"
+           errorproperty="test.failed"
+           failureproperty="test.failed">
+      <batchtest fork="yes" todir="${out.test}/reports">
+        <fileset dir="${test}/conform">
+          <include name="**/ClassWriterTest.java"/>
         </fileset>
-      </classpath>
-    </junit>
-  
+      </batchtest>
+      <formatter type="xml"/>
+      <classpath refid="classpath"/>
+    </junit>  
+  </target>
+
+  <target name="adapter" depends="inittest">
+    <junit fork="yes" printsummary="yes"
+           errorproperty="test.failed"
+           failureproperty="test.failed">
+      <batchtest fork="yes" todir="${out.test}/reports">
+        <fileset dir="${test}/conform">
+          <include name="**/ClassAdapterTest.java"/>
+        </fileset>
+      </batchtest>
+      <formatter type="xml"/>
+      <classpath refid="classpath"/>
+    </junit>  
+  </target>
+
+  <target name="checkadapter" depends="inittest">
+    <junit fork="yes" printsummary="yes"
+           errorproperty="test.failed"
+           failureproperty="test.failed">
+      <batchtest fork="yes" todir="${out.test}/reports">
+        <fileset dir="${test}/conform">
+          <include name="**/CheckClassAdapterTest.java"/>
+        </fileset>
+      </batchtest>
+      <formatter type="xml"/>
+      <classpath refid="classpath"/>
+    </junit>  
+  </target>
+
+  <target name="classnode" depends="inittest">
+    <junit fork="yes" printsummary="yes"
+           errorproperty="test.failed"
+           failureproperty="test.failed">
+      <batchtest fork="yes" todir="${out.test}/reports">
+        <fileset dir="${test}/conform">
+          <include name="**/ClassNodeTest.java"/>
+        </fileset>
+      </batchtest>
+      <formatter type="xml"/>
+      <classpath refid="classpath"/>
+    </junit>  
+  </target>
+
+  <target name="analysis" depends="inittest">
+    <junit fork="yes" printsummary="yes"
+           errorproperty="test.failed"
+           failureproperty="test.failed">
+      <batchtest fork="yes" todir="${out.test}/reports">
+        <fileset dir="${test}/conform">
+          <include name="**/AnalysisTest.java"/>
+        </fileset>
+      </batchtest>
+      <formatter type="xml"/>
+      <classpath refid="classpath"/>
+    </junit>  
+  </target>
+
+  <target name="verifier" depends="inittest">
+    <junit fork="yes" printsummary="yes"
+           errorproperty="test.failed"
+           failureproperty="test.failed">
+      <batchtest fork="yes" todir="${out.test}/reports">
+        <fileset dir="${test}/conform">
+          <include name="**/VerifierTest.java"/>
+        </fileset>
+      </batchtest>
+      <formatter type="xml"/>
+      <classpath refid="classpath"/>
+    </junit>  
   </target>
 
   <target name="junitreport">

@@ -33,12 +33,12 @@ package org.objectweb.asm.util;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
 
-import org.objectweb.asm.Attribute;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.AttributeVisitor;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.CodeVisitor;
 import org.objectweb.asm.Constants;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.util.attrs.ASMifiable;
 
 /**
  * A {@link PrintClassVisitor PrintClassVisitor} that prints the ASM code that
@@ -109,10 +109,18 @@ import org.objectweb.asm.util.attrs.ASMifiable;
  * @author Eric Bruneton, Eugene Kuleshov
  */
 
-public class ASMifierClassVisitor extends PrintClassVisitor {
+public class ASMifierClassVisitor extends ASMifierAttributeVisitor 
+  implements ClassVisitor
+{
 
-  private static final int ACCESS_CLASS = 262144;
-  private static final int ACCESS_FIELD = 524288;
+  private final static int ACCESS_CLASS = 262144;
+  private final static int ACCESS_FIELD = 524288;
+
+  /**
+   * The print writer to be used to print the class.
+   */
+
+  protected final PrintWriter pw;
 
   /**
    * Prints the ASM source code to generate the given class to the standard
@@ -164,7 +172,8 @@ public class ASMifierClassVisitor extends PrintClassVisitor {
    */
 
   public ASMifierClassVisitor (final PrintWriter pw) {
-    super(pw);
+    super("cw");
+    this.pw = pw;
   }
 
   public void visit (
@@ -172,8 +181,7 @@ public class ASMifierClassVisitor extends PrintClassVisitor {
     final int access,
     final String name,
     final String superName,
-    final String[] interfaces,
-    final String sourceFile)
+    final String[] interfaces)
   {
     text.add("import org.objectweb.asm.*;\n");
     text.add("import org.objectweb.asm.attrs.*;\n");
@@ -181,8 +189,10 @@ public class ASMifierClassVisitor extends PrintClassVisitor {
     text.add("public class Dump implements Constants {\n\n");
     text.add("public static void main (String[] args) throws Exception {\n\n");
     text.add("ClassWriter cw = new ClassWriter(false);\n");
-    text.add("CodeVisitor cv;\n\n");
-
+    text.add("CodeVisitor cv;\n");
+    text.add("AttributeVisitor fv;\n");
+    text.add("AnnotationVisitor av0;\n\n");
+    
     buf.setLength(0);
     buf.append("cw.visit(");
     buf.append(version);
@@ -203,12 +213,36 @@ public class ASMifierClassVisitor extends PrintClassVisitor {
     } else {
       buf.append("null");
     }
-    buf.append(", ");
-    appendConstant(buf, sourceFile);
     buf.append(");\n\n");
     text.add(buf.toString());
   }
 
+  public void visitSource (final String file, final String debug) {
+    buf.setLength(0);
+    buf.append("cw.visitSource(");
+    appendConstant(buf, file);
+    buf.append(", ");
+    appendConstant(buf, debug);
+    buf.append(");\n\n");
+    text.add(buf.toString());
+  }
+  
+  public void visitOuterClass (
+    final String owner, 
+    final String name, 
+    final String desc) 
+  {
+    buf.setLength(0);
+    buf.append("cw.visitOuterClass(");
+    appendConstant(buf, owner);
+    buf.append(", ");
+    appendConstant(buf, name);
+    buf.append(", ");
+    appendConstant(buf, desc);
+    buf.append(");\n\n");
+    text.add(buf.toString());
+  }
+  
   public void visitInnerClass (
     final String name,
     final String outerName,
@@ -228,35 +262,15 @@ public class ASMifierClassVisitor extends PrintClassVisitor {
     text.add(buf.toString());
   }
 
-  public void visitField (
+  public AttributeVisitor visitField (
     final int access,
     final String name,
     final String desc,
-    final Object value,
-    final Attribute attrs)
+    final Object value)
   {
     buf.setLength(0);
-
-    if (attrs != null) {
-      buf.append("// FIELD ATTRIBUTES\n");
-      Attribute a = attrs;
-      int n = 1;
-      while (a != null) {
-        if (a instanceof ASMifiable) {
-          ((ASMifiable)a).asmify(buf, "attrs" + n, null);
-          if (n > 1) {
-            buf.append("attrs" + (n - 1) + " = attrs" + n + ";\n");
-          }
-        } else {
-          buf.append("// WARNING! skipped non standard field attribute of type ");
-          buf.append(a.type).append("\n");
-        }
-        n++;
-        a = a.next;
-      }
-    }
-
-    buf.append("cw.visitField(");
+    buf.append("{\n");
+    buf.append("fv = cw.visitField(");
     appendAccess(access | ACCESS_FIELD);
     buf.append(", ");
     appendConstant(buf, name);
@@ -264,46 +278,22 @@ public class ASMifierClassVisitor extends PrintClassVisitor {
     appendConstant(buf, desc);
     buf.append(", ");
     appendConstant(buf, value);
-
-    if (attrs==null) {
-      buf.append(", null);\n\n");
-    } else {
-      buf.append(", attrs1);\n\n");
-    }
-
+    buf.append(");\n");
     text.add(buf.toString());
+    ASMifierAttributeVisitor aav = new ASMifierAttributeVisitor("fv");
+    text.add(aav.getText());
+    text.add("}\n");    
+    return aav;
   }
 
   public CodeVisitor visitMethod (
     final int access,
     final String name,
     final String desc,
-    final String[] exceptions,
-    final Attribute attrs)
+    final String[] exceptions)
   {
     buf.setLength(0);
-
     buf.append("{\n");
-
-    if (attrs != null) {
-      buf.append("// METHOD ATTRIBUTES\n");
-      Attribute a = attrs;
-      int n = 1;
-      while (a != null) {
-        if (a instanceof ASMifiable) {
-          ((ASMifiable)a).asmify(buf, "attrs" + n, null);
-          if (n > 1) {
-            buf.append("attrs" + (n - 1) + " = attrs" + n + ";\n");
-          }
-        } else {
-          buf.append("// WARNING! skipped non standard method attribute of type ");
-          buf.append(a.type).append("\n");
-        }
-        n++;
-        a = a.next;
-      }
-    }
-
     buf.append("cv = cw.visitMethod(");
     appendAccess(access);
     buf.append(", ");
@@ -321,32 +311,30 @@ public class ASMifierClassVisitor extends PrintClassVisitor {
     } else {
       buf.append("null");
     }
-    if (attrs==null) {
-      buf.append(", null);\n");
-    } else {
-      buf.append(", attrs1);\n");
-    }
-
+    buf.append(");\n");
     text.add(buf.toString());
-    PrintCodeVisitor pcv = new ASMifierCodeVisitor();
-    text.add(pcv.getText());
-    text.add("}\n");
-    return pcv;
+    ASMifierCodeVisitor acv = new ASMifierCodeVisitor();
+    text.add(acv.getText());
+    text.add("}\n");    
+    return acv;
   }
 
-  public void visitAttribute (final Attribute attr) {
+  public AnnotationVisitor visitAnnotation (
+    final String type, 
+    final boolean visible) 
+  {
     buf.setLength(0);
-    if (attr instanceof ASMifiable) {
-      buf.append("{\n");
-      buf.append("// CLASS ATRIBUTE\n");
-      ((ASMifiable)attr).asmify(buf, "attr", null);
-      buf.append("cw.visitAttribute(attr);\n");
-      buf.append("}\n");
-    } else {
-      buf.append("// WARNING! skipped a non standard class attribute of type \"");
-      buf.append(attr.type).append("\"\n");
-    }
+    buf.append("{\n");
+    buf.append("av0 = cw.visitAnnotation(");
+    appendConstant(buf, type);
+    buf.append(", ");
+    buf.append(visible);
+    buf.append(");\n");
     text.add(buf.toString());
+    ASMifierAnnotationVisitor av = new ASMifierAnnotationVisitor(0);
+    text.add(av.getText());
+    text.add("}\n");
+    return av;
   }
 
   public void visitEnd () {
@@ -356,7 +344,8 @@ public class ASMifierClassVisitor extends PrintClassVisitor {
     text.add("os.close();\n");
     text.add("}\n");
     text.add("}\n");
-    super.visitEnd();
+    printList(pw, text);
+    pw.flush();
   }
 
   /**
@@ -451,7 +440,7 @@ public class ASMifierClassVisitor extends PrintClassVisitor {
       first = false;
     }
     if ((access & Constants.ACC_ENUM) != 0 &&
-         ((access & ACCESS_CLASS) != 0 || (access & ACCESS_FIELD) != 0)) {
+        ((access & ACCESS_CLASS) != 0 || (access & ACCESS_FIELD) != 0)) {
       if (!first) {
         buf.append(" + ");
       }
@@ -495,57 +484,6 @@ public class ASMifierClassVisitor extends PrintClassVisitor {
     }
     if (first) {
       buf.append("0");
-    }
-  }
-
-  /**
-   * Appends a string representation of the given constant to the given buffer.
-   *
-   * @param buf a string buffer.
-   * @param cst an {@link java.lang.Integer Integer}, {@link java.lang.Float
-   *      Float}, {@link java.lang.Long Long}, {@link java.lang.Double Double}
-   *      or {@link String String} object. May be <tt>null</tt>.
-   */
-
-  static void appendConstant (final StringBuffer buf, final Object cst) {
-    if (cst == null) {
-      buf.append("null");
-    } else if (cst instanceof String) {
-      String s = (String)cst;
-      buf.append("\"");
-      for (int i = 0; i < s.length(); ++i) {
-        char c = s.charAt(i);
-        if (c == '\n') {
-          buf.append("\\n");
-        } else if (c == '\\') {
-          buf.append("\\\\");
-        } else if (c == '"') {
-          buf.append("\\\"");
-        } else {
-          buf.append(c);
-        }
-      }
-      buf.append("\"");
-    } else if (cst instanceof Type) {
-      buf.append("Type.getType(\"");
-      buf.append(((Type)cst).getDescriptor());
-      buf.append("\")");
-    } else if (cst instanceof Integer) {
-      buf.append("new Integer(")
-        .append(cst)
-        .append(")");
-    } else if (cst instanceof Float) {
-      buf.append("new Float(")
-        .append(cst)
-        .append("F)");
-    } else if (cst instanceof Long) {
-      buf.append("new Long(")
-        .append(cst)
-        .append("L)");
-    } else if (cst instanceof Double) {
-      buf.append("new Double(")
-        .append(cst)
-        .append(")");
     }
   }
 }

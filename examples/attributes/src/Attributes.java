@@ -29,6 +29,7 @@
  */
 
 import org.objectweb.asm.Attribute;
+import org.objectweb.asm.AttributeVisitor;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -79,43 +80,32 @@ class AddCommentClassAdapter extends ClassAdapter implements Constants {
     final int access,
     final String name,
     final String superName,
-    final String[] interfaces,
-    final String sourceFile)
+    final String[] interfaces)
   {
-    super.visit(version, access, name, superName, interfaces, sourceFile);
+    super.visit(version, access, name, superName, interfaces);
     visitAttribute(new CommentAttribute("this is a class comment"));
   }
 
-  public void visitField (
+  public AttributeVisitor visitField (
     final int access,
     final String name,
     final String desc,
-    final Object value,
-    final Attribute attrs)
+    final Object value)
   {
-    super.visitField(
-      access,
-      name,
-      desc,
-      value,
-      new CommentAttribute("this is a field comment", attrs));
+    AttributeVisitor av = super.visitField(access, name, desc, value);
+    av.visitAttribute(new CommentAttribute("this is a field comment"));
+    return av;
   }
 
   public CodeVisitor visitMethod (
     final int access,
     final String name,
     final String desc,
-    final String[] exceptions,
-    final Attribute attrs)
+    final String[] exceptions)
   {
-    CodeVisitor mv = cv.visitMethod(
-      access,
-      name,
-      desc,
-      exceptions,
-      new CommentAttribute("this is a method comment", attrs));
+    CodeVisitor mv = cv.visitMethod(access, name, desc, exceptions);
     if (mv != null) {
-      mv.visitAttribute(new CommentAttribute("this is a code comment"));
+      mv.visitAttribute(new CommentAttribute("this is a method comment"));
     }
     return mv;
   }
@@ -128,12 +118,6 @@ class CommentAttribute extends Attribute {
   public CommentAttribute (final String comment) {
     super("Comment");
     this.comment = comment;
-  }
-
-  public CommentAttribute (final String comment, final Attribute next) {
-    super("Comment");
-    this.comment = comment;
-    this.next = next;
   }
 
   public String getComment () {

@@ -36,7 +36,6 @@ import org.objectweb.asm.Constants;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
@@ -82,27 +81,6 @@ public class BasicInterpreter implements Constants, Interpreter {
     switch (insn.getOpcode()) {
       case ACONST_NULL:
         return newValue(Type.getType("Lnull;"));
-      case ICONST_M1:
-      case ICONST_0:
-      case ICONST_1:
-      case ICONST_2:
-      case ICONST_3:
-      case ICONST_4:
-      case ICONST_5:
-        return BasicValue.INT_VALUE;
-      case LCONST_0:
-      case LCONST_1:
-        return BasicValue.LONG_VALUE;
-      case FCONST_0:
-      case FCONST_1:
-      case FCONST_2:
-        return BasicValue.FLOAT_VALUE;
-      case DCONST_0:
-      case DCONST_1:
-        return BasicValue.DOUBLE_VALUE;
-      case BIPUSH:
-      case SIPUSH:
-        return BasicValue.INT_VALUE;
       case LDC:
         Object cst = ((LdcInsnNode)insn).cst;
         if (cst instanceof Integer) {
@@ -179,18 +157,18 @@ public class BasicInterpreter implements Constants, Interpreter {
       case GETFIELD:
         return newValue(Type.getType(((FieldInsnNode)insn).desc));
       case NEWARRAY:
-        switch (((IntInsnNode)insn).operand) {
-          case T_BOOLEAN:
-          case T_CHAR:
-          case T_BYTE:
-          case T_SHORT:
-          case T_INT:
+        switch (((TypeInsnNode)insn).desc.charAt(0)) {
+          case 'Z':
+          case 'C':
+          case 'B':
+          case 'S':
+          case 'I':
             return newValue(Type.getType("[I"));
-          case T_FLOAT:
+          case 'F':
             return newValue(Type.getType("[F"));
-          case T_DOUBLE:
+          case 'D':
             return newValue(Type.getType("[D"));
-          case T_LONG:
+          case 'J':
             return newValue(Type.getType("[J"));
           default:
             throw new AnalyzerException("Invalid array type");

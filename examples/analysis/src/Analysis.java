@@ -40,7 +40,6 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.IincInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.TreeClassAdapter;
 import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.BasicVerifier;
@@ -57,17 +56,17 @@ public class Analysis implements Constants {
   
   public static void main (String[] args) throws Exception {
     ClassReader cr = new ClassReader("Analysis");
-    TreeClassAdapter ca = new TreeClassAdapter(null);
-    cr.accept(ca, true);
+    ClassNode cn = new ClassNode();
+    cr.accept(cn, true);
     
-    List methods = ca.classNode.methods;
+    List methods = cn.methods;
     for (int i = 0; i < methods.size(); ++i) {
       MethodNode method = (MethodNode)methods.get(i);
       if (method.instructions.size() > 0) {
-        if (!analyze(ca.classNode, method)) {
+        if (!analyze(cn, method)) {
           Analyzer a = new Analyzer(new BasicVerifier());
           try {
-            a.analyze(ca.classNode, method);
+            a.analyze(cn, method);
           } catch (Exception ignored) {
           }
           final Frame[] frames = a.getFrames();

@@ -30,8 +30,9 @@
 
 package org.objectweb.asm.tree;
 
+import org.objectweb.asm.AttributeVisitor;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Attribute;
+import org.objectweb.asm.CodeVisitor;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ import java.util.Arrays;
  * @author Eric Bruneton
  */
 
-public class ClassNode {
+public class ClassNode extends AttributeNode implements ClassVisitor {
 
   /**
    * The class version.
@@ -90,6 +91,30 @@ public class ClassNode {
   public String sourceFile;
 
   /**
+   * TODO.
+   */
+  
+  public String sourceDebug;
+  
+  /**
+   * TODO.
+   */
+  
+  public String outerClass;
+  
+  /**
+   * TODO.
+   */
+  
+  public String outerMethod;
+  
+  /**
+   * TODO.
+   */
+  
+  public String outerMethodDesc;
+  
+  /**
    * Informations about the inner classes of this class. This list is a list of
    * {@link InnerClassNode InnerClassNode} objects.
    */
@@ -111,12 +136,6 @@ public class ClassNode {
   public final List methods;
 
   /**
-   * The non standard attributes of the class.
-   */
-
-  public Attribute attrs;
-
-  /**
    * Constructs a new {@link ClassNode ClassNode} object.
    *
    * @param version the class version.
@@ -135,26 +154,78 @@ public class ClassNode {
    *      compiled. May be <tt>null</tt>.
    */
 
-  public ClassNode (
+  public ClassNode () {
+    this.interfaces = new ArrayList();
+    this.innerClasses = new ArrayList();
+    this.fields = new ArrayList();
+    this.methods = new ArrayList();
+    this.attrs = new ArrayList();
+  }
+
+  public void visit (
     final int version,
     final int access,
     final String name,
     final String superName,
-    final String[] interfaces,
-    final String sourceFile)
+    final String[] interfaces)
   {
     this.version = version;
     this.access = access;
     this.name = name;
     this.superName = superName;
-    this.interfaces = new ArrayList();
-    this.sourceFile = sourceFile;
-    this.innerClasses = new ArrayList();
-    this.fields = new ArrayList();
-    this.methods = new ArrayList();
     if (interfaces != null) {
       this.interfaces.addAll(Arrays.asList(interfaces));
     }
+  }
+
+  public void visitSource (final String file, final String debug) {
+    sourceFile = file;
+    sourceDebug = debug;
+  }
+  
+  public void visitOuterClass (
+    final String owner, 
+    final String name, 
+    final String desc) 
+  {
+    outerClass = owner;
+    outerMethod = name;
+    outerMethodDesc = desc;
+  }
+  
+  public void visitInnerClass (
+    final String name,
+    final String outerName,
+    final String innerName,
+    final int access)
+  {
+    InnerClassNode icn = new InnerClassNode(name, outerName, innerName, access);
+    innerClasses.add(icn);
+  }
+
+  public AttributeVisitor visitField (
+    final int access,
+    final String name,
+    final String desc,
+    final Object value)
+  {
+    FieldNode fn = new FieldNode(access, name, desc, value);
+    fields.add(fn);
+    return fn;
+  }
+
+  public CodeVisitor visitMethod (
+    final int access,
+    final String name,
+    final String desc,
+    final String[] exceptions)
+  {
+    MethodNode mn = new MethodNode(access, name, desc, exceptions);
+    methods.add(mn);
+    return mn;
+  }
+
+  public void visitEnd () {
   }
 
   /**
@@ -167,7 +238,15 @@ public class ClassNode {
     // visits header
     String[] interfaces = new String[this.interfaces.size()];
     this.interfaces.toArray(interfaces);
-    cv.visit(version, access, name, superName, interfaces, sourceFile);
+    cv.visit(version, access, name, superName, interfaces);
+    // visits source
+    if (sourceFile != null || sourceDebug != null) {
+      cv.visitSource(sourceFile, sourceDebug);
+    }
+    // visits outer class
+    if (outerClass != null) {
+      cv.visitOuterClass(outerClass, outerMethod, outerMethodDesc);
+    }
     // visits inner classes
     int i;
     for (i = 0; i < innerClasses.size(); ++i) {
@@ -182,11 +261,7 @@ public class ClassNode {
       ((MethodNode)methods.get(i)).accept(cv);
     }
     // visits attributes
-    Attribute attrs = this.attrs;
-    while (attrs != null) {
-      cv.visitAttribute(attrs);
-      attrs = attrs.next;
-    }
+    super.accept(cv);
     // visits end
     cv.visitEnd();
   }

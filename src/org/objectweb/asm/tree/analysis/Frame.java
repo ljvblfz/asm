@@ -221,22 +221,6 @@ public class Frame {
       case Constants.NOP:
         break;
       case Constants.ACONST_NULL:
-      case Constants.ICONST_M1:
-      case Constants.ICONST_0:
-      case Constants.ICONST_1:
-      case Constants.ICONST_2:
-      case Constants.ICONST_3:
-      case Constants.ICONST_4:
-      case Constants.ICONST_5:
-      case Constants.LCONST_0:
-      case Constants.LCONST_1:
-      case Constants.FCONST_0:
-      case Constants.FCONST_1:
-      case Constants.FCONST_2:
-      case Constants.DCONST_0:
-      case Constants.DCONST_1:
-      case Constants.BIPUSH:
-      case Constants.SIPUSH:
       case Constants.LDC:
         push(interpreter.newOperation(insn));
         break;

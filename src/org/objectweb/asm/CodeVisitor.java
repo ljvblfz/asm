@@ -43,15 +43,28 @@ package org.objectweb.asm;
  * @author Eric Bruneton
  */
 
-public interface CodeVisitor {
+public interface CodeVisitor extends AttributeVisitor {
 
+  // -------------------------------------------------------------------------
+  // Specific method attributes
+  // -------------------------------------------------------------------------
+  
+  AnnotationVisitor visitAnnotationDefault ();
+
+  AnnotationVisitor visitParameterAnnotation (
+    int parameter, 
+    String type, 
+    boolean visible);
+  
+  // -------------------------------------------------------------------------
+  // Normal instructions
+  // -------------------------------------------------------------------------
+  
   /**
    * Visits a zero operand instruction.
    *
    * @param opcode the opcode of the instruction to be visited. This opcode is
-   *      either NOP, ACONST_NULL, ICONST_M1, ICONST_0, ICONST_1, ICONST_2,
-   *      ICONST_3, ICONST_4, ICONST_5, LCONST_0, LCONST_1, FCONST_0, FCONST_1,
-   *      FCONST_2, DCONST_0, DCONST_1,
+   *      either NOP, ACONST_NULL
    *
    *      IALOAD, LALOAD, FALOAD, DALOAD, AALOAD, BALOAD, CALOAD, SALOAD,
    *      IASTORE, LASTORE, FASTORE, DASTORE, AASTORE, BASTORE, CASTORE,
@@ -81,16 +94,6 @@ public interface CodeVisitor {
   void visitInsn (int opcode);
 
   /**
-   * Visits an instruction with a single int operand.
-   *
-   * @param opcode the opcode of the instruction to be visited. This opcode is
-   *      either BIPUSH, SIPUSH or NEWARRAY.
-   * @param operand the operand of the instruction to be visited.
-   */
-
-  void visitIntInsn (int opcode, int operand);
-
-  /**
    * Visits a local variable instruction. A local variable instruction is an
    * instruction that loads or stores the value of a local variable.
    *
@@ -108,10 +111,11 @@ public interface CodeVisitor {
    * takes a type descriptor as parameter.
    *
    * @param opcode the opcode of the type instruction to be visited. This opcode
-   *      is either NEW, ANEWARRAY, CHECKCAST or INSTANCEOF.
+   *      is either NEW, NEWARRAY, ANEWARRAY, CHECKCAST or INSTANCEOF.
    * @param desc the operand of the instruction to be visited. This operand is
    *      must be a fully qualified class name in internal form, or the type
-   *      descriptor of an array type (see {@link Type Type}).
+   *      descriptor of an array type (see {@link Type Type}). For the NEWARRAY
+   *      opcode, it must be the array element (primitive) type descriptor.
    */
 
   void visitTypeInsn (int opcode, String desc);
@@ -293,26 +297,5 @@ public interface CodeVisitor {
    */
 
   void visitLineNumber (int line, Label start);
-
-  // -------------------------------------------------------------------------
-  // Non standard attributes
-  // -------------------------------------------------------------------------
-
-  /**
-   * Visits a non standard attribute of the code. This method must visit only
-   * the first attribute in the given attribute list.
-   *
-   * @param attr a non standard code attribute. Must not be <tt>null</tt>.
-   */
-
-  void visitAttribute (Attribute attr);
-  
-  
-  AnnotationVisitor visitAnnotationDefault ();
-  
-  MetadataVisitor visitParameterAnnotations ( int parameter);
-
-  AnnotationVisitor visitAnnotation( String type, boolean visible);
-
 }
 

@@ -39,8 +39,8 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.TreeClassAdapter;
 
 /**
  * Analysis tests.
@@ -62,11 +62,13 @@ public class AnalysisTest extends TestCase {
     Class c = AnalysisTest.class;
     String u = c.getResource("/java/lang/String.class").toString();
     int n = u.indexOf('!');
-    ZipInputStream zis = new ZipInputStream(new URL(u.substring(4, n)).openStream());
+    ZipInputStream zis = 
+      new ZipInputStream(new URL(u.substring(4, n)).openStream());
     ZipEntry ze = null;
     while ((ze = zis.getNextEntry()) != null) {
       if (ze.getName().endsWith(".class")) {
-        suite.addTest(new AnalysisTest(u.substring(0, n + 2).concat(ze.getName())));
+        suite.addTest(
+          new AnalysisTest(u.substring(0, n + 2).concat(ze.getName())));
       }
     }
     return suite;
@@ -74,16 +76,16 @@ public class AnalysisTest extends TestCase {
   
   public void testAnalysis () throws Exception {
     ClassReader cr = new ClassReader(new URL(className).openStream());
-    TreeClassAdapter ca = new TreeClassAdapter(null);
-    cr.accept(ca, false);
+    ClassNode cn = new ClassNode();
+    cr.accept(cn, false);
     
-    List methods = ca.classNode.methods;
+    List methods = cn.methods;
     for (int i = 0; i < methods.size(); ++i) {
       MethodNode method = (MethodNode)methods.get(i);
       
       if (method.instructions.size() > 0) {
         Analyzer a = new Analyzer(new BasicVerifier());
-        a.analyze(ca.classNode, method);
+        a.analyze(cn, method);
       }
     }
   }

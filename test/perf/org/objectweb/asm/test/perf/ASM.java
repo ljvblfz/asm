@@ -37,7 +37,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.CodeAdapter;
 import org.objectweb.asm.CodeVisitor;
 import org.objectweb.asm.Constants;
-import org.objectweb.asm.Attribute;
 
 import java.io.InputStream;
 
@@ -47,6 +46,8 @@ import java.io.InputStream;
 
 public class ASM extends ALL {
 
+  final static Integer ONE = new Integer(1);
+  
   public static void main (final String args[]) throws Exception {
     System.out.println("ASM PERFORMANCES\n");
     new ASM().perfs(args);
@@ -89,12 +90,11 @@ public class ASM extends ALL {
       int access,
       String name,
       String superName,
-      String[] interfaces,
-      String sourceFile)
+      String[] interfaces)
     {
-      super.visit(version, access, name, superName, interfaces, sourceFile);
+      super.visit(version, access, name, superName, interfaces);
       if ((access & ACC_INTERFACE) == 0) {
-        cv.visitField(ACC_PUBLIC, "_counter", "I", null, null);
+        cv.visitField(ACC_PUBLIC, "_counter", "I", null);
       }
       owner = name;
     }
@@ -103,17 +103,16 @@ public class ASM extends ALL {
       int access,
       String name,
       String desc,
-      String[] exceptions,
-      Attribute attrs)
+      String[] exceptions)
     {
-      CodeVisitor cv = super.visitMethod(access, name, desc, exceptions, attrs);
+      CodeVisitor cv = super.visitMethod(access, name, desc, exceptions);
       if (!name.equals("<init>") &&
           (access & (ACC_STATIC + ACC_NATIVE + ACC_ABSTRACT)) == 0)
       {
         cv.visitVarInsn(ALOAD, 0);
         cv.visitVarInsn(ALOAD, 0);
         cv.visitFieldInsn(GETFIELD, owner, "_counter", "I");
-        cv.visitInsn(ICONST_1);
+        cv.visitLdcInsn(ONE);
         cv.visitInsn(IADD);
         cv.visitFieldInsn(PUTFIELD, owner, "_counter", "I");
         return new CounterCodeAdapter(cv);

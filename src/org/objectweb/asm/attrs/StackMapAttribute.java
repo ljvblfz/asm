@@ -159,6 +159,10 @@ public class StackMapAttribute extends Attribute {
     return null;
   }
 
+  public boolean isCodeAttribute () {
+    return true;
+  }
+  
   protected Attribute read (ClassReader cr, int off, int len,
                             char[] buf, int codeOff, Label[] labels) {
     StackMapAttribute attr = new StackMapAttribute();

@@ -48,7 +48,7 @@ public class Attribute {
    * The next attribute in this attribute list. May be <tt>null</tt>.
    */
 
-  public Attribute next;
+  Attribute next;
 
   /**
    * Constructs a new empty attribute.
@@ -69,6 +69,10 @@ public class Attribute {
   
   public boolean isUnknown () {
     return getClass().getName().equals("org.objectweb.asm.Attribute");
+  }
+  
+  public boolean isCodeAttribute () {
+    return false;
   }
   
   /**
@@ -220,9 +224,6 @@ public class Attribute {
     Attribute attr = this;
     while (attr != null) {
       ByteVector b = attr.write(cw, code, len, maxStack, maxLocals);
-      if (cw.checkAttributes && b.length == 0) {
-        throw new RuntimeException("Unknown attribute type: " + attr.type);
-      }
       out.putShort(cw.newUTF8(attr.type)).putInt(b.length);
       out.putByteArray(b.data, 0, b.length);
       attr = attr.next;

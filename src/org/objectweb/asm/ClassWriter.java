@@ -40,7 +40,7 @@ package org.objectweb.asm;
  * @author Eric Bruneton
  */
 
-public class ClassWriter implements ClassVisitor {
+public class ClassWriter implements ClassVisitor {//TODO extends AttributeWriter (et idem pour CodeWriter)
 
   /**
    * The type of CONSTANT_Class constant pool items.
@@ -177,7 +177,25 @@ public class ClassWriter implements ClassVisitor {
    */
 
   private int sourceFile;
+  
+  /**
+   * TODO.
+   */
+  
+  private ByteVector sourceDebug;
 
+  /**
+   * TODO.
+   */
+  
+  private int enclosingMethodOwner;
+  
+  /**
+   * TODO.
+   */
+  
+  private int enclosingMethod;
+  
   /**
    * Number of fields of this class.
    */
@@ -188,10 +206,8 @@ public class ClassWriter implements ClassVisitor {
    * The fields of this class.
    */
 
-  private ByteVector fields;
+  private AttributeWriter fields;
 
-  private ByteVector classAnnotations;
-  
   /**
    * <tt>true</tt> if the maximum stack size and number of local variables must
    * be automatically computed.
@@ -237,7 +253,7 @@ public class ClassWriter implements ClassVisitor {
    * The non standard attributes of the class.
    */
 
-  private Attribute attrs;
+  private AttributeWriter attrs;
 
   /**
    * A reusable key used to look for items in the hash {@link #items items}.
@@ -318,7 +334,7 @@ public class ClassWriter implements ClassVisitor {
   final static int LABELW_INSN = 9;
 
   /**
-   * The type of the LDC instruction.
+   * The type of LDC like instructions.
    */
 
   final static int LDC_INSN = 10;
@@ -377,7 +393,7 @@ public class ClassWriter implements ClassVisitor {
     int i;
     byte[] b = new byte[220];
     String s =
-      "AAAAAAAAAAAAAAAABCKLLDDDDDEEEEEEEEEEEEEEEEEEEEAAAAAAAADDDDDEEEEEEEEE" +
+      "AAKKKKKKKKKKKKKKBCKLLDDDDDEEEEEEEEEEEEEEEEEEEEAAAAAAAADDDDDEEEEEEEEE" +
       "EEEEEEEEEEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAA" +
       "AAAAAAAAAAAAAAAAAIIIIIIIIIIIIIIIIDNOAAAAAAGGGGGGGHAFBFAAFFAAQPIIJJII" +
       "IIIIIIIIIIIIIIII";
@@ -436,6 +452,9 @@ public class ClassWriter implements ClassVisitor {
     }
 
     // LDC(_W) instructions
+    for (i = 2; i <= 15; ++i) {
+      b[i] = LDC_INSN;
+    }
     b[Constants.LDC] = LDC_INSN;
     b[19] = LDCW_INSN; // LDC_W
     b[20] = LDCW_INSN; // LDC2_W
@@ -500,6 +519,7 @@ public class ClassWriter implements ClassVisitor {
     key = new Item();
     key2 = new Item();
     key3 = new Item();
+    this.attrs = new AttributeWriter(this, 0);
     this.computeMaxs = computeMaxs;
     this.checkAttributes = !skipUnknownAttributes;
   }
@@ -513,9 +533,11 @@ public class ClassWriter implements ClassVisitor {
     final int access,
     final String name,
     final String superName,
-    final String[] interfaces,
-    final String sourceFile)
+    final String[] interfaces)
   {
+    // TODO : if name, superName or one of the interface is a signature
+    // computes the class signature (in attrs.signature), and convert element 
+    // into a descriptor 
     this.version = version;
     this.access = access;
     this.name = newClass(name);
@@ -527,18 +549,33 @@ public class ClassWriter implements ClassVisitor {
         this.interfaces[i] = newClass(interfaces[i]);
       }
     }
-    if (sourceFile != null) {
-      newUTF8("SourceFile");
-      this.sourceFile = newUTF8(sourceFile);
-    }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
-      newUTF8("Deprecated");
-    }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
-      newUTF8("Synthetic");
-    }
+    attrs.access = access;
   }
 
+  public void visitSource (final String file, final String debug) {
+    if (file != null) {
+      newUTF8("SourceFile");
+      sourceFile = newUTF8(file);
+    }
+    if (debug != null) {
+      newUTF8("SourceDebugExtension");
+      sourceDebug = new ByteVector();
+      sourceDebug.putUTF8(debug);
+    }
+  }
+  
+  public void visitOuterClass (
+    final String owner, 
+    final String name, 
+    final String desc) 
+  {
+    newUTF8("EnclosingMethod");
+    enclosingMethodOwner = newClass(owner); 
+    if (name != null && desc != null) {
+      enclosingMethod = newNameType(name, desc);
+    }
+  }
+  
   public void visitInnerClass (
     final String name,
     final String outerName,
@@ -556,65 +593,49 @@ public class ClassWriter implements ClassVisitor {
     innerClasses.putShort(access);
   }
 
-  public MetadataVisitor visitField (
+  public AttributeVisitor visitField (
     final int access,
     final String name,
     final String desc,
-    final Object value,
-    final Attribute attrs)
+    final Object value)
   {
+    // TODO : if desc is a signature, put it in aw.signature, and convert desc 
+    // into a descriptor 
     ++fieldCount;
-    if (fields == null) {
-      fields = new ByteVector();
-    }
-    fields.putShort(access).putShort(newUTF8(name)).putShort(newUTF8(desc));
-    int attributeCount = 0;
-    if (value != null) {
-      ++attributeCount;
-    }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
-      ++attributeCount;
-    }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
-      ++attributeCount;
-    }
-    if (attrs != null) {
-      attributeCount += attrs.getCount();
-    }
-    
-    // TODO calculate annotation attributes or move code below into MetadataWriter
-    fields.putShort(attributeCount);
-    if (value != null) {
-      fields.putShort(newUTF8("ConstantValue"));
-      fields.putInt(2).putShort(newConstItem(value).index);
-    }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
-      fields.putShort(newUTF8("Synthetic")).putInt(0);
-    }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
-      fields.putShort(newUTF8("Deprecated")).putInt(0);
-    }
-    if (attrs != null) {
-      attrs.put(this, null, 0, -1, -1, fields);
-    }
-    return new MetadataWriter( this, fields, false);
+    AttributeWriter aw = new AttributeWriter(this, 0);
+    aw.next = fields;
+    fields = aw;
+    ByteVector bv = new ByteVector();
+    bv.putShort(access).putShort(newUTF8(name)).putShort(newUTF8(desc));
+    aw.bv = bv;
+    aw.access = access;
+    aw.value = value;
+    return aw;
   }
 
   public CodeVisitor visitMethod (
     final int access,
     final String name,
     final String desc,
-    final String[] exceptions,
-    final Attribute attrs)
+    final String[] exceptions)
   {
+    // TODO : if name, desc or one of the exceptions is a signature
+    // computes the method signature (in cw.attrs.signature), and convert 
+    // element into a descriptor 
     CodeWriter cw = new CodeWriter(this, computeMaxs);
-    cw.init(access, name, desc, exceptions, attrs);
+    cw.init(access, name, desc, exceptions);
     return cw;
   }
 
+  public AnnotationVisitor visitAnnotation (
+    final String type, 
+    final boolean visible) 
+  {
+    return attrs.visitAnnotation(type, visible);
+  }
+  
   public void visitAttribute (final Attribute attr) {
-    attr.next = attrs;
-    attrs = attr;
+    attrs.visitAttribute(attr);
   }
 
   public void visitEnd () {
@@ -632,9 +653,11 @@ public class ClassWriter implements ClassVisitor {
 
   public byte[] toByteArray () {
     // computes the real size of the bytecode of this class
-    int size = 24 + 2*interfaceCount;
-    if (fields != null) {
-      size += fields.length;
+    int size = 22 + 2*interfaceCount;
+    AttributeWriter field = fields;
+    while (field != null) {
+      size += field.getSize(null, 0, -1, -1);
+      field = field.next;
     }
     int nbMethods = 0;
     CodeWriter cb = firstMethod;
@@ -648,22 +671,19 @@ public class ClassWriter implements ClassVisitor {
       ++attributeCount;
       size += 8;
     }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
+    if (sourceDebug != null) {
       ++attributeCount;
-      size += 6;
+      size += sourceDebug.length;
     }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
+    if (enclosingMethodOwner != 0) {
       ++attributeCount;
-      size += 6;
+      size += 10;
     }
     if (innerClasses != null) {
       ++attributeCount;
       size += 8 + innerClasses.length;
     }
-    if (attrs != null) {
-      attributeCount += attrs.getCount();
-      size += attrs.getSize(this, null, 0, -1, -1);
-    }
+    size += attrs.getSize(null, 0, -1, -1);
     size += pool.length;
     // allocates a byte vector of this size, in order to avoid unnecessary
     // arraycopy operations in the ByteVector.enlarge() method
@@ -677,7 +697,11 @@ public class ClassWriter implements ClassVisitor {
     }
     out.putShort(fieldCount);
     if (fields != null) {
-      out.putByteArray(fields.data, 0, fields.length);
+      field = fields;
+      while (field != null) {
+        field.put(0, null, 0, -1, -1, out);
+        field = field.next;
+      }
     }
     out.putShort(nbMethods);
     cb = firstMethod;
@@ -685,27 +709,24 @@ public class ClassWriter implements ClassVisitor {
       cb.put(out);
       cb = cb.next;
     }
-    out.putShort(attributeCount);
+    attrs.put(attributeCount, null, 0, -1, -1, out);
     if (sourceFile != 0) {
       out.putShort(newUTF8("SourceFile")).putInt(2).putShort(sourceFile);
     }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
-      out.putShort(newUTF8("Deprecated")).putInt(0);
+    if (sourceDebug != null) {
+      int len = sourceDebug.length;
+      out.putShort(newUTF8("SourceDebugExtension")).putInt(len);
+      out.putByteArray(sourceDebug.data, 0, len);
     }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
-      out.putShort(newUTF8("Synthetic")).putInt(0);
+    if (enclosingMethodOwner != 0) {
+      out.putShort(newUTF8("EnclosingMethod")).putInt(4);
+      out.putShort(enclosingMethodOwner).putShort(enclosingMethod);
     }
     if (innerClasses != null) {
       out.putShort(newUTF8("InnerClasses"));
       out.putInt(innerClasses.length + 2).putShort(innerClassesCount);
       out.putByteArray(innerClasses.data, 0, innerClasses.length);
     }
-    if (attrs != null) {
-      attrs.put(this, null, 0, -1, -1, out);
-    }
-    
-    // TODO save class annotations
-    
     return out.data;
   }
 
@@ -725,38 +746,28 @@ public class ClassWriter implements ClassVisitor {
    */
 
   Item newConstItem (final Object cst) {
-    if (cst instanceof Integer ) {
-      return newInteger((( Integer) cst).intValue());
-
-    } else if (cst instanceof Boolean ) {
-      return newInteger((( Boolean) cst).booleanValue() ? 0 : 1); // TODO verify this
-    
-    } else if (cst instanceof Character ) {
-      return newInteger((( Character) cst).charValue());
-    
-    } else if (cst instanceof Byte ) {
-      return newInteger((( Byte) cst).intValue());
-    
-    } else if (cst instanceof Short ) {
-      return newInteger((( Short) cst).intValue());
-    
+    if (cst instanceof Integer) {
+      return newInteger(((Integer)cst).intValue());
+    } else if (cst instanceof Boolean) {
+      return newInteger(((Boolean)cst).booleanValue() ? 1 : 0);
+    } else if (cst instanceof Character) {
+      return newInteger(((Character)cst).charValue());
+    } else if (cst instanceof Byte) {
+      return newInteger(((Byte)cst).intValue());
+    } else if (cst instanceof Short) {
+      return newInteger(((Short)cst).intValue());
     } else if (cst instanceof Float) {
       return newFloat(((Float)cst).floatValue());
-    
     } else if (cst instanceof Long) {
       return newLong(((Long)cst).longValue());
-    
     } else if (cst instanceof Double) {
       return newDouble(((Double)cst).doubleValue());
-    
     } else if (cst instanceof String) {
       return newString((String)cst);
-    
     } else if (cst instanceof Type) {
       Type t = (Type)cst;
       return newClassItem(
         t.getSort() == Type.OBJECT ? t.getInternalName() : t.getDescriptor());
-    
     } else {
       throw new IllegalArgumentException("value " + cst);
     }
@@ -825,7 +836,7 @@ public class ClassWriter implements ClassVisitor {
    * @return a new or already existing class reference item.
    */
   
-  private Item newClassItem (final String value) {
+  Item newClassItem (final String value) {
     key2.set(CLASS, value, null, null);
     Item result = get(key2);
     if (result == null) {
@@ -920,7 +931,7 @@ public class ClassWriter implements ClassVisitor {
    * @return a new or already existing int item.
    */
 
-  private Item newInteger (final int value) {
+  Item newInteger (final int value) {
     key.set(value);
     Item result = get(key);
     if (result == null) {
@@ -939,7 +950,7 @@ public class ClassWriter implements ClassVisitor {
    * @return a new or already existing float item.
    */
 
-  private Item newFloat (final float value) {
+  Item newFloat (final float value) {
     key.set(value);
     Item result = get(key);
     if (result == null) {
@@ -958,7 +969,7 @@ public class ClassWriter implements ClassVisitor {
    * @return a new or already existing long item.
    */
 
-  private Item newLong (final long value) {
+  Item newLong (final long value) {
     key.set(value);
     Item result = get(key);
     if (result == null) {
@@ -978,7 +989,7 @@ public class ClassWriter implements ClassVisitor {
    * @return a new or already existing double item.
    */
 
-  private Item newDouble (final double value) {
+  Item newDouble (final double value) {
     key.set(value);
     Item result = get(key);
     if (result == null) {
@@ -998,7 +1009,7 @@ public class ClassWriter implements ClassVisitor {
    * @return a new or already existing string item.
    */
 
-  private Item newString (final String value) {
+  Item newString (final String value) {
     key2.set(STR, value, null, null);
     Item result = get(key2);
     if (result == null) {
@@ -1091,10 +1102,5 @@ public class ClassWriter implements ClassVisitor {
   private void put122 (final int b, final int s1, final int s2) {
     pool.put12(b, s1).putShort(s2);
   }
-
-  public AnnotationVisitor visitAnnotation( String type, boolean visible) {
-    return new AnnotationWriter( this, classAnnotations);
-  }
-  
 }
 

@@ -1,4 +1,4 @@
-/**
+/***
  * ASM: a very small and fast Java bytecode manipulation framework
  * Copyright (c) 2000,2002,2003 INRIA, France Telecom
  * All rights reserved.
@@ -28,51 +28,19 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.objectweb.asm.attrs;
-
-import org.objectweb.asm.Label;
+package org.objectweb.asm;
 
 
 /**
- * Container type info used by {@link LocalVariableTypeTableAttribute}.
- * 
+ * AttributeVisitor
+ *
  * @author Eugene Kuleshov
  */
-public class LocalVariableType {
-  
-  public int index;
-  public String name;
-  public String signature;
-  public Label start;
-  public Label end;
-  
-  public int getIndex() {
-    return index;
-  }
 
-  public String getName() {
-    return name;
-  }
-  
-  public String getSignature() {
-    return signature;
-  }
-  
-  public Label getStart() {
-    return start;
-  }
-  
-  public Label getEnd() {
-    return end;
-  }
+public interface AttributeVisitor {
 
-  public String toString() {
-    StringBuffer sb = new StringBuffer( index).append( " : ")
-      .append( name).append( " ").append( signature)
-      .append( "[L").append( System.identityHashCode(start))
-      .append( " - L").append( System.identityHashCode(end)).append( "]");
-    return sb.toString();
-  }
-  
+  AnnotationVisitor visitAnnotation (String type, boolean visible);
+
+  void visitAttribute (Attribute attr);
+
 }
-

@@ -30,9 +30,9 @@
 
 package org.objectweb.asm.util;
 
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.CodeVisitor;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Type;
 
 import java.util.HashMap;
@@ -44,7 +44,9 @@ import java.util.HashMap;
  * @author Eric Bruneton
  */
 
-public class TraceCodeVisitor extends PrintCodeVisitor {
+public class TraceCodeVisitor extends TraceAttributeVisitor 
+  implements CodeVisitor
+{
 
   /**
    * The {@link CodeVisitor CodeVisitor} to which this visitor delegates calls.
@@ -67,61 +69,84 @@ public class TraceCodeVisitor extends PrintCodeVisitor {
    */
 
   public TraceCodeVisitor (final CodeVisitor cv) {
+    super(cv);
     this.cv = cv;
     this.labelNames = new HashMap();
   }
 
-  public void printInsn (final int opcode) {
+  public AnnotationVisitor visitAnnotationDefault () {
+    text.add("  default=");
+    TraceAnnotationVisitor tav = new TraceAnnotationVisitor(
+      cv == null ?  null : cv.visitAnnotationDefault());
+    text.add(tav.getText());
+    text.add("\n");
+    return tav;
+  }
+  
+  public AnnotationVisitor visitParameterAnnotation (
+    final int parameter,
+    final String type,
+    final boolean visible)
+  {
+    buf.setLength(0);
+    buf.append("  @").append(type).append('(');
+    text.add(buf.toString());
+    TraceAnnotationVisitor tav = new TraceAnnotationVisitor(
+      cv == null ? null : cv.visitParameterAnnotation(parameter, type, visible));
+    text.add(tav.getText());
+    text.add(visible ? ") // parameter " : ") // invisible, parameter ");
+    text.add(new Integer(parameter));
+    text.add("\n");
+    return tav;
+  }
+  
+  public void visitInsn (final int opcode) {
+    buf.setLength(0);
     buf.append("    ")
       .append(OPCODES[opcode])
       .append("\n");
+    text.add(buf.toString());
 
     if (cv != null) {
       cv.visitInsn(opcode);
     }
   }
 
-  public void printIntInsn (final int opcode, final int operand) {
-    buf.append("    ")
-      .append(OPCODES[opcode])
-      .append(" ").append(operand)
-      .append("\n");
-
-    if (cv != null) {
-      cv.visitIntInsn(opcode, operand);
-    }
-  }
-
-  public void printVarInsn (final int opcode, final int var) {
+  public void visitVarInsn (final int opcode, final int var) {
+    buf.setLength(0);
     buf.append("    ")
       .append(OPCODES[opcode])
       .append(" ")
       .append(var)
       .append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitVarInsn(opcode, var);
     }
   }
 
-  public void printTypeInsn (final int opcode, final String desc) {
+  public void visitTypeInsn (final int opcode, final String desc) {
+    buf.setLength(0);
     buf.append("    ")
       .append(OPCODES[opcode])
       .append(" ")
       .append(desc)
       .append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitTypeInsn(opcode, desc);
     }
   }
 
-  public void printFieldInsn (
+  public void visitFieldInsn (
     final int opcode,
     final String owner,
     final String name,
     final String desc)
   {
+    buf.setLength(0);
     buf.append("    ")
       .append(OPCODES[opcode])
       .append(" ")
@@ -131,18 +156,20 @@ public class TraceCodeVisitor extends PrintCodeVisitor {
       .append(" ")
       .append(desc)
       .append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitFieldInsn(opcode, owner, name, desc);
     }
   }
 
-  public void printMethodInsn (
+  public void visitMethodInsn (
     final int opcode,
     final String owner,
     final String name,
     final String desc)
   {
+    buf.setLength(0);
     buf.append("    ")
       .append(OPCODES[opcode])
       .append(" ")
@@ -152,36 +179,39 @@ public class TraceCodeVisitor extends PrintCodeVisitor {
       .append(" ")
       .append(desc)
       .append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitMethodInsn(opcode, owner, name, desc);
     }
   }
 
-  public void printJumpInsn (final int opcode, final Label label) {
-    buf.append("    ")
-      .append(OPCODES[opcode]).
-      append(" ");
+  public void visitJumpInsn (final int opcode, final Label label) {
+    buf.setLength(0);
+    buf.append("    ").append(OPCODES[opcode]).append(" ");
     appendLabel(label);
     buf.append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitJumpInsn(opcode, label);
     }
   }
 
-  public void printLabel (final Label label) {
+  public void visitLabel (final Label label) {
+    buf.setLength(0);
     buf.append("   ");
     appendLabel(label);
-    // buf.append(":  // ").append(label).append("\n");
     buf.append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitLabel(label);
     }
   }
 
-  public void printLdcInsn (final Object cst) {
+  public void visitLdcInsn (final Object cst) {
+    buf.setLength(0);
     buf.append("    LDC ");
     if (cst instanceof String) {
       buf.append("\"").append(cst).append("\"");
@@ -191,30 +221,34 @@ public class TraceCodeVisitor extends PrintCodeVisitor {
       buf.append(cst);
     }
     buf.append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitLdcInsn(cst);
     }
   }
 
-  public void printIincInsn (final int var, final int increment) {
+  public void visitIincInsn (final int var, final int increment) {
+    buf.setLength(0);
     buf.append("    IINC ")
       .append(var)
       .append(" ")
       .append(increment)
       .append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitIincInsn(var, increment);
     }
   }
 
-  public void printTableSwitchInsn (
+  public void visitTableSwitchInsn (
     final int min,
     final int max,
     final Label dflt,
     final Label labels[])
   {
+    buf.setLength(0);
     buf.append("    TABLESWITCH\n");
     for (int i = 0; i < labels.length; ++i) {
       buf.append("      ")
@@ -226,17 +260,19 @@ public class TraceCodeVisitor extends PrintCodeVisitor {
     buf.append("      default: ");
     appendLabel(dflt);
     buf.append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitTableSwitchInsn(min, max, dflt, labels);
     }
   }
 
-  public void printLookupSwitchInsn (
+  public void visitLookupSwitchInsn (
     final Label dflt,
     final int keys[],
     final Label labels[])
   {
+    buf.setLength(0);
     buf.append("    LOOKUPSWITCH\n");
     for (int i = 0; i < labels.length; ++i) {
       buf.append("      ")
@@ -248,30 +284,34 @@ public class TraceCodeVisitor extends PrintCodeVisitor {
     buf.append("      default: ");
     appendLabel(dflt);
     buf.append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitLookupSwitchInsn(dflt, keys, labels);
     }
   }
 
-  public void printMultiANewArrayInsn (final String desc, final int dims) {
+  public void visitMultiANewArrayInsn (final String desc, final int dims) {
+    buf.setLength(0);
     buf.append("    MULTIANEWARRAY ")
       .append(desc)
       .append(" ")
       .append(dims)
       .append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitMultiANewArrayInsn(desc, dims);
     }
   }
 
-  public void printTryCatchBlock (
+  public void visitTryCatchBlock (
     final Label start,
     final Label end,
     final Label handler,
     final String type)
   {
+    buf.setLength(0);
     buf.append("    TRYCATCHBLOCK ");
     appendLabel(start);
     buf.append(" ");
@@ -281,31 +321,35 @@ public class TraceCodeVisitor extends PrintCodeVisitor {
     buf.append(" ")
       .append(type)
       .append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitTryCatchBlock(start, end, handler, type);
     }
   }
 
-  public void printMaxs (final int maxStack, final int maxLocals) {
+  public void visitMaxs (final int maxStack, final int maxLocals) {
+    buf.setLength(0);
     buf.append("    MAXSTACK = ")
       .append(maxStack)
       .append("\n    MAXLOCALS = ")
       .append(maxLocals)
-      .append("\n\n");
-
+      .append("\n");
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitMaxs(maxStack, maxLocals);
     }
   }
 
-  public void printLocalVariable (
+  public void visitLocalVariable (
     final String name,
     final String desc,
     final Label start,
     final Label end,
     final int index)
   {
+    buf.setLength(0);
     buf.append("    LOCALVARIABLE ")
       .append(name)
       .append(" ")
@@ -317,30 +361,24 @@ public class TraceCodeVisitor extends PrintCodeVisitor {
     buf.append(" ")
       .append(index)
       .append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitLocalVariable(name, desc, start, end, index);
     }
   }
 
-  public void printLineNumber (final int line, final Label start) {
+  public void visitLineNumber (final int line, final Label start) {
+    buf.setLength(0);
     buf.append("    LINENUMBER ")
       .append(line)
       .append(" ");
     appendLabel(start);
     buf.append("\n");
-
+    text.add(buf.toString());
+    
     if (cv != null) {
       cv.visitLineNumber(line, start);
-    }
-  }
-
-  public void printAttribute (final Attribute attr) {
-    buf.append("    CODE ATTRIBUTE ").append(attr.type).append(" : ")
-      .append(attr.toString()).append("\n");
-
-    if (cv != null) {
-      cv.visitAttribute(attr);
     }
   }
 

@@ -159,11 +159,21 @@ public class ASMifierAbstractVisitor extends AbstractVisitor {
     } else if (cst instanceof Integer) {
       buf.append("new Integer(").append(cst).append(")");
     } else if (cst instanceof Float) {
-      buf.append("new Float(").append(cst).append("F)");
+      Float f = (Float)cst;
+      if (f.isInfinite() || f.isNaN()) {
+        buf.append("new Float(\"").append(cst).append("\")");
+      } else {
+        buf.append("new Float(").append(cst).append("F)");
+      }
     } else if (cst instanceof Long) {
       buf.append("new Long(").append(cst).append("L)");
     } else if (cst instanceof Double) {
-      buf.append("new Double(").append(cst).append(")");
+      Double d = (Double)cst;
+      if (d.isInfinite() || d.isNaN()) {
+        buf.append("new Double(\"").append(cst).append("\")");
+      } else {
+        buf.append("new Double(").append(cst).append(")");
+      }
     }
   }
 }

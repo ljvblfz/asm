@@ -632,9 +632,7 @@ public class ClassWriter implements ClassVisitor {
     final String signature,
     final String[] exceptions)
   {
-    MethodWriter cw = new MethodWriter(this, computeMaxs);
-    cw.init(access, name, desc, signature, exceptions);
-    return cw;
+    return new MethodWriter(this, access, name, desc, signature, exceptions, computeMaxs);
   }
 
   public void visitEnd () {

@@ -37,8 +37,8 @@ package org.objectweb.asm;
  * 
  * @author Eric Bruneton
  */
-
-public class MethodWriter implements MethodVisitor {
+ 
+class MethodWriter implements MethodVisitor {
 
   /**
    * Next method writer (see {@link ClassWriter#firstMethod firstMethod}).
@@ -518,11 +518,25 @@ public class MethodWriter implements MethodVisitor {
    * Constructs a new {@link MethodWriter}.
    *
    * @param cw the class writer in which the method must be added.
+   * @param access the method's access flags (see {@link Opcodes}).
+   * @param name the method's name.
+   * @param desc the method's descriptor (see {@link Type}).
+   * @param signature the method's signature. May be <tt>null</tt>.
+   * @param exceptions the internal names of the method's exceptions. May be
+   *      <tt>null</tt>.
    * @param computeMaxs <tt>true</tt> if the maximum stack size and number of
    *      local variables must be automatically computed.
    */
 
-  protected MethodWriter (final ClassWriter cw, final boolean computeMaxs) {
+  MethodWriter (
+    final ClassWriter cw, 
+    final int access,
+    final String name,
+    final String desc,
+    final String signature,
+    final String[] exceptions,
+    final boolean computeMaxs) 
+  {
     if (cw.firstMethod == null) {
       cw.firstMethod = this;
     } else {
@@ -530,34 +544,6 @@ public class MethodWriter implements MethodVisitor {
     }
     cw.lastMethod = this;
     this.cw = cw;
-    this.computeMaxs = computeMaxs;
-    if (computeMaxs) {
-      // pushes the first block onto the stack of blocks to be visited
-      currentBlock = new Label();
-      currentBlock.pushed = true;
-      blockStack = currentBlock;
-    }
-  }
-
-  /**
-   * Initializes this MethodWriter to define the bytecode of the specified 
-   * method.
-   *
-   * @param access the method's access flags (see {@link Opcodes}).
-   * @param name the method's name.
-   * @param desc the method's descriptor (see {@link Type}).
-   * @param signature the method's signature. May be <tt>null</tt>.
-   * @param exceptions the internal names of the method's exceptions. May be
-   *      <tt>null</tt>.
-   */
-
-  protected void init (
-    final int access,
-    final String name,
-    final String desc,
-    final String signature,
-    final String[] exceptions)
-  {
     this.access = access;
     this.name = cw.newUTF8(name);
     this.desc = cw.newUTF8(desc);
@@ -571,15 +557,18 @@ public class MethodWriter implements MethodVisitor {
         this.exceptions[i] = cw.newClass(exceptions[i]);
       }
     }
+    this.computeMaxs = computeMaxs;
     if (computeMaxs) {
       // updates maxLocals
       int size = getArgumentsAndReturnSizes(desc) >> 2;
       if ((access & Opcodes.ACC_STATIC) != 0) {
         --size;
       }
-      if (size > maxLocals) {
-        maxLocals = size;
-      }
+      maxLocals = size;
+      // pushes the first block onto the stack of blocks to be visited
+      currentBlock = new Label();
+      currentBlock.pushed = true;
+      blockStack = currentBlock;
     }
   }
 
@@ -1442,7 +1431,7 @@ public class MethodWriter implements MethodVisitor {
    *      the resized instructions (designated as above).
    */
 
-  protected int[] resizeInstructions (
+  private int[] resizeInstructions (
     final int[] indexes,
     final int[] sizes,
     final int len)
@@ -1908,32 +1897,5 @@ public class MethodWriter implements MethodVisitor {
       }
     }
     return offset;
-  }
-
-  /**
-   * Returns the current size of the bytecode of this method. This size just
-   * includes the size of the bytecode instructions: it does not include the
-   * size of the Exceptions, LocalVariableTable, LineNumberTable, Synthetic
-   * and Deprecated attributes, if present.
-   *
-   * @return the current size of the bytecode of this method.
-   */
-
-  public int getCodeSize () {
-    return code.length;
-  }
-
-  /**
-   * Returns the current bytecode of this method. This bytecode only contains
-   * the instructions: it does not include the Exceptions, LocalVariableTable,
-   * LineNumberTable, Synthetic and Deprecated attributes, if present.
-   *
-   * @return the current bytecode of this method. The bytecode is contained
-   *      between the index 0 (inclusive) and the index {@link #getCodeSize
-   *      getCodeSize} (exclusive).
-   */
-
-  public byte[] getCode () {
-    return code.data;
   }
 }

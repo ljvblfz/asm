@@ -163,7 +163,7 @@ public class LocalVariableTypeTableAttribute extends Attribute {
       t.signature = cr.readUTF8( off + 6, buf);
       t.index = cr.readUnsignedShort( off + 8);
       off += 10;
-      types.add(t);
+      attr.types.add(t);
     }
     return attr;
   }

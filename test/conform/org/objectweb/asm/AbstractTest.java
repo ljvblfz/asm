@@ -68,6 +68,7 @@ public abstract class AbstractTest extends TestCase {
   protected TestSuite getSuite () throws Exception {
     TestSuite suite = new TestSuite();
     String file = System.getProperty("asm.test");
+    String clazz = System.getProperty("asm.test.class");
     ZipFile zip = new ZipFile(file);
     Enumeration entries = zip.entries();
     while (entries.hasMoreElements()) {
@@ -75,10 +76,12 @@ public abstract class AbstractTest extends TestCase {
       String n = e.getName();
       if (n.endsWith(".class")) {
         n = n.substring(0, n.length() - 6).replace('/', '.');
-        InputStream is = zip.getInputStream(e);
-        AbstractTest t = (AbstractTest)getClass().newInstance();
-        t.init(n, is);
-        suite.addTest(t);
+        if (clazz == null || n.indexOf(clazz) != -1) {
+          InputStream is = zip.getInputStream(e);
+          AbstractTest t = (AbstractTest)getClass().newInstance();
+          t.init(n, is);
+          suite.addTest(t);
+        }
       }
     }
     return suite;

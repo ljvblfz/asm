@@ -232,7 +232,6 @@ final class AnnotationWriter implements AnnotationVisitor {
       last = aw;
       aw = aw.next;
     }
-    int off = out.length;
     out.putInt(size);
     out.putShort(n);
     aw = last;

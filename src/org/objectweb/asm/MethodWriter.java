@@ -1051,7 +1051,7 @@ public class MethodWriter implements MethodVisitor {
         putShort(start.position)
         .putShort(end.position - start.position)
         .putShort(cw.newUTF8(name))
-        .putShort(cw.newUTF8(desc))
+        .putShort(cw.newUTF8(signature))
         .putShort(index);
     }
     if (localVar == null) {

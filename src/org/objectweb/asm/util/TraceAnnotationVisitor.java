@@ -57,7 +57,7 @@ public class TraceAnnotationVisitor extends AbstractVisitor
   public void visit (final String name, final Object value) {
     buf.setLength(0);
     if (name != null) {
-      buf.append(name).append("=");
+      buf.append(name).append('=');
     }
     buf.append(value);
     text.add(buf.toString());
@@ -70,9 +70,10 @@ public class TraceAnnotationVisitor extends AbstractVisitor
   {
     buf.setLength(0);
     if (name != null) {
-      buf.append(name).append("=");
+      buf.append(name).append('=');
     }
-    buf.append(desc).append('.').append(value);
+    appendDescriptor(desc);
+    buf.append('.').append(value);
     text.add(buf.toString());
   }
 
@@ -84,7 +85,9 @@ public class TraceAnnotationVisitor extends AbstractVisitor
     if (name != null) {
       buf.append(name).append('=');
     }
-    buf.append('@').append(desc).append('(');
+    buf.append('@');
+    appendDescriptor(desc);
+    buf.append('(');
     text.add(buf.toString());
     TraceAnnotationVisitor tav = new TraceAnnotationVisitor();
     text.add(tav.getText());
@@ -95,7 +98,7 @@ public class TraceAnnotationVisitor extends AbstractVisitor
   public AnnotationVisitor visitArray (final String name) {
     buf.setLength(0);
     if (name != null) {
-      buf.append(name).append("=");
+      buf.append(name).append('=');
     }
     buf.append('{');
     text.add(buf.toString());
@@ -106,5 +109,17 @@ public class TraceAnnotationVisitor extends AbstractVisitor
   }
 
   public void visitEnd () {
+  }
+
+  /**
+   * Appends an internal name, a type descriptor or a type signature to 
+   * {@link #buf buf}.  
+   * 
+   * @param desc an internal name, type descriptor, or type signature. May be 
+   *      <tt>null</tt>.
+   */
+
+  protected void appendDescriptor (final String desc) {
+    buf.append(desc);
   }
 }

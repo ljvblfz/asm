@@ -73,7 +73,7 @@ public class ASMifierAbstractVisitor extends AbstractVisitor {
   {
     buf.setLength(0);
     buf.append("{\n").append("av0 = ").append(name).append(".visitAnnotation(");
-    appendConstant(buf, desc);
+    appendConstant(desc);
     buf.append(", ").append(visible).append(");\n");
     text.add(buf.toString());
     ASMifierAnnotationVisitor av = new ASMifierAnnotationVisitor(0);
@@ -116,6 +116,17 @@ public class ASMifierAbstractVisitor extends AbstractVisitor {
   /**
    * Appends a string representation of the given constant to the given buffer.
    *
+   * @param cst an {@link Integer}, {@link Float}, {@link Long}, {@link Double}
+   *      or {@link String} object. May be <tt>null</tt>.
+   */
+
+  void appendConstant (final Object cst) {
+    appendConstant(buf, cst);
+  }
+  
+  /**
+   * Appends a string representation of the given constant to the given buffer.
+   *
    * @param buf a string buffer.
    * @param cst an {@link Integer}, {@link Float}, {@link Long}, {@link Double}
    *      or {@link String} object. May be <tt>null</tt>.
@@ -125,33 +136,7 @@ public class ASMifierAbstractVisitor extends AbstractVisitor {
     if (cst == null) {
       buf.append("null");
     } else if (cst instanceof String) {
-      String s = (String)cst;
-      buf.append("\"");
-      for (int i = 0; i < s.length(); ++i) {
-        char c = s.charAt(i);
-        if (c == '\n') {
-          buf.append("\\n");
-        } else if (c == '\r') {
-           buf.append("\\r");
-        } else if (c == '\\') {
-          buf.append("\\\\");
-        } else if (c == '"') {
-          buf.append("\\\"");
-        } else if (c < 0x20 || c > 0x7f) {
-          buf.append("\\u");
-          if (c < 0x10) {
-            buf.append("000");
-          } else if (c < 0x100) {
-            buf.append("00");
-          } else if (c < 0x1000) {
-            buf.append("0");
-          }
-          buf.append(Integer.toString( c, 16));
-        } else {
-          buf.append(c);
-        }
-      }
-      buf.append("\"");
+      appendString(buf, (String)cst);
     } else if (cst instanceof Type) {
       buf.append("Type.getType(\"");
       buf.append(((Type)cst).getDescriptor());

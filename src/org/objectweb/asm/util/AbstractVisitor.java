@@ -296,6 +296,42 @@ public abstract class AbstractVisitor {
   }
 
   /**
+   * Appends a quoted string to a given buffer.
+   * 
+   * @param buf the buffer where the string must be added.
+   * @param s the string to be added.
+   */
+  
+  public static void appendString (final StringBuffer buf, final String s) {
+    buf.append("\"");
+    for (int i = 0; i < s.length(); ++i) {
+      char c = s.charAt(i);
+      if (c == '\n') {
+        buf.append("\\n");
+      } else if (c == '\r') {
+         buf.append("\\r");
+      } else if (c == '\\') {
+        buf.append("\\\\");
+      } else if (c == '"') {
+        buf.append("\\\"");
+      } else if (c < 0x20 || c > 0x7f) {
+        buf.append("\\u");
+        if (c < 0x10) {
+          buf.append("000");
+        } else if (c < 0x100) {
+          buf.append("00");
+        } else if (c < 0x1000) {
+          buf.append("0");
+        }
+        buf.append(Integer.toString( c, 16));
+      } else {
+        buf.append(c);
+      }
+    }
+    buf.append("\"");  
+  }
+
+  /**
    * Prints the given string tree.
    *
    * @param pw the writer to be used to print the tree.

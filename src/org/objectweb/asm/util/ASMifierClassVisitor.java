@@ -223,17 +223,17 @@ public class ASMifierClassVisitor extends ASMifierAbstractVisitor
     buf.append(", ");
     appendAccess(access | ACCESS_CLASS);
     buf.append(", ");
-    appendConstant(buf, name);
+    appendConstant(name);
     buf.append(", ");
-    appendConstant(buf, signature);
+    appendConstant(signature);
     buf.append(", ");
-    appendConstant(buf, superName);
+    appendConstant(superName);
     buf.append(", ");
     if (interfaces != null && interfaces.length > 0) {
       buf.append("new String[] {");
       for (int i = 0; i < interfaces.length; ++i) {
         buf.append(i == 0 ? " " : ", ");
-        appendConstant(buf, interfaces[i]);
+        appendConstant(interfaces[i]);
       }
       buf.append(" }");
     } else {
@@ -246,9 +246,9 @@ public class ASMifierClassVisitor extends ASMifierAbstractVisitor
   public void visitSource (final String file, final String debug) {
     buf.setLength(0);
     buf.append("cw.visitSource(");
-    appendConstant(buf, file);
+    appendConstant(file);
     buf.append(", ");
-    appendConstant(buf, debug);
+    appendConstant(debug);
     buf.append(");\n\n");
     text.add(buf.toString());
   }
@@ -260,11 +260,11 @@ public class ASMifierClassVisitor extends ASMifierAbstractVisitor
   {
     buf.setLength(0);
     buf.append("cw.visitOuterClass(");
-    appendConstant(buf, owner);
+    appendConstant(owner);
     buf.append(", ");
-    appendConstant(buf, name);
+    appendConstant(name);
     buf.append(", ");
-    appendConstant(buf, desc);
+    appendConstant(desc);
     buf.append(");\n\n");
     text.add(buf.toString());
   }
@@ -277,11 +277,11 @@ public class ASMifierClassVisitor extends ASMifierAbstractVisitor
   {
     buf.setLength(0);
     buf.append("cw.visitInnerClass(");
-    appendConstant(buf, name);
+    appendConstant(name);
     buf.append(", ");
-    appendConstant(buf, outerName);
+    appendConstant(outerName);
     buf.append(", ");
-    appendConstant(buf, innerName);
+    appendConstant(innerName);
     buf.append(", ");
     appendAccess(access);
     buf.append(");\n\n");
@@ -300,13 +300,13 @@ public class ASMifierClassVisitor extends ASMifierAbstractVisitor
     buf.append("fv = cw.visitField(");
     appendAccess(access | ACCESS_FIELD);
     buf.append(", ");
-    appendConstant(buf, name);
+    appendConstant(name);
     buf.append(", ");
-    appendConstant(buf, desc);
+    appendConstant(desc);
     buf.append(", ");
-    appendConstant(buf, signature);
+    appendConstant(signature);
     buf.append(", ");
-    appendConstant(buf, value);
+    appendConstant(value);
     buf.append(");\n");
     text.add(buf.toString());
     ASMifierFieldVisitor aav = new ASMifierFieldVisitor();
@@ -327,17 +327,17 @@ public class ASMifierClassVisitor extends ASMifierAbstractVisitor
     buf.append("mv = cw.visitMethod(");
     appendAccess(access);
     buf.append(", ");
-    appendConstant(buf, name);
+    appendConstant(name);
     buf.append(", ");
-    appendConstant(buf, desc);
+    appendConstant(desc);
     buf.append(", ");
-    appendConstant(buf, signature);
+    appendConstant(signature);
     buf.append(", ");
     if (exceptions != null && exceptions.length > 0) {
       buf.append("new String[] {");
       for (int i = 0; i < exceptions.length; ++i) {
         buf.append(i == 0 ? " " : ", ");
-        appendConstant(buf, exceptions[i]);
+        appendConstant(exceptions[i]);
       }
       buf.append(" }");
     } else {
@@ -358,7 +358,7 @@ public class ASMifierClassVisitor extends ASMifierAbstractVisitor
     buf.setLength(0);
     buf.append("{\n");
     buf.append("av0 = cw.visitAnnotation(");
-    appendConstant(buf, desc);
+    appendConstant(desc);
     buf.append(", ");
     buf.append(visible);
     buf.append(");\n");

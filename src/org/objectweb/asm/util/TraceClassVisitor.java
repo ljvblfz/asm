@@ -174,11 +174,17 @@ public class TraceClassVisitor extends TraceAbstractVisitor
     int major = version & 0xFFFF;
     int minor = version >>> 16;
     buf.setLength(0);
-    buf.append("// class version " + major + "." + minor + " (" + version + ")\n");
+    buf.append("// class version ")
+      .append(major)
+      .append('.')
+      .append(minor)
+      .append(" (")
+      .append(version)
+      .append(")\n");
     if ((access & Opcodes.ACC_DEPRECATED) != 0) {
       buf.append("// DEPRECATED\n");
     }
-    buf.append("// access flags ").append(access).append("\n");
+    buf.append("// access flags ").append(access).append('\n');
     appendAccess(access & ~Opcodes.ACC_SUPER);
     if ((access & Opcodes.ACC_INTERFACE) != 0) {
       buf.append("interface ");
@@ -187,18 +193,24 @@ public class TraceClassVisitor extends TraceAbstractVisitor
     } else {
       buf.append("class ");
     }
-    buf.append(name).append(" ");
+    appendDescriptor(name);
+    buf.append(' ');
     if (superName != null && !superName.equals("java/lang/Object")) {
-      buf.append("extends ").append(superName).append(" ");
+      buf.append("extends ");
+      appendDescriptor(superName);
+      buf.append(' ');
     }
     if (interfaces != null && interfaces.length > 0) {
       buf.append("implements ");
       for (int i = 0; i < interfaces.length; ++i) {
-        buf.append(interfaces[i]).append(" ");
+        appendDescriptor(interfaces[i]);
+        buf.append(' ');
       }
     }
     if (signature != null) {
-      buf.append("/* ").append(signature).append(" */ {\n\n");
+      buf.append("/* ");
+      appendDescriptor(signature);
+      buf.append(" */ {\n\n");
     } else {
       buf.append("{\n\n");
     }
@@ -209,10 +221,10 @@ public class TraceClassVisitor extends TraceAbstractVisitor
   public void visitSource (final String file, final String debug) {
     buf.setLength(0);
     if (file != null) {
-      buf.append("  // compiled from: ").append(file).append("\n");
+      buf.append(tab).append("// compiled from: ").append(file).append('\n');
     }
     if (debug != null) {
-      buf.append("  // debug info: ").append(debug).append("\n");
+      buf.append(tab).append("// debug info: ").append(debug).append('\n');
     }
     if (buf.length() > 0) {
       text.add(buf.toString());
@@ -225,13 +237,11 @@ public class TraceClassVisitor extends TraceAbstractVisitor
     final String desc)
   {
     buf.setLength(0);
-    buf.append("  OUTERCLASS ")
-      .append(owner)
-      .append(" ")
-      .append(name)
-      .append(" ")
-      .append(desc)
-      .append("\n");
+    buf.append(tab).append("OUTERCLASS ");
+    appendDescriptor(owner);
+    buf.append(' ').append(name).append(' ');
+    appendDescriptor(desc);
+    buf.append('\n');
     text.add(buf.toString());
   }
 
@@ -242,15 +252,13 @@ public class TraceClassVisitor extends TraceAbstractVisitor
     final int access)
   {
     buf.setLength(0);
-    buf.append("  INNERCLASS ")
-      .append(name)
-      .append(" ")
-      .append(outerName)
-      .append(" ")
-      .append(innerName)
-      .append(" ")
-      .append(access)
-      .append("\n");
+    buf.append(tab).append("INNERCLASS ");
+    appendDescriptor(name);
+    buf.append(' ');
+    appendDescriptor(outerName);
+    buf.append(' ');
+    appendDescriptor(innerName);
+    buf.append(' ').append(access).append('\n');
     text.add(buf.toString());
   }
 
@@ -262,19 +270,18 @@ public class TraceClassVisitor extends TraceAbstractVisitor
     final Object value)
   {
     buf.setLength(0);
-    buf.append("\n");
+    buf.append('\n');
     if ((access & Opcodes.ACC_DEPRECATED) != 0) {
-      buf.append("  // DEPRECATED\n");
+      buf.append(tab).append("// DEPRECATED\n");
     }
-    buf.append("  // access flags ").append(access).append("\n");
-    buf.append("  ");
+    buf.append(tab).append("// access flags ").append(access).append('\n');
+    buf.append(tab);
     appendAccess(access);
     if ((access & Opcodes.ACC_ENUM) != 0) {
       buf.append("enum ");
     }
-    buf.append(desc)
-      .append(" ")
-      .append(name);
+    appendDescriptor(desc);
+    buf.append(' ').append(name);
     if (value != null) {
       buf.append(" = ");
       if (value instanceof String) {
@@ -284,9 +291,10 @@ public class TraceClassVisitor extends TraceAbstractVisitor
       }
     }
     if (signature != null) {
-      buf.append("// ").append(signature);
+      buf.append("// ");
+      appendDescriptor(signature);
     }
-    buf.append("\n");
+    buf.append('\n');
     text.add(buf.toString());
 
     TraceFieldVisitor tav = new TraceFieldVisitor();
@@ -302,12 +310,12 @@ public class TraceClassVisitor extends TraceAbstractVisitor
     final String[] exceptions)
   {
     buf.setLength(0);
-    buf.append("\n");
+    buf.append('\n');
     if ((access & Opcodes.ACC_DEPRECATED) != 0) {
-      buf.append("  // DEPRECATED\n");
+      buf.append(tab).append("// DEPRECATED\n");
     }
-    buf.append("  // access flags ").append(access).append("\n");
-    buf.append("  ");
+    buf.append(tab).append("// access flags ").append(access).append('\n');
+    buf.append(tab);
     appendAccess(access);
     if ((access & Opcodes.ACC_NATIVE) != 0) {
       buf.append("native ");
@@ -318,19 +326,20 @@ public class TraceClassVisitor extends TraceAbstractVisitor
     if ((access & Opcodes.ACC_BRIDGE) != 0) {
       buf.append("bridge ");
     }
-    buf.append(name).
-      append(" ").
-      append(desc);
+    buf.append(name).append(' ');
+    appendDescriptor(desc);
     if (exceptions != null && exceptions.length > 0) {
       buf.append(" throws ");
       for (int i = 0; i < exceptions.length; ++i) {
-        buf.append(exceptions[i]).append(" ");
+        appendDescriptor(exceptions[i]);
+        buf.append(' ');
       }
     }
     if (signature != null) {
-      buf.append("// ").append(signature);
+      buf.append("// ");
+      appendDescriptor(signature);
     }
-    buf.append("\n");
+    buf.append('\n');
     text.add(buf.toString());
 
     TraceMethodVisitor tcv = new TraceMethodVisitor();

@@ -17,5 +17,6 @@
 	<classpathentry kind="lib" path="test/lib/saxon7.jar"/>
 	<classpathentry kind="lib" path="test/lib/serp.jar"/>
 	<classpathentry kind="lib" path="test/lib/xalan-2.6.0.jar"/>
+	<classpathentry kind="lib" path="test/lib/janino-2.0.10.jar"/>
 	<classpathentry kind="output" path="output/build"/>
 </classpath>

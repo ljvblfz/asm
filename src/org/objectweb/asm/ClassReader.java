@@ -316,7 +316,7 @@ public class ClassReader {
         w = v + 6;
       } else if (attrName.equals("Signature")) {
         signature = readUTF8(v + 6, c);
-      } else if (attrName.equals("SourceDebug")) {
+      } else if (attrName.equals("SourceDebugExtension")) {
         int len = readInt(v + 2);
         sourceDebug = readUTF(v + 6, len, new char[len]);
       } else if (attrName.equals("EnclosingMethod")) {

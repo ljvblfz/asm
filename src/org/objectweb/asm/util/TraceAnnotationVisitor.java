@@ -54,7 +54,7 @@ public class TraceAnnotationVisitor extends AbstractVisitor
   // Implementation of the AnnotationVisitor interface
   // --------------------------------------------------------------------------
 
-  public void visitValue (final String name, final Object value) {
+  public void visit (final String name, final Object value) {
     buf.setLength(0);
     if (name != null) {
       buf.append(name).append("=");
@@ -63,7 +63,7 @@ public class TraceAnnotationVisitor extends AbstractVisitor
     text.add(buf.toString());
   }
 
-  public void visitEnumValue (
+  public void visitEnum (
     final String name,
     final String desc,
     final String value)
@@ -76,7 +76,7 @@ public class TraceAnnotationVisitor extends AbstractVisitor
     text.add(buf.toString());
   }
 
-  public AnnotationVisitor visitAnnotationValue (
+  public AnnotationVisitor visitAnnotation (
     final String name,
     final String desc)
   {
@@ -92,7 +92,7 @@ public class TraceAnnotationVisitor extends AbstractVisitor
     return tav;
   }
 
-  public AnnotationVisitor visitArrayValue (final String name) {
+  public AnnotationVisitor visitArray (final String name) {
     buf.setLength(0);
     if (name != null) {
       buf.append(name).append("=");

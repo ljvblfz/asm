@@ -87,14 +87,14 @@ public class AnnotationNode implements AnnotationVisitor {
   // Implementation of the AnnotationVisitor interface
   // --------------------------------------------------------------------------
   
-  public void visitValue (final String name, final Object value) {
+  public void visit (final String name, final Object value) {
     if (this.desc != null) {
       values.add(name);
     }
     values.add(value);
   }
 
-  public void visitEnumValue (
+  public void visitEnum (
     final String name, 
     final String desc, 
     final String value)
@@ -105,7 +105,7 @@ public class AnnotationNode implements AnnotationVisitor {
     values.add(new String[] {desc, value});
   }
 
-  public AnnotationVisitor visitAnnotationValue (
+  public AnnotationVisitor visitAnnotation (
     final String name, 
     final String desc) 
   {
@@ -117,7 +117,7 @@ public class AnnotationNode implements AnnotationVisitor {
     return annotation;
   }
 
-  public AnnotationVisitor visitArrayValue (final String name) {
+  public AnnotationVisitor visitArray (final String name) {
     if (this.desc != null) {
       values.add(name);
     }
@@ -163,19 +163,19 @@ public class AnnotationNode implements AnnotationVisitor {
   {
     if (value instanceof String[]) {
       String[] typeconst = (String[])value;
-      av.visitEnumValue(name, typeconst[0], typeconst[1]);
+      av.visitEnum(name, typeconst[0], typeconst[1]);
     } else if (value instanceof AnnotationNode) {
       AnnotationNode an = (AnnotationNode)value;
-      an.accept(av.visitAnnotationValue(name, an.desc));
+      an.accept(av.visitAnnotation(name, an.desc));
     } else if (value instanceof List) {
-      AnnotationVisitor v = av.visitArrayValue(name);
+      AnnotationVisitor v = av.visitArray(name);
       List array = (List)value;
       for (int j = 0; j < array.size(); ++j) {
         accept(v, null, array.get(j)); 
       }
       v.visitEnd();
     } else {
-      av.visitValue(name, value);
+      av.visit(name, value);
     }
   }
 }

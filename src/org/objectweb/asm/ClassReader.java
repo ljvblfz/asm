@@ -1008,27 +1008,27 @@ public class ClassReader {
       case 'J':  // pointer to CONSTANT_Long
       case 'S':  // pointer to CONSTANT_Short
       case 'Z':  // pointer to CONSTANT_Boolean
-        av.visitValue(name, readConst(readUnsignedShort(v), buf));
+        av.visit(name, readConst(readUnsignedShort(v), buf));
         v += 2;
         break;
       case 's':  // pointer to CONSTANT_Utf8
-        av.visitValue(name, readUTF8(v, buf));
+        av.visit(name, readUTF8(v, buf));
         v += 2;
         break;
       case 'e':  // enum_const_value
-        av.visitEnumValue(name, readUTF8(v, buf), readUTF8(v + 2, buf));
+        av.visitEnum(name, readUTF8(v, buf), readUTF8(v + 2, buf));
         v += 4;
         break;
       case 'c':  // class_info
-        av.visitValue(name, Type.getType(readUTF8(v, buf)));
+        av.visit(name, Type.getType(readUTF8(v, buf)));
         v += 2;
         break;
       case '@':  // annotation_value
         String desc = readUTF8(v, buf); v += 2;
-        v = readAnnotationValues(v, buf, av.visitAnnotationValue(name, desc));
+        v = readAnnotationValues(v, buf, av.visitAnnotation(name, desc));
         break;
       case '[':  // array_value
-        AnnotationVisitor aav = av.visitArrayValue(name);
+        AnnotationVisitor aav = av.visitArray(name);
         int i = readUnsignedShort(v); v += 2;
         for ( ; i > 0; --i) {
           v = readAnnotationValue(v, buf, null, aav);

@@ -51,7 +51,7 @@ public interface AnnotationVisitor {
    *      {@link Type}.
    */
   
-  void visitValue (String name, Object value);
+  void visit (String name, Object value);
   
   /**
    * Visits an enumeration value of the annotation.
@@ -61,7 +61,7 @@ public interface AnnotationVisitor {
    * @param value the actual enumeration value.
    */
   
-  void visitEnumValue (String name, String desc, String value);
+  void visitEnum (String name, String desc, String value);
   
   /**
    * Visits a nested annotation value of the annotation.
@@ -73,7 +73,7 @@ public interface AnnotationVisitor {
    *      methods on this annotation visitor</i>.
    */
   
-  AnnotationVisitor visitAnnotationValue (String name, String desc);
+  AnnotationVisitor visitAnnotation (String name, String desc);
   
   /**
    * Visits an array value of the annotation.
@@ -85,7 +85,7 @@ public interface AnnotationVisitor {
    *      annotation visitor</i>.
    */
   
-  AnnotationVisitor visitArrayValue (String name);
+  AnnotationVisitor visitArray (String name);
   
   /**
    * Visits the end of the annotation.

@@ -34,16 +34,16 @@ import java.io.FileInputStream;
 import java.io.PrintWriter;
 
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.MemberVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.CodeVisitor;
-import org.objectweb.asm.Constants;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.FieldVisitor;
 
 /**
- * A {@link PrintClassVisitor PrintClassVisitor} that prints the ASM code that
- * generates the classes it visits. This class visitor can be used to quickly
- * write ASM code to generate some given bytecode:
+ * A {@link ClassVisitor} that prints the ASM code that generates the classes
+ * it visits. This class visitor can be used to quickly write ASM code to
+ * generate some given bytecode:
  * <ul>
  * <li>write the Java source code equivalent to the bytecode you want to
  * generate;</li>
@@ -58,37 +58,39 @@ import org.objectweb.asm.Constants;
  * <blockquote>
  * <pre>
  * import org.objectweb.asm.*;
- * import java.io.FileOutputStream;
- *
- * public class Dump implements Constants {
- *
- * public static void main (String[] args) throws Exception {
- *
+ * public class HelloDump implements Opcodes {
+ * 
+ * public static byte[] dump () throws Exception {
+ * 
  * ClassWriter cw = new ClassWriter(false);
- * CodeVisitor cv;
- *
- * cw.visit(ACC_PUBLIC + ACC_SUPER, "Hello", "java/lang/Object", null, "Hello.java");
- *
+ * FieldVisitor fv;
+ * MethodVisitor mv;
+ * AnnotationVisitor av0;
+ * 
+ * cw.visit(49, ACC_PUBLIC + ACC_SUPER, "Hello", null, "java/lang/Object", null);
+ * 
+ * cw.visitSource("Hello.java", null);
+ * 
  * {
- * cv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
- * cv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
- * cv.visitLdcInsn("hello");
- * cv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
- * cv.visitInsn(RETURN);
- * cv.visitMaxs(2, 1);
+ * mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+ * mv.visitVarInsn(ALOAD, 0);
+ * mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+ * mv.visitInsn(RETURN);
+ * mv.visitMaxs(1, 1);
+ * mv.visitEnd();
  * }
  * {
- * cv = cw.visitMethod(ACC_PUBLIC, "&lt;init&gt;", "()V", null, null);
- * cv.visitVarInsn(ALOAD, 0);
- * cv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "&lt;init&gt;", "()V");
- * cv.visitInsn(RETURN);
- * cv.visitMaxs(1, 1);
+ * mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
+ * mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+ * mv.visitLdcInsn("hello");
+ * mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
+ * mv.visitInsn(RETURN);
+ * mv.visitMaxs(2, 1);
+ * mv.visitEnd();
  * }
  * cw.visitEnd();
- *
- * FileOutputStream os = new FileOutputStream("Dumped.class");
- * os.write(cw.toByteArray());
- * os.close();
+ * 
+ * return cw.toByteArray();
  * }
  * }
  * </pre>
@@ -105,15 +107,25 @@ import org.objectweb.asm.Constants;
  * }
  * </pre>
  * </blockquote>
- * 
- * @author Eric Bruneton, Eugene Kuleshov
+ *
+ * @author Eric Bruneton
+ * @author Eugene Kuleshov
  */
 
-public class ASMifierClassVisitor extends ASMifierMemberVisitor 
+public class ASMifierClassVisitor extends ASMifierAbstractVisitor
   implements ClassVisitor
 {
 
+  /**
+   * Pseudo access flag used to distinguish class access flags.
+   */
+
   private final static int ACCESS_CLASS = 262144;
+
+  /**
+   * Pseudo access flag used to distinguish field access flags.
+   */
+
   private final static int ACCESS_FIELD = 524288;
 
   /**
@@ -136,17 +148,25 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
    */
 
   public static void main (final String[] args) throws Exception {
-    if (args.length < 1 || args.length > 2) {
-      printUsage();
-    }
     int i = 0;
     boolean skipDebug = true;
-    if (args[0].equals("-debug")) {
+
+    boolean ok = true;
+    if (args.length < 1 || args.length > 2) {
+      ok = false;
+    }
+    if (ok && args[0].equals("-debug")) {
       i = 1;
       skipDebug = false;
       if (args.length != 2) {
-        printUsage();
+        ok = false;
       }
+    }
+    if (!ok) {
+      System.err.println("Prints the ASM code to generate the given class.");
+      System.err.println("Usage: ASMifierClassVisitor [-debug] " +
+                         "<fully qualified class name or class file name>");
+      System.exit(-1);
     }
     ClassReader cr;
     if (args[i].endsWith(".class")) {
@@ -156,13 +176,6 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
     }
     cr.accept(new ASMifierClassVisitor(
       new PrintWriter(System.out)), getDefaultAttributes(), skipDebug);
-  }
-
-  private static void printUsage () {
-    System.err.println("Prints the ASM code to generate the given class.");
-    System.err.println("Usage: ASMifierClassVisitor [-debug] " +
-                       "<fully qualified class name or class file name>");
-    System.exit(-1);
   }
 
   /**
@@ -176,6 +189,10 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
     this.pw = pw;
   }
 
+  // --------------------------------------------------------------------------
+  // Implementation of the ClassVisitor interface
+  // --------------------------------------------------------------------------
+
   public void visit (
     final int version,
     final int access,
@@ -184,16 +201,22 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
     final String superName,
     final String[] interfaces)
   {
+    String simpleName;
+    int n = name.lastIndexOf('/');
+    if (n != -1) {
+      text.add("package asm." + name.substring(0, n).replace('/', '.') + ";\n");
+      simpleName = name.substring(n+1); 
+    } else {
+      simpleName = name;
+    }
     text.add("import org.objectweb.asm.*;\n");
-    text.add("import org.objectweb.asm.attrs.*;\n");
-    text.add("import java.io.FileOutputStream;\n\n");
-    text.add("public class Dump implements Constants {\n\n");
-    text.add("public static void main (String[] args) throws Exception {\n\n");
+    text.add("public class " + simpleName + "Dump implements Opcodes {\n\n");
+    text.add("public static byte[] dump () throws Exception {\n\n");
     text.add("ClassWriter cw = new ClassWriter(false);\n");
-    text.add("CodeVisitor cv;\n");
-    text.add("AttributeVisitor fv;\n");
+    text.add("FieldVisitor fv;\n");
+    text.add("MethodVisitor mv;\n");
     text.add("AnnotationVisitor av0;\n\n");
-    
+
     buf.setLength(0);
     buf.append("cw.visit(");
     buf.append(version);
@@ -229,11 +252,11 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
     buf.append(");\n\n");
     text.add(buf.toString());
   }
-  
+
   public void visitOuterClass (
-    final String owner, 
-    final String name, 
-    final String desc) 
+    final String owner,
+    final String name,
+    final String desc)
   {
     buf.setLength(0);
     buf.append("cw.visitOuterClass(");
@@ -245,7 +268,7 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
     buf.append(");\n\n");
     text.add(buf.toString());
   }
-  
+
   public void visitInnerClass (
     final String name,
     final String outerName,
@@ -265,7 +288,7 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
     text.add(buf.toString());
   }
 
-  public MemberVisitor visitField (
+  public FieldVisitor visitField (
     final int access,
     final String name,
     final String desc,
@@ -286,13 +309,13 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
     appendConstant(buf, value);
     buf.append(");\n");
     text.add(buf.toString());
-    ASMifierMemberVisitor aav = new ASMifierMemberVisitor("fv");
+    ASMifierFieldVisitor aav = new ASMifierFieldVisitor();
     text.add(aav.getText());
-    text.add("}\n");    
+    text.add("}\n");
     return aav;
   }
 
-  public CodeVisitor visitMethod (
+  public MethodVisitor visitMethod (
     final int access,
     final String name,
     final String desc,
@@ -301,7 +324,7 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
   {
     buf.setLength(0);
     buf.append("{\n");
-    buf.append("cv = cw.visitMethod(");
+    buf.append("mv = cw.visitMethod(");
     appendAccess(access);
     buf.append(", ");
     appendConstant(buf, name);
@@ -322,20 +345,20 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
     }
     buf.append(");\n");
     text.add(buf.toString());
-    ASMifierCodeVisitor acv = new ASMifierCodeVisitor();
+    ASMifierMethodVisitor acv = new ASMifierMethodVisitor();
     text.add(acv.getText());
-    text.add("}\n");    
+    text.add("}\n");
     return acv;
   }
 
   public AnnotationVisitor visitAnnotation (
-    final String type, 
-    final boolean visible) 
+    final String desc,
+    final boolean visible)
   {
     buf.setLength(0);
     buf.append("{\n");
     buf.append("av0 = cw.visitAnnotation(");
-    appendConstant(buf, type);
+    appendConstant(buf, desc);
     buf.append(", ");
     buf.append(visible);
     buf.append(");\n");
@@ -348,14 +371,16 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
 
   public void visitEnd () {
     text.add("cw.visitEnd();\n\n");
-    text.add("FileOutputStream os = new FileOutputStream(\"Dumped.class\");\n");
-    text.add("os.write(cw.toByteArray());\n");
-    text.add("os.close();\n");
+    text.add("return cw.toByteArray();\n");
     text.add("}\n");
     text.add("}\n");
     printList(pw, text);
     pw.flush();
   }
+
+  // --------------------------------------------------------------------------
+  // Utility methods
+  // --------------------------------------------------------------------------
 
   /**
    * Appends a string representation of the given access modifiers to {@link
@@ -366,39 +391,39 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
 
   void appendAccess (final int access) {
     boolean first = true;
-    if ((access & Constants.ACC_PUBLIC) != 0) {
+    if ((access & Opcodes.ACC_PUBLIC) != 0) {
       buf.append("ACC_PUBLIC");
       first = false;
     }
-    if ((access & Constants.ACC_PRIVATE) != 0) {
+    if ((access & Opcodes.ACC_PRIVATE) != 0) {
       if (!first) {
         buf.append(" + ");
       }
       buf.append("ACC_PRIVATE");
       first = false;
     }
-    if ((access & Constants.ACC_PROTECTED) != 0) {
+    if ((access & Opcodes.ACC_PROTECTED) != 0) {
       if (!first) {
         buf.append(" + ");
       }
       buf.append("ACC_PROTECTED");
       first = false;
     }
-    if ((access & Constants.ACC_FINAL) != 0) {
+    if ((access & Opcodes.ACC_FINAL) != 0) {
       if (!first) {
         buf.append(" + ");
       }
       buf.append("ACC_FINAL");
       first = false;
     }
-    if ((access & Constants.ACC_STATIC) != 0) {
+    if ((access & Opcodes.ACC_STATIC) != 0) {
       if (!first) {
         buf.append(" + ");
       }
       buf.append("ACC_STATIC");
       first = false;
     }
-    if ((access & Constants.ACC_SYNCHRONIZED) != 0) {
+    if ((access & Opcodes.ACC_SYNCHRONIZED) != 0) {
       if (!first) {
         buf.append(" + ");
       }
@@ -409,14 +434,14 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
       }
       first = false;
     }
-    if ((access & Constants.ACC_VOLATILE) != 0 && (access & ACCESS_FIELD) != 0 ) {
+    if ((access & Opcodes.ACC_VOLATILE) != 0 && (access & ACCESS_FIELD) != 0 ) {
       if (!first) {
         buf.append(" + ");
       }
       buf.append("ACC_VOLATILE");
       first = false;
     }
-    if ((access & Constants.ACC_BRIDGE) != 0 &&
+    if ((access & Opcodes.ACC_BRIDGE) != 0 &&
         (access & ACCESS_CLASS) == 0 && (access & ACCESS_FIELD) == 0) {
       if (!first) {
         buf.append(" + ");
@@ -424,7 +449,7 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
       buf.append("ACC_BRIDGE");
       first = false;
     }
-    if ((access & Constants.ACC_VARARGS) != 0 &&
+    if ((access & Opcodes.ACC_VARARGS) != 0 &&
         (access & ACCESS_CLASS) == 0 && (access & ACCESS_FIELD) == 0) {
       if (!first) {
         buf.append(" + ");
@@ -432,14 +457,14 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
       buf.append("ACC_VARARGS");
       first = false;
     }
-    if ((access & Constants.ACC_TRANSIENT) != 0) {
+    if ((access & Opcodes.ACC_TRANSIENT) != 0) {
       if (!first) {
         buf.append(" + ");
       }
       buf.append("ACC_TRANSIENT");
       first = false;
     }
-    if ((access & Constants.ACC_NATIVE) != 0 &&
+    if ((access & Opcodes.ACC_NATIVE) != 0 &&
         (access & ACCESS_CLASS) == 0 &&
         (access & ACCESS_FIELD) == 0) {
       if (!first) {
@@ -448,7 +473,7 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
       buf.append("ACC_NATIVE");
       first = false;
     }
-    if ((access & Constants.ACC_ENUM) != 0 &&
+    if ((access & Opcodes.ACC_ENUM) != 0 &&
         ((access & ACCESS_CLASS) != 0 || (access & ACCESS_FIELD) != 0)) {
       if (!first) {
         buf.append(" + ");
@@ -456,35 +481,35 @@ public class ASMifierClassVisitor extends ASMifierMemberVisitor
       buf.append("ACC_ENUM");
       first = false;
     }
-    if ((access & Constants.ACC_ABSTRACT) != 0) {
+    if ((access & Opcodes.ACC_ABSTRACT) != 0) {
       if (!first) {
         buf.append(" + ");
       }
       buf.append("ACC_ABSTRACT");
       first = false;
     }
-    if ((access & Constants.ACC_INTERFACE) != 0) {
+    if ((access & Opcodes.ACC_INTERFACE) != 0) {
       if (!first) {
         buf.append(" + ");
       }
       buf.append("ACC_INTERFACE");
       first = false;
     }
-    if ((access & Constants.ACC_STRICT) != 0) {
+    if ((access & Opcodes.ACC_STRICT) != 0) {
       if (!first) {
         buf.append(" + ");
       }
       buf.append("ACC_STRICT");
       first = false;
     }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
+    if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
       if (!first) {
         buf.append(" + ");
       }
       buf.append("ACC_SYNTHETIC");
       first = false;
     }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
+    if ((access & Opcodes.ACC_DEPRECATED) != 0) {
       if (!first) {
         buf.append(" + ");
       }

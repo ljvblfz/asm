@@ -1,6 +1,6 @@
 /***
- * ASM tests
- * Copyright (c) 2002,2003 France Telecom
+ * ASM: a very small and fast Java bytecode manipulation framework
+ * Copyright (c) 2000,2002,2003 INRIA, France Telecom
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,26 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.objectweb.asm.tree;
+package org.objectweb.asm.util;
 
-import org.objectweb.asm.AbstractTest;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-
-import junit.framework.TestSuite;
+import org.objectweb.asm.FieldVisitor;
 
 /**
- * ClassWriter tests.
- * 
- * @author Eric Bruneton
+ * A {@link FieldVisitor} that prints the ASM code that generates the fields 
+ * it visits.
+ *
+ * @author Eric Bruneton 
  */
 
-public class ClassNodeTest extends AbstractTest {
-
-  public static TestSuite suite () throws Exception {
-    return new ClassNodeTest().getSuite();
-  }
+public class ASMifierFieldVisitor extends ASMifierAbstractVisitor 
+  implements FieldVisitor 
+{
   
-  public void test () throws Exception {
-    ClassReader cr = new ClassReader(is);
-    ClassNode cn = new ClassNode();
-    cr.accept(cn, false);
-    ClassWriter cw = new ClassWriter(false);
-    cn.accept(cw);
-    assertEquals(cr, new ClassReader(cw.toByteArray()));
+  /**
+   * Constructs a new {@link ASMifierFieldVisitor}.
+   */
+  
+  public ASMifierFieldVisitor () {
+    super("fv");
   }
 }

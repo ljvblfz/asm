@@ -30,68 +30,38 @@
 
 package org.objectweb.asm.tree.analysis;
 
-import java.net.URL;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import org.objectweb.asm.AbstractTest;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 /**
- * Analysis tests.
- * 
- * @author Eric Bruneton, Eugene Kuleshov
+ * Verifier tests.
+ *
+ * @author Eric Bruneton
  */
 
-public class VerifierTest extends TestCase {
-  
-  private String className;
-    
-  public VerifierTest (String className) {
-    super("testVerifier");
-    this.className = className;
-  }
-  
+public class SimpleVerifierTest extends AbstractTest {
+
   public static TestSuite suite () throws Exception {
-    TestSuite suite = new TestSuite(VerifierTest.class.getName());
-    Class c = VerifierTest.class;
-    String u = c.getResource("/java/lang/String.class").toString();
-    int n = u.indexOf('!');
-    ZipInputStream zis = 
-      new ZipInputStream(new URL(u.substring(4, n)).openStream());
-    ZipEntry ze = null;
-    while ((ze = zis.getNextEntry()) != null) {
-      if (ze.getName().endsWith(".class")) {
-        suite.addTest(
-          new VerifierTest(u.substring(0, n + 2).concat(ze.getName())));
-      }
-    }
-    return suite;
+    return new SimpleVerifierTest().getSuite();
   }
-  
-  public void testAnalysis () throws Exception {
-    ClassReader cr = new ClassReader(new URL(className).openStream());
+
+  public void test () throws Exception {
+    ClassReader cr = new ClassReader(is);
     ClassNode cn = new ClassNode();
     cr.accept(cn, false);
-    
     List methods = cn.methods;
     for (int i = 0; i < methods.size(); ++i) {
       MethodNode method = (MethodNode)methods.get(i);
-      
       if (method.instructions.size() > 0) {
         Analyzer a = new Analyzer(new SimpleVerifier());
         a.analyze(cn, method);
       }
     }
-  }
-
-  // workaround for Ant's JUnit test runner
-  public String getName() {
-    return super.getName()+" : "+className;
   }
 }

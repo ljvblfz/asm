@@ -28,15 +28,15 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.objectweb.asm.test.perf;
+package org.objectweb.asm;
 
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.CodeAdapter;
-import org.objectweb.asm.CodeVisitor;
-import org.objectweb.asm.Constants;
+import org.objectweb.asm.MethodAdapter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 import java.io.InputStream;
 
@@ -44,17 +44,17 @@ import java.io.InputStream;
  * @author Eric Bruneton
  */
 
-public class ASM extends ALL {
+public class ASMPerfTest extends ALLPerfTest {
 
   final static Integer ONE = new Integer(1);
   
   public static void main (final String args[]) throws Exception {
     System.out.println("ASM PERFORMANCES\n");
-    new ASM().perfs(args);
+    new ASMPerfTest().perfs(args);
   }
 
-  ALL newInstance () {
-    return new ASM();
+  ALLPerfTest newInstance () {
+    return new ASMPerfTest();
   }
 
   byte[] nullAdaptClass (final InputStream is, final String name)
@@ -77,7 +77,7 @@ public class ASM extends ALL {
     return cw.toByteArray();
   }
 
-  static class CounterClassAdapter extends ClassAdapter implements Constants {
+  static class CounterClassAdapter extends ClassAdapter implements Opcodes {
 
     private String owner;
 
@@ -100,34 +100,34 @@ public class ASM extends ALL {
       owner = name;
     }
 
-    public CodeVisitor visitMethod (
+    public MethodVisitor visitMethod (
       int access,
       String name,
       String desc,
       String signature,
       String[] exceptions)
     {
-      CodeVisitor cv = 
+      MethodVisitor mv = 
         super.visitMethod(access, name, desc, signature, exceptions);
       if (!name.equals("<init>") &&
           (access & (ACC_STATIC + ACC_NATIVE + ACC_ABSTRACT)) == 0)
       {
-        cv.visitVarInsn(ALOAD, 0);
-        cv.visitVarInsn(ALOAD, 0);
-        cv.visitFieldInsn(GETFIELD, owner, "_counter", "I");
-        cv.visitLdcInsn(ONE);
-        cv.visitInsn(IADD);
-        cv.visitFieldInsn(PUTFIELD, owner, "_counter", "I");
-        return new CounterCodeAdapter(cv);
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitFieldInsn(GETFIELD, owner, "_counter", "I");
+        mv.visitLdcInsn(ONE);
+        mv.visitInsn(IADD);
+        mv.visitFieldInsn(PUTFIELD, owner, "_counter", "I");
+        return new CounterCodeAdapter(mv);
       }
-      return cv;
+      return mv;
     }
   }
 
-  static class CounterCodeAdapter extends CodeAdapter {
+  static class CounterCodeAdapter extends MethodAdapter {
 
-    CounterCodeAdapter (CodeVisitor cv) {
-      super(cv);
+    CounterCodeAdapter (MethodVisitor mv) {
+      super(mv);
     }
 
     public void visitMaxs (int maxStack, int maxLocals) {

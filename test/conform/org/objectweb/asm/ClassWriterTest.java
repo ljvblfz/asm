@@ -30,54 +30,24 @@
 
 package org.objectweb.asm;
 
-import java.net.URL;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
  * ClassWriter tests.
  * 
- * @author Eric Bruneton, Eugene Kuleshov
+ * @author Eric Bruneton
  */
 
-public class ClassWriterTest extends TestCase {
-  
-  private String className;
-  
-  public ClassWriterTest (String className) {
-    super("testClassWriter");
-    this.className = className;
-  }
-  
-  public static TestSuite suite () throws Exception {
-    TestSuite suite = new TestSuite(ClassWriterTest.class.getName());
-    Class c = ClassWriterTest.class;
-    String u = c.getResource("/java/lang/String.class").toString();
-    int n = u.indexOf('!');
-    ZipInputStream zis = 
-      new ZipInputStream(new URL(u.substring(4, n)).openStream());
-    ZipEntry ze = null;
-    while ((ze = zis.getNextEntry()) != null) {
-      if (ze.getName().endsWith(".class")) {
-        suite.addTest(
-          new ClassWriterTest(u.substring(0, n + 2).concat(ze.getName())));
-      }
-    }
-    return suite;
-  }
-  
-  public void testClassWriter () throws Exception {
-    ClassReader cr = new ClassReader(new URL(className).openStream());
-    ClassWriter cw = new ClassWriter(false, true);
-    cr.accept(cw, false);
-    cw.toByteArray();
-  }
+public class ClassWriterTest extends AbstractTest {
 
-  // workaround for Ant's JUnit test runner
-  public String getName() {
-    return super.getName()+" : "+className;
+  public static TestSuite suite () throws Exception {
+    return new ClassWriterTest().getSuite();
+  }
+  
+  public void test () throws Exception {
+    ClassReader cr = new ClassReader(is);
+    ClassWriter cw = new ClassWriter(false);
+    cr.accept(cw, false);
+    assertEquals(cr, new ClassReader(cw.toByteArray()));
   }
 }

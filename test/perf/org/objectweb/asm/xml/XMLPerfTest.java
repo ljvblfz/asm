@@ -47,7 +47,7 @@ import javax.xml.transform.stream.StreamSource;
  * 
  * @author Eugene Kuleshov
  */
-public class ALL {
+public class XMLPerfTest {
   private static final String[] ENGINES = {
         "jd.xml.xslt.trax.TransformerFactoryImpl",   
         "net.sf.saxon.TransformerFactoryImpl",       
@@ -121,7 +121,7 @@ public class ALL {
     long l1 = System.currentTimeMillis();
     int n = 0;
     try {
-      Class c = ALL.class;
+      Class c = XMLPerfTest.class;
       String u = c.getResource( "/java/lang/String.class").toString();
       final InputStream is = new BufferedInputStream( new URL( u.substring( 4, u.indexOf( '!'))).openStream());
       final OutputStream os = new IgnoringOutputStream();

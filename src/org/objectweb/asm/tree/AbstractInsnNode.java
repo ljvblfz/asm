@@ -30,7 +30,7 @@
 
 package org.objectweb.asm.tree;
 
-import org.objectweb.asm.CodeVisitor;
+import org.objectweb.asm.MethodVisitor;
 
 /**
  * A node that represents a bytecode instruction.
@@ -47,7 +47,7 @@ public abstract class AbstractInsnNode {
   protected int opcode;
 
   /**
-   * Constructs a new {@link AbstractInsnNode AbstractInsnNode} object.
+   * Constructs a new {@link AbstractInsnNode}.
    *
    * @param opcode the opcode of the instruction to be constructed.
    */
@@ -72,5 +72,5 @@ public abstract class AbstractInsnNode {
    * @param cv a code visitor.
    */
 
-  public abstract void accept (final CodeVisitor cv);
+  public abstract void accept (final MethodVisitor cv);
 }

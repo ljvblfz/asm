@@ -33,7 +33,8 @@ package org.objectweb.asm;
 /**
  * A non standard class, field, method or code attribute.
  * 
- * @author Eric Bruneton, Eugene Kuleshov
+ * @author Eric Bruneton
+ * @author Eugene Kuleshov
  */
 
 public class Attribute {
@@ -61,15 +62,21 @@ public class Attribute {
   }
 
   /**
-   * Returns <tt>true</tt> if this type of attribute is unknown.
+   * Returns <tt>true</tt> if this type of attribute is unknown. The default
+   * implementation of this method always returns <tt>true</tt>.
    * 
-   * @return <tt>true</tt> if the class of this object is equal to 
-   *      {@link Attribute}.
+   * @return <tt>true</tt> if this type of attribute is unknown.
    */
   
   public boolean isUnknown () {
-    return getClass().getName().equals("org.objectweb.asm.Attribute");
+    return true;
   }
+  
+  /**
+   * Returns <tt>true</tt> if this type of attribute is a code attribute.
+   * 
+   * @return <tt>true</tt> if this type of attribute is a code attribute.
+   */
   
   public boolean isCodeAttribute () {
     return false;
@@ -97,8 +104,8 @@ public class Attribute {
    *      and the length of the attribute, are not taken into account here.
    * @param len the length of the attribute's content.
    * @param buf buffer to be used to call {@link ClassReader#readUTF8 readUTF8},
-   *      {@link ClassReader#readClass(int,char[]) readClass} or {@link
-   *      ClassReader#readConst readConst}.
+   *      {@link ClassReader#readClass(int,char[]) readClass} or 
+   *      {@link ClassReader#readConst readConst}.
    * @param codeOff index of the first byte of code's attribute content in
    *      {@link ClassReader#b cr.b}, or -1 if the attribute to be read is not a
    *      code attribute. The 6 attribute header bytes, containing the type and
@@ -223,6 +230,10 @@ public class Attribute {
   {
     Attribute attr = this;
     while (attr != null) {
+      if (attr.isUnknown()) {
+        throw new IllegalArgumentException(
+          "Unknown attribute type: " + attr.type);
+      }
       ByteVector b = attr.write(cw, code, len, maxStack, maxLocals);
       out.putShort(cw.newUTF8(attr.type)).putInt(b.length);
       out.putByteArray(b.data, 0, b.length);

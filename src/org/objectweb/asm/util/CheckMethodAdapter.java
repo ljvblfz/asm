@@ -32,16 +32,16 @@ package org.objectweb.asm.util;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.CodeAdapter;
-import org.objectweb.asm.CodeVisitor;
-import org.objectweb.asm.Constants;
+import org.objectweb.asm.MethodAdapter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Type;
 
 import java.util.HashMap;
 
 /**
- * A {@link CodeAdapter CodeAdapter} that checks that its methods are properly
+ * A {@link MethodAdapter} that checks that its methods are properly
  * used. More precisely this code adapter checks each instruction individually
  * (i.e., each visit method checks some preconditions based <i>only</i> on its
  * arguments - such as the fact that the given opcode is correct for a given
@@ -49,11 +49,11 @@ import java.util.HashMap;
  * For example, in a method whose signature is <tt>void m ()</tt>, the invalid
  * instruction IRETURN, or the invalid sequence IADD L2I will <i>not</i> be
  * detected by this code adapter.
- * 
+ *
  * @author Eric Bruneton
  */
 
-public class CheckCodeAdapter extends CodeAdapter {
+public class CheckMethodAdapter extends MethodAdapter {
 
   /**
    * <tt>true</tt> if the visitMaxs method has been called.
@@ -278,76 +278,76 @@ public class CheckCodeAdapter extends CodeAdapter {
   };
 
   /**
-   * Constructs a new {@link CheckCodeAdapter CheckCodeAdapter} object.
+   * Constructs a new {@link CheckMethodAdapter} object.
    *
    * @param cv the code visitor to which this adapter must delegate calls.
    */
 
-  public CheckCodeAdapter (final CodeVisitor cv) {
+  public CheckMethodAdapter (final MethodVisitor cv) {
     super(cv);
     this.labels = new HashMap();
   }
 
   public AnnotationVisitor visitAnnotation (
-    final String type, 
-    final boolean visible) 
+    final String desc,
+    final boolean visible)
   {
     // TODO
-    return cv.visitAnnotation(type, visible);
+    return mv.visitAnnotation(desc, visible);
   }
-  
+
   public AnnotationVisitor visitAnnotationDefault () {
     // TODO
-    return cv.visitAnnotationDefault();
+    return mv.visitAnnotationDefault();
   }
 
   public AnnotationVisitor visitParameterAnnotation (
     final int parameter,
-    final String type,
-    final boolean visible) 
+    final String desc,
+    final boolean visible)
   {
     // TODO
-    return cv.visitParameterAnnotation(parameter, type, visible);
+    return mv.visitParameterAnnotation(parameter, desc, visible);
   }
-  
+
   public void visitAttribute (Attribute attr) {
     if (attr == null) {
       throw new IllegalArgumentException(
       "Invalid attribute (must not be null)");
     }
   }
-  
+
   public void visitInsn (final int opcode) {
     checkEnd();
     checkOpcode(opcode, 0);
-    cv.visitInsn(opcode);
+    mv.visitInsn(opcode);
   }
 
   public void visitIntInsn (final int opcode, final int operand) {
     checkEnd();
     checkOpcode(opcode, 1);
     switch (opcode) {
-      case Constants.BIPUSH:
+      case Opcodes.BIPUSH:
         checkSignedByte(operand, "Invalid operand");
         break;
-      case Constants.SIPUSH:
+      case Opcodes.SIPUSH:
         checkSignedShort(operand, "Invalid operand");
         break;
       //case Constants.NEWARRAY:
       default:
-        if (operand < Constants.T_BOOLEAN || operand > Constants.T_LONG) {
+        if (operand < Opcodes.T_BOOLEAN || operand > Opcodes.T_LONG) {
           throw new IllegalArgumentException(
             "Invalid operand (must be an array type code T_...): " + operand);
         }
     }
-    cv.visitIntInsn(opcode, operand);
+    mv.visitIntInsn(opcode, operand);
   }
 
   public void visitVarInsn (final int opcode, final int var) {
     checkEnd();
     checkOpcode(opcode, 2);
     checkUnsignedShort(var, "Invalid variable index");
-    cv.visitVarInsn(opcode, var);
+    mv.visitVarInsn(opcode, var);
   }
 
   public void visitTypeInsn (final int opcode, final String desc) {
@@ -358,11 +358,11 @@ public class CheckCodeAdapter extends CodeAdapter {
     } else {
       checkInternalName(desc, "type");
     }
-    if (opcode == Constants.NEW && desc.charAt(0) == '[') {
+    if (opcode == Opcodes.NEW && desc.charAt(0) == '[') {
       throw new IllegalArgumentException(
         "NEW cannot be used to create arrays: " + desc);
     }
-    cv.visitTypeInsn(opcode, desc);
+    mv.visitTypeInsn(opcode, desc);
   }
 
   public void visitFieldInsn (
@@ -376,7 +376,7 @@ public class CheckCodeAdapter extends CodeAdapter {
     checkInternalName(owner, "owner");
     checkIdentifier(name, "name");
     checkDesc(desc, false);
-    cv.visitFieldInsn(opcode, owner, name, desc);
+    mv.visitFieldInsn(opcode, owner, name, desc);
   }
 
   public void visitMethodInsn (
@@ -387,17 +387,20 @@ public class CheckCodeAdapter extends CodeAdapter {
   {
     checkEnd();
     checkOpcode(opcode, 5);
-    checkInternalName(owner, "owner");
     checkMethodIdentifier(name, "name");
+    if (!name.equals("clone")) {
+      // In JDK1.5, clone method can be called on array class descriptors
+      checkInternalName(owner, "owner");
+    }
     checkMethodDesc(desc);
-    cv.visitMethodInsn(opcode, owner, name, desc);
+    mv.visitMethodInsn(opcode, owner, name, desc);
   }
 
   public void visitJumpInsn (final int opcode, final Label label) {
     checkEnd();
     checkOpcode(opcode, 6);
     checkLabel(label, false, "label");
-    cv.visitJumpInsn(opcode, label);
+    mv.visitJumpInsn(opcode, label);
   }
 
   public void visitLabel (final Label label) {
@@ -408,7 +411,7 @@ public class CheckCodeAdapter extends CodeAdapter {
     } else {
       labels.put(label, new Integer(labels.size()));
     }
-    cv.visitLabel(label);
+    mv.visitLabel(label);
   }
 
   public void visitLdcInsn (final Object cst) {
@@ -416,14 +419,14 @@ public class CheckCodeAdapter extends CodeAdapter {
     if (!(cst instanceof Type)) {
       checkConstant(cst);
     }
-    cv.visitLdcInsn(cst);
+    mv.visitLdcInsn(cst);
   }
 
   public void visitIincInsn (final int var, final int increment) {
     checkEnd();
     checkUnsignedShort(var, "Invalid variable index");
     checkSignedShort(increment, "Invalid increment");
-    cv.visitIincInsn(var, increment);
+    mv.visitIincInsn(var, increment);
   }
 
   public void visitTableSwitchInsn (
@@ -445,7 +448,7 @@ public class CheckCodeAdapter extends CodeAdapter {
     for (int i = 0; i < labels.length; ++i) {
       checkLabel(labels[i], false, "label at index " + i);
     }
-    cv.visitTableSwitchInsn(min, max, dflt, labels);
+    mv.visitTableSwitchInsn(min, max, dflt, labels);
   }
 
   public void visitLookupSwitchInsn (
@@ -462,7 +465,7 @@ public class CheckCodeAdapter extends CodeAdapter {
     for (int i = 0; i < labels.length; ++i) {
       checkLabel(labels[i], false, "label at index " + i);
     }
-    cv.visitLookupSwitchInsn(dflt, keys, labels);
+    mv.visitLookupSwitchInsn(dflt, keys, labels);
   }
 
   public void visitMultiANewArrayInsn (final String desc, final int dims) {
@@ -480,7 +483,7 @@ public class CheckCodeAdapter extends CodeAdapter {
       throw new IllegalArgumentException(
         "Invalid dimensions (must not be greater than dims(desc)): " + dims);
     }
-    cv.visitMultiANewArrayInsn(desc, dims);
+    mv.visitMultiANewArrayInsn(desc, dims);
   }
 
   public void visitTryCatchBlock (
@@ -489,6 +492,7 @@ public class CheckCodeAdapter extends CodeAdapter {
     final Label handler,
     final String type)
   {
+    checkEnd();
     checkLabel(start, true, "start label");
     checkLabel(end, true, "end label");
     checkLabel(handler, true, "handler label");
@@ -501,15 +505,7 @@ public class CheckCodeAdapter extends CodeAdapter {
       throw new IllegalArgumentException(
         "Invalid start and end labels (end must be greater than start)");
     }
-    cv.visitTryCatchBlock(start, end, handler, type);
-  }
-
-  public void visitMaxs (final int maxStack, final int maxLocals) {
-    checkEnd();
-    end = true;
-    checkUnsignedShort(maxStack, "Invalid max stack");
-    checkUnsignedShort(maxLocals, "Invalid max locals");
-    cv.visitMaxs(maxStack, maxLocals);
+    mv.visitTryCatchBlock(start, end, handler, type);
   }
 
   public void visitLocalVariable (
@@ -520,6 +516,7 @@ public class CheckCodeAdapter extends CodeAdapter {
     final Label end,
     final int index)
   {
+    checkEnd();
     checkIdentifier(name, "name");
     checkDesc(desc, false);
     checkLabel(start, true, "start label");
@@ -531,13 +528,23 @@ public class CheckCodeAdapter extends CodeAdapter {
       throw new IllegalArgumentException(
         "Invalid start and end labels (end must be greater than start)");
     }
-    cv.visitLocalVariable(name, desc, signature, start, end, index);
+    mv.visitLocalVariable(name, desc, signature, start, end, index);
   }
 
   public void visitLineNumber (final int line, final Label start) {
+    checkEnd();
     checkUnsignedShort(line, "Invalid line number");
     checkLabel(start, true, "start label");
-    cv.visitLineNumber(line, start);
+    mv.visitLineNumber(line, start);
+  }
+
+
+  public void visitMaxs (final int maxStack, final int maxLocals) {
+    checkEnd();
+    end = true;
+    checkUnsignedShort(maxStack, "Invalid max stack");
+    checkUnsignedShort(maxLocals, "Invalid max locals");
+    mv.visitMaxs(maxStack, maxLocals);
   }
 
   // ---------------------------------------------------------------------------
@@ -609,9 +616,8 @@ public class CheckCodeAdapter extends CodeAdapter {
   }
 
   /**
-   * Checks that the given value is an {@link java.lang.Integer Integer}, a
-   * {@link java.lang.Float Float}, a {@link java.lang.Long Long}, a {@link
-   * java.lang.Double Double} or a {@link String String}.
+   * Checks that the given value is an {@link Integer}, a{@link Float},
+   * a {@link Long}, a {@link Double} or a {@link String}.
    *
    * @param cst the value to be checked.
    */

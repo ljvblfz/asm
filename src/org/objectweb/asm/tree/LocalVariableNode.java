@@ -30,7 +30,7 @@
 
 package org.objectweb.asm.tree;
 
-import org.objectweb.asm.CodeVisitor;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Label;
 
 /**
@@ -53,6 +53,10 @@ public class LocalVariableNode {
 
   public String desc;
 
+  /**
+   * The signature of this local variable. May be <tt>null</tt>.
+   */
+  
   public String signature;
   
   /**
@@ -76,10 +80,12 @@ public class LocalVariableNode {
   public int index;
 
   /**
-   * Constructs a new {@link LocalVariableNode LocalVariableNode} object.
+   * Constructs a new {@link LocalVariableNode}.
    *
    * @param name the name of a local variable.
    * @param desc the type descriptor of this local variable.
+   * @param signature the signature of this local variable. 
+   *      May be <tt>null</tt>.
    * @param start the first instruction corresponding to the scope of this
    *      local variable (inclusive).
    * @param end the last instruction corresponding to the scope of this
@@ -104,12 +110,12 @@ public class LocalVariableNode {
   }
 
   /**
-   * Makes the given code visitor visit this local variable declaration.
+   * Makes the given visitor visit this local variable declaration.
    *
-   * @param cv a code visitor.
+   * @param mv a method visitor.
    */
 
-  public void accept (final CodeVisitor cv) {
-    cv.visitLocalVariable(name, desc, signature, start, end, index);
+  public void accept (final MethodVisitor mv) {
+    mv.visitLocalVariable(name, desc, signature, start, end, index);
   }
 }

@@ -30,57 +30,28 @@
 
 package org.objectweb.asm.util;
 
-import java.net.URL;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import junit.framework.TestSuite;
 
+import org.objectweb.asm.AbstractTest;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.EmptyClassVisitor;
 
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
 /**
  * CheckClassAdapter tests.
  * 
- * @author Eric Bruneton, Eugene Kuleshov
+ * @author Eric Bruneton
  */
 
-public class CheckClassAdapterTest extends TestCase {
-  
-  private String className;
-  
-  public CheckClassAdapterTest (String className) {
-    super("testCheckClassAdapter");
-    this.className = className;
-  }
-  
+public class CheckClassAdapterTest extends AbstractTest {
+    
   public static TestSuite suite () throws Exception {
-    TestSuite suite = new TestSuite(CheckClassAdapterTest.class.getName());
-    Class c = CheckClassAdapterTest.class;
-    String u = c.getResource("/java/lang/String.class").toString();
-    int n = u.indexOf('!');
-    ZipInputStream zis = 
-      new ZipInputStream(new URL(u.substring(4, n)).openStream());
-    ZipEntry ze = null;
-    while ((ze = zis.getNextEntry()) != null) {
-      if (ze.getName().endsWith(".class")) {
-        suite.addTest(
-          new CheckClassAdapterTest(u.substring(0, n + 2).concat(ze.getName())));
-      }
-    }
-    return suite;
+    return new CheckClassAdapterTest().getSuite();
   }
   
-  public void testCheckClassAdapter () throws Exception {
-    ClassReader cr = new ClassReader(new URL(className).openStream());
+  public void test () throws Exception {
+    ClassReader cr = new ClassReader(is);
     ClassVisitor cv = new CheckClassAdapter(new EmptyClassVisitor());
     cr.accept(cv, false);
-  }
-
-  // workaround for Ant's JUnit test runner
-  public String getName() {
-    return super.getName()+" : "+className;
   }
 }

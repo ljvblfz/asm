@@ -30,52 +30,21 @@
 
 package org.objectweb.asm;
 
-import java.net.URL;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
  * ClassReader tests.
  * 
- * @author Eric Bruneton, Eugene Kuleshov
+ * @author Eric Bruneton
  */
 
-public class ClassReaderTest extends TestCase {
-  
-  private String className;
-  
-  public ClassReaderTest (String className) {
-    super("testClassReader");
-    this.className = className;
-  }
+public class ClassReaderTest extends AbstractTest {
   
   public static TestSuite suite () throws Exception {
-    TestSuite suite = new TestSuite(ClassReaderTest.class.getName());
-    Class c = ClassReaderTest.class;
-    String u = c.getResource("/java/lang/String.class").toString();
-    int n = u.indexOf('!');
-    ZipInputStream zis = 
-      new ZipInputStream(new URL(u.substring(4, n)).openStream());
-    ZipEntry ze = null;
-    while ((ze = zis.getNextEntry()) != null) {
-      if (ze.getName().endsWith(".class")) {
-        suite.addTest(
-          new ClassReaderTest(u.substring(0, n + 2).concat(ze.getName())));
-      }
-    }
-    return suite;
+    return new ClassReaderTest().getSuite();
   }
   
-  public void testClassReader () throws Exception {
-    ClassReader cr = new ClassReader(new URL(className).openStream());
-    cr.accept(new EmptyClassVisitor(), false);
-  }
-
-  // workaround for Ant's JUnit test runner
-  public String getName() {
-    return super.getName()+" : "+className;
+  public void test () throws Exception {
+    new ClassReader(is).accept(new EmptyClassVisitor(), false);
   }
 }

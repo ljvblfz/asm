@@ -28,19 +28,57 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.objectweb.asm;
+package org.objectweb.asm.util;
 
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
 
 /**
- * AttributeVisitor
+ * An abstract trace visitor.
  *
- * @author Eugene Kuleshov
+ * @author Eric Bruneton
  */
 
-public interface MemberVisitor {
+public abstract class TraceAbstractVisitor extends AbstractVisitor {
 
-  AnnotationVisitor visitAnnotation (String type, boolean visible);
+  /**
+   * Prints a disassembled view of the given annotation.
+   *
+   * @param desc the class descriptor of the annotation class.
+   * @param visible <tt>true</tt> if the annotation is visible at runtime.
+   * @return a visitor to visit the annotation values.
+   */
 
-  void visitAttribute (Attribute attr);
+  public AnnotationVisitor visitAnnotation (
+    final String desc,
+    final boolean visible)
+  {
+    buf.setLength(0);
+    buf.append("  @").append(desc).append('(');
+    text.add(buf.toString());
+    TraceAnnotationVisitor tav = new TraceAnnotationVisitor();
+    text.add(tav.getText());
+    text.add(visible ? ")\n" : ") // invisible\n");
+    return tav;
+  }
 
+  /**
+   * Prints a disassembled view of the given attribute.
+   *
+   * @param attr an attribute.
+   */
+
+  public void visitAttribute (final Attribute attr) {
+    buf.setLength(0);
+    buf.append("  ATTRIBUTE ").append(attr.type).append(" : ")
+      .append(attr.toString()).append("\n");
+    text.add(buf.toString());
+  }
+
+  /**
+   * Does nothing.
+   */
+  
+  public void visitEnd () {
+  }
 }

@@ -31,26 +31,74 @@
 package org.objectweb.asm;
 
 /**
- * A visitor to visit the bytecode instructions of a Java method. The methods
- * of this visitor must be called in the sequential order of the bytecode
- * instructions of the visited code. The {@link #visitMaxs visitMaxs} method
- * must be called after all the instructions have been visited. The {@link
- * #visitTryCatchBlock visitTryCatchBlock}, {@link #visitLocalVariable
- * visitLocalVariable} and {@link #visitLineNumber visitLineNumber} methods may
- * be called in any order, at any time (provided the labels passed as arguments
- * have already been visited with {@link #visitLabel visitLabel}).
- * 
+ * A visitor to visit a Java method. The methods of this interface must be 
+ * called in the following order: [ <tt>visitAnnotationDefault</tt> ]
+ * ( <tt>visitAnnotation</tt> | <tt>visitParameterAnnotation</tt> | 
+ * <tt>visitAttribute</tt> )* [ ( <tt>visit</tt><i>X</i>Insn</tt> |
+ * <tt>visitLabel</tt> | <tt>visitTryCatchBlock</tt> | 
+ * <tt>visitLocalVariable</tt> | <tt>visitLineNumber</tt>)* <tt>visitMaxs</tt> ]
+ * <tt>visitEnd</tt>. In addition, the <tt>visit</tt><i>X</i>Insn</tt> and
+ * <tt>visitLabel</tt> methods must be called in the sequential order of the 
+ * bytecode instructions of the visited code, and the 
+ * <tt>visitTryCatchBlock</tt>, <tt>visitLocalVariable</tt> and 
+ * <tt>visitLineNumber</tt> methods must be called after the labels passed as 
+ * arguments have been visited.
+ *
  * @author Eric Bruneton
  */
 
-public interface CodeVisitor extends MemberVisitor {
+public interface MethodVisitor {
+
+  // -------------------------------------------------------------------------
+  // Annotations and non standard attributes
+  // -------------------------------------------------------------------------
+
+  /**
+   * Visits the default value of this annotation interface method.
+   *
+   * @return a visitor to the visit the actual default value of this annotation
+   *      interface method. The 'name' parameters passed to the methods of this
+   *      annotation visitor are ignored. Moreover, only one visit*Value method
+   *      must be called on this annotation visitor.
+   */
 
   AnnotationVisitor visitAnnotationDefault ();
 
+  /**
+   * Visits an annotation of this method.
+   *
+   * @param desc the class descriptor of the annotation class.
+   * @param visible <tt>true</tt> if the annotation is visible at runtime.
+   * @return a visitor to visit the annotation values.
+   */
+
+  AnnotationVisitor visitAnnotation (String desc, boolean visible);
+
+  /**
+   * Visits an annotation of a parameter this method.
+   *
+   * @param parameter the parameter index.
+   * @param desc the class descriptor of the annotation class.
+   * @param visible <tt>true</tt> if the annotation is visible at runtime.
+   * @return a visitor to visit the annotation values.
+   */
+
   AnnotationVisitor visitParameterAnnotation (
-    int parameter, 
-    String type, 
+    int parameter,
+    String desc,
     boolean visible);
+
+  /**
+   * Visits a non standard attribute of this method.
+   *
+   * @param attr an attribute.
+   */
+
+  void visitAttribute (Attribute attr);
+
+  // -------------------------------------------------------------------------
+  // Normal instructions
+  // -------------------------------------------------------------------------
 
   /**
    * Visits a zero operand instruction.
@@ -184,9 +232,8 @@ public interface CodeVisitor extends MemberVisitor {
    * Visits a LDC instruction.
    *
    * @param cst the constant to be loaded on the stack. This parameter must be
-   *      a non null {@link java.lang.Integer Integer}, a {@link java.lang.Float
-   *      Float}, a {@link java.lang.Long Long}, a {@link java.lang.Double
-   *      Double} a {@link String String} (or a {@link Type Type} for 
+   *      a non null {@link Integer}, a {@link Float}, a {@link Long}, a
+   *      {@link Double} a {@link String} (or a {@link Type} for
    *      <tt>.class</tt> constants, for classes whose version is 49.0 or more).
    */
 
@@ -234,7 +281,7 @@ public interface CodeVisitor extends MemberVisitor {
   void visitMultiANewArrayInsn (String desc, int dims);
 
   // -------------------------------------------------------------------------
-  // Exceptions table entries, max stack size and max locals
+  // Exceptions table entries, debug information, max stack size and max locals
   // -------------------------------------------------------------------------
 
   /**
@@ -253,24 +300,12 @@ public interface CodeVisitor extends MemberVisitor {
   void visitTryCatchBlock (Label start, Label end, Label handler, String type);
 
   /**
-   * Visits the maximum stack size and the maximum number of local variables of
-   * the method.
-   *
-   * @param maxStack maximum stack size of the method.
-   * @param maxLocals maximum number of local variables for the method.
-   */
-
-  void visitMaxs (int maxStack, int maxLocals);
-
-  // -------------------------------------------------------------------------
-  // Debug information
-  // -------------------------------------------------------------------------
-
-  /**
    * Visits a local variable declaration.
    *
    * @param name the name of a local variable.
    * @param desc the type descriptor of this local variable.
+   * @param signature the type signature of this local variable. May be
+   *      <tt>null</tt> if the local variable type does not use generic types.
    * @param start the first instruction corresponding to the scope of this
    *      local variable (inclusive).
    * @param end the last instruction corresponding to the scope of this
@@ -301,4 +336,22 @@ public interface CodeVisitor extends MemberVisitor {
    */
 
   void visitLineNumber (int line, Label start);
+
+  /**
+   * Visits the maximum stack size and the maximum number of local variables of
+   * the method.
+   *
+   * @param maxStack maximum stack size of the method.
+   * @param maxLocals maximum number of local variables for the method.
+   */
+
+  void visitMaxs (int maxStack, int maxLocals);
+  
+  /**
+   * Visits the end of the method. This method, which is the last one to be
+   * called, is used to inform the visitor that all the annotations and 
+   * attributes of the method have been visited.
+   */
+  
+  void visitEnd ();
 }

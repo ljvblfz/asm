@@ -31,29 +31,22 @@
 package org.objectweb.asm.util;
 
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.CodeVisitor;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 
 import java.util.HashMap;
 
 /**
- * A {@link PrintCodeVisitor PrintCodeVisitor} that prints a disassembled view
- * of the code it visits.
- * 
+ * A {@link MethodVisitor} that prints a disassembled view of the methods it
+ * visits.
+ *
  * @author Eric Bruneton
  */
 
-public class TraceCodeVisitor extends TraceMemberVisitor 
-  implements CodeVisitor
+public class TraceMethodVisitor extends TraceAbstractVisitor
+  implements MethodVisitor
 {
-
-  /**
-   * The {@link CodeVisitor CodeVisitor} to which this visitor delegates calls.
-   * May be <tt>null</tt>.
-   */
-
-  protected final CodeVisitor cv;
 
   /**
    * The label names. This map associate String values to Label keys.
@@ -62,54 +55,47 @@ public class TraceCodeVisitor extends TraceMemberVisitor
   private final HashMap labelNames;
 
   /**
-   * Constructs a new {@link TraceCodeVisitor TraceCodeVisitor} object.
-   *
-   * @param cv the code visitor to which this adapter must delegate calls. May
-   *      be <tt>null</tt>.
+   * Constructs a new {@link TraceMethodVisitor}.
    */
 
-  public TraceCodeVisitor (final CodeVisitor cv) {
-    super(cv);
-    this.cv = cv;
+  public TraceMethodVisitor () {
     this.labelNames = new HashMap();
   }
 
+  // --------------------------------------------------------------------------
+  // Implementation of the MethodVisitor interface
+  // --------------------------------------------------------------------------
+
   public AnnotationVisitor visitAnnotationDefault () {
     text.add("  default=");
-    TraceAnnotationVisitor tav = new TraceAnnotationVisitor(
-      cv == null ?  null : cv.visitAnnotationDefault());
+    TraceAnnotationVisitor tav = new TraceAnnotationVisitor();
     text.add(tav.getText());
     text.add("\n");
     return tav;
   }
-  
+
   public AnnotationVisitor visitParameterAnnotation (
     final int parameter,
-    final String type,
+    final String desc,
     final boolean visible)
   {
     buf.setLength(0);
-    buf.append("  @").append(type).append('(');
+    buf.append("  @").append(desc).append('(');
     text.add(buf.toString());
-    TraceAnnotationVisitor tav = new TraceAnnotationVisitor(
-      cv == null ? null : cv.visitParameterAnnotation(parameter, type, visible));
+    TraceAnnotationVisitor tav = new TraceAnnotationVisitor();
     text.add(tav.getText());
     text.add(visible ? ") // parameter " : ") // invisible, parameter ");
     text.add(new Integer(parameter));
     text.add("\n");
     return tav;
   }
-  
+
   public void visitInsn (final int opcode) {
     buf.setLength(0);
     buf.append("    ")
       .append(OPCODES[opcode])
       .append("\n");
     text.add(buf.toString());
-
-    if (cv != null) {
-      cv.visitInsn(opcode);
-    }
   }
 
   public void visitIntInsn (final int opcode, final int operand) {
@@ -119,10 +105,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
       .append(" ").append(operand)
       .append("\n");
     text.add(buf.toString());
-
-    if (cv != null) {
-      cv.visitIntInsn(opcode, operand);
-    }
   }
 
   public void visitVarInsn (final int opcode, final int var) {
@@ -133,10 +115,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
       .append(var)
       .append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitVarInsn(opcode, var);
-    }
   }
 
   public void visitTypeInsn (final int opcode, final String desc) {
@@ -147,10 +125,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
       .append(desc)
       .append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitTypeInsn(opcode, desc);
-    }
   }
 
   public void visitFieldInsn (
@@ -170,10 +144,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
       .append(desc)
       .append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitFieldInsn(opcode, owner, name, desc);
-    }
   }
 
   public void visitMethodInsn (
@@ -193,10 +163,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
       .append(desc)
       .append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitMethodInsn(opcode, owner, name, desc);
-    }
   }
 
   public void visitJumpInsn (final int opcode, final Label label) {
@@ -205,10 +171,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
     appendLabel(label);
     buf.append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitJumpInsn(opcode, label);
-    }
   }
 
   public void visitLabel (final Label label) {
@@ -217,10 +179,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
     appendLabel(label);
     buf.append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitLabel(label);
-    }
   }
 
   public void visitLdcInsn (final Object cst) {
@@ -235,10 +193,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
     }
     buf.append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitLdcInsn(cst);
-    }
   }
 
   public void visitIincInsn (final int var, final int increment) {
@@ -249,10 +203,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
       .append(increment)
       .append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitIincInsn(var, increment);
-    }
   }
 
   public void visitTableSwitchInsn (
@@ -274,10 +224,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
     appendLabel(dflt);
     buf.append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitTableSwitchInsn(min, max, dflt, labels);
-    }
   }
 
   public void visitLookupSwitchInsn (
@@ -298,10 +244,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
     appendLabel(dflt);
     buf.append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitLookupSwitchInsn(dflt, keys, labels);
-    }
   }
 
   public void visitMultiANewArrayInsn (final String desc, final int dims) {
@@ -312,10 +254,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
       .append(dims)
       .append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitMultiANewArrayInsn(desc, dims);
-    }
   }
 
   public void visitTryCatchBlock (
@@ -335,26 +273,8 @@ public class TraceCodeVisitor extends TraceMemberVisitor
       .append(type)
       .append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitTryCatchBlock(start, end, handler, type);
-    }
   }
-
-  public void visitMaxs (final int maxStack, final int maxLocals) {
-    buf.setLength(0);
-    buf.append("    MAXSTACK = ")
-      .append(maxStack)
-      .append("\n    MAXLOCALS = ")
-      .append(maxLocals)
-      .append("\n");
-    text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitMaxs(maxStack, maxLocals);
-    }
-  }
-
+  
   public void visitLocalVariable (
     final String name,
     final String desc,
@@ -378,10 +298,6 @@ public class TraceCodeVisitor extends TraceMemberVisitor
       .append(index)
       .append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitLocalVariable(name, desc, signature, start, end, index);
-    }
   }
 
   public void visitLineNumber (final int line, final Label start) {
@@ -392,11 +308,21 @@ public class TraceCodeVisitor extends TraceMemberVisitor
     appendLabel(start);
     buf.append("\n");
     text.add(buf.toString());
-    
-    if (cv != null) {
-      cv.visitLineNumber(line, start);
-    }
   }
+
+  public void visitMaxs (final int maxStack, final int maxLocals) {
+    buf.setLength(0);
+    buf.append("    MAXSTACK = ")
+      .append(maxStack)
+      .append("\n    MAXLOCALS = ")
+      .append(maxLocals)
+      .append("\n");
+    text.add(buf.toString());
+  }
+
+  // --------------------------------------------------------------------------
+  // Utility methods
+  // --------------------------------------------------------------------------
 
   /**
    * Appends the name of the given label to {@link #buf buf}. Creates a new

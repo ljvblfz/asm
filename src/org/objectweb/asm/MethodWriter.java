@@ -31,32 +31,32 @@
 package org.objectweb.asm;
 
 /**
- * A {@link CodeVisitor CodeVisitor} that generates Java bytecode instructions.
+ * A {@link MethodVisitor} that generates methods in bytecode form.
  * Each visit method of this class appends the bytecode corresponding to the
  * visited instruction to a byte vector, in the order these methods are called.
  * 
  * @author Eric Bruneton
  */
 
-public class CodeWriter implements CodeVisitor {
+public class MethodWriter implements MethodVisitor {
 
   /**
-   * <tt>true</tt> if preconditions must be checked at runtime or not.
+   * Next method writer (see {@link ClassWriter#firstMethod firstMethod}).
    */
 
-  final static boolean CHECK = false;
-
-  /**
-   * Next code writer (see {@link ClassWriter#firstMethod firstMethod}).
-   */
-
-  CodeWriter next;
+  MethodWriter next;
 
   /**
    * The class writer to which this method must be added.
    */
 
   private ClassWriter cw;
+
+  /**
+   * Access flags of this method.
+   */
+
+  private int access;
 
   /**
    * The index of the constant pool item that contains the name of this method.
@@ -71,44 +71,19 @@ public class CodeWriter implements CodeVisitor {
 
   private int desc;
 
-  private int signature;
+  /**
+   * The descriptor of this method.
+   */
+  
+  private String descriptor;
   
   /**
-   * Access flags of this method.
+   * The index of the constant pool item that contains the signature of this
+   * method.
    */
 
-  private int access;
-
-  /**
-   * Maximum stack size of this method.
-   */
-
-  private int maxStack;
-
-  /**
-   * Maximum number of local variables for this method.
-   */
-
-  private int maxLocals;
-
-  /**
-   * The bytecode of this method.
-   */
-
-  private ByteVector code = new ByteVector();
-
-  /**
-   * Number of entries in the catch table of this method.
-   */
-
-  private int catchCount;
-
-  /**
-   * The catch table of this method.
-   */
-
-  private ByteVector catchTable;
-
+  private int signature;
+  
   /**
    * Number of exceptions that can be thrown by this method.
    */
@@ -123,14 +98,36 @@ public class CodeWriter implements CodeVisitor {
 
   private int[] exceptions;
 
-  private AnnotationWriter annd;
+  /**
+   * The annotation default attribute of this method. May be <tt>null</tt>.
+   */
+  
+  private ByteVector annd;
+
+  /**
+   * The runtime visible annotations of this method. May be <tt>null</tt>.
+   */
   
   private AnnotationWriter anns;
   
+  /**
+   * The runtime invisible annotations of this method. May be <tt>null</tt>.
+   */
+
   private AnnotationWriter ianns;
+
+  /**
+   * The runtime visible parameter annotations of this method. 
+   * May be <tt>null</tt>.
+   */
 
   private AnnotationWriter[] panns;
   
+  /**
+   * The runtime invisible parameter annotations of this method.
+   * May be <tt>null</tt>.
+   */
+
   private AnnotationWriter[] ipanns;
 
   /**
@@ -138,6 +135,36 @@ public class CodeWriter implements CodeVisitor {
    */
 
   private Attribute attrs;
+  
+  /**
+   * The bytecode of this method.
+   */
+
+  private ByteVector code = new ByteVector();
+
+  /**
+   * Maximum stack size of this method.
+   */
+
+  private int maxStack;
+
+  /**
+   * Maximum number of local variables for this method.
+   */
+
+  private int maxLocals;
+
+  /**
+   * Number of entries in the catch table of this method.
+   */
+
+  private int catchCount;
+
+  /**
+   * The catch table of this method.
+   */
+
+  private ByteVector catchTable;
 
   /**
    * Number of entries in the LocalVariableTable attribute.
@@ -151,8 +178,16 @@ public class CodeWriter implements CodeVisitor {
   
   private ByteVector localVar;
 
+  /**
+   * Number of entries in the LocalVariableTypeTable attribute.
+   */
+
   private int localVarTypeCount;
   
+  /**
+   * The LocalVariableTypeTable attribute.
+   */
+
   private ByteVector localVarType;
 
   /**
@@ -239,43 +274,6 @@ public class CodeWriter implements CodeVisitor {
    */
 
   private final static int[] SIZE;
-
-  // --------------------------------------------------------------------------
-  // Fields to optimize the creation of {@link Edge Edge} objects by using a
-  // pool of reusable objects. The (shared) pool is a linked list of Edge
-  // objects, linked to each other by their {@link Edge#poolNext} field. Each
-  // time a CodeWriter needs to allocate an Edge, it removes the first Edge
-  // of the pool and adds it to a private list of Edge objects. After the end
-  // of the control flow analysis algorithm, the Edge objects in the private
-  // list of the CodeWriter are added back to the pool (by appending this
-  // private list to the pool list; in order to do this in constant time, both
-  // head and tail of the private list are stored in this CodeWriter).
-  // --------------------------------------------------------------------------
-
-  /**
-   * The head of the list of {@link Edge Edge} objects used by this {@link
-   * CodeWriter CodeWriter}. These objects, linked to each other by their
-   * {@link Edge#poolNext} field, are added back to the shared pool at the
-   * end of the control flow analysis algorithm.
-   */
-
-  private Edge head;
-
-  /**
-   * The tail of the list of {@link Edge Edge} objects used by this {@link
-   * CodeWriter CodeWriter}. These objects, linked to each other by their
-   * {@link Edge#poolNext} field, are added back to the shared pool at the
-   * end of the control flow analysis algorithm.
-   */
-
-  private Edge tail;
-
-  /**
-   * The shared pool of {@link Edge Edge} objects. This pool is a linked list
-   * of Edge objects, linked to each other by their {@link Edge#poolNext} field.
-   */
-
-  private static Edge pool;
 
   // --------------------------------------------------------------------------
   // Static initializer
@@ -517,14 +515,14 @@ public class CodeWriter implements CodeVisitor {
   // --------------------------------------------------------------------------
 
   /**
-   * Constructs a CodeWriter.
+   * Constructs a new {@link MethodWriter}.
    *
    * @param cw the class writer in which the method must be added.
    * @param computeMaxs <tt>true</tt> if the maximum stack size and number of
    *      local variables must be automatically computed.
    */
 
-  protected CodeWriter (final ClassWriter cw, final boolean computeMaxs) {
+  protected MethodWriter (final ClassWriter cw, final boolean computeMaxs) {
     if (cw.firstMethod == null) {
       cw.firstMethod = this;
     } else {
@@ -542,11 +540,13 @@ public class CodeWriter implements CodeVisitor {
   }
 
   /**
-   * Initializes this CodeWriter to define the bytecode of the specified method.
+   * Initializes this MethodWriter to define the bytecode of the specified 
+   * method.
    *
-   * @param access the method's access flags (see {@link Constants}).
+   * @param access the method's access flags (see {@link Opcodes}).
    * @param name the method's name.
-   * @param desc the method's descriptor (see {@link Type Type}).
+   * @param desc the method's descriptor (see {@link Type}).
+   * @param signature the method's signature. May be <tt>null</tt>.
    * @param exceptions the internal names of the method's exceptions. May be
    *      <tt>null</tt>.
    */
@@ -574,7 +574,7 @@ public class CodeWriter implements CodeVisitor {
     if (computeMaxs) {
       // updates maxLocals
       int size = getArgumentsAndReturnSizes(desc) >> 2;
-      if ((access & Constants.ACC_STATIC) != 0) {
+      if ((access & Opcodes.ACC_STATIC) != 0) {
         --size;
       }
       if (size > maxLocals) {
@@ -584,34 +584,22 @@ public class CodeWriter implements CodeVisitor {
   }
 
   // --------------------------------------------------------------------------
-  // Implementation of the CodeVisitor interface
+  // Implementation of the MethodVisitor interface
   // --------------------------------------------------------------------------
 
   public AnnotationVisitor visitAnnotationDefault () {
-    annd = new AnnotationWriter(cw, new ByteVector(), null, 0, false);
-    return annd;
+    annd = new ByteVector();
+    return new AnnotationWriter(cw, false, annd, null, 0);
   }
 
-  public AnnotationVisitor visitParameterAnnotation (int parameter, String type, boolean visible) {
+  public AnnotationVisitor visitAnnotation (
+    final String desc, 
+    final boolean visible) 
+  {
     ByteVector bv = new ByteVector();
     // write type, and reserve space for values count
-    bv.putShort(cw.newUTF8(type)).putShort(0);
-    AnnotationWriter aw = new AnnotationWriter(cw, bv, bv, bv.length - 2, true);
-    if (visible) {
-      aw.next = panns[parameter];
-      panns[parameter] = aw;
-    } else {
-      aw.next = ipanns[parameter];
-      ipanns[parameter] = aw;
-    }
-    return aw;
-  }
-
-  public AnnotationVisitor visitAnnotation (String type, boolean visible) {
-    ByteVector bv = new ByteVector();
-    // write type, and reserve space for values count
-    bv.putShort(cw.newUTF8(type)).putShort(0);
-    AnnotationWriter aw = new AnnotationWriter(cw, bv, bv, bv.length - 2, true);
+    bv.putShort(cw.newUTF8(desc)).putShort(0);
+    AnnotationWriter aw = new AnnotationWriter(cw, true, bv, bv, 2);
     if (visible) {
       aw.next = anns;
       anns = aw;
@@ -620,6 +608,41 @@ public class CodeWriter implements CodeVisitor {
       ianns = aw;
     }
     return aw;
+  }
+
+  public AnnotationVisitor visitParameterAnnotation (
+    final int parameter, 
+    final String desc, 
+    final boolean visible) 
+  {
+    ByteVector bv = new ByteVector();
+    // write type, and reserve space for values count
+    bv.putShort(cw.newUTF8(desc)).putShort(0);
+    AnnotationWriter aw = new AnnotationWriter(cw, true, bv, bv, 2);
+    if (visible) {
+      if (panns == null) {
+        panns = new AnnotationWriter[Type.getArgumentTypes(descriptor).length];
+      }
+      aw.next = panns[parameter];
+      panns[parameter] = aw;
+    } else {
+      if (ipanns == null) {
+        ipanns = new AnnotationWriter[Type.getArgumentTypes(descriptor).length];
+      }
+      aw.next = ipanns[parameter];
+      ipanns[parameter] = aw;
+    }
+    return aw;
+  }
+
+  public void visitAttribute (final Attribute attr) {
+    if (attr.isCodeAttribute()) {
+      attr.next = cattrs;
+      cattrs = attr;
+    } else {
+      attr.next = attrs;
+      attrs = attr;
+    }
   }
 
   public void visitInsn (final int opcode) {
@@ -631,8 +654,8 @@ public class CodeWriter implements CodeVisitor {
       }
       stackSize = size;
       // if opcode == ATHROW or xRETURN, ends current block (no successor)
-      if ((opcode >= Constants.IRETURN && opcode <= Constants.RETURN) ||
-          opcode == Constants.ATHROW)
+      if ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) ||
+          opcode == Opcodes.ATHROW)
       {
         if (currentBlock != null) {
           currentBlock.maxStackSize = maxStackSize;
@@ -645,7 +668,7 @@ public class CodeWriter implements CodeVisitor {
   }
 
   public void visitIntInsn (final int opcode, final int operand) {
-    if (computeMaxs && opcode != Constants.NEWARRAY) {
+    if (computeMaxs && opcode != Opcodes.NEWARRAY) {
       // updates current and max stack sizes only if opcode == NEWARRAY
       // (stack size variation = 0 for BIPUSH or SIPUSH)
       int size = stackSize + 1;
@@ -655,7 +678,7 @@ public class CodeWriter implements CodeVisitor {
       stackSize = size;
     }
     // adds the instruction to the bytecode of the method
-    if (opcode == Constants.SIPUSH) {
+    if (opcode == Opcodes.SIPUSH) {
       code.put12(opcode, operand);
     } else { // BIPUSH or NEWARRAY
       code.put11(opcode, operand);
@@ -665,7 +688,7 @@ public class CodeWriter implements CodeVisitor {
   public void visitVarInsn (final int opcode, final int var) {
     if (computeMaxs) {
       // updates current and max stack sizes
-      if (opcode == Constants.RET) {
+      if (opcode == Opcodes.RET) {
         // no stack change, but end of current block (no successor)
         if (currentBlock != null) {
           currentBlock.maxStackSize = maxStackSize;
@@ -680,8 +703,8 @@ public class CodeWriter implements CodeVisitor {
       }
       // updates max locals
       int n;
-      if (opcode == Constants.LLOAD || opcode == Constants.DLOAD ||
-          opcode == Constants.LSTORE || opcode == Constants.DSTORE)
+      if (opcode == Opcodes.LLOAD || opcode == Opcodes.DLOAD ||
+          opcode == Opcodes.LSTORE || opcode == Opcodes.DSTORE)
       {
         n = var + 2;
       } else {
@@ -692,12 +715,12 @@ public class CodeWriter implements CodeVisitor {
       }
     }
     // adds the instruction to the bytecode of the method
-    if (var < 4 && opcode != Constants.RET) {
+    if (var < 4 && opcode != Opcodes.RET) {
       int opt;
-      if (opcode < Constants.ISTORE) {
-        opt = 26 /*ILOAD_0*/ + ((opcode - Constants.ILOAD) << 2) + var;
+      if (opcode < Opcodes.ISTORE) {
+        opt = 26 /*ILOAD_0*/ + ((opcode - Opcodes.ILOAD) << 2) + var;
       } else {
-        opt = 59 /*ISTORE_0*/ + ((opcode - Constants.ISTORE) << 2) + var;
+        opt = 59 /*ISTORE_0*/ + ((opcode - Opcodes.ISTORE) << 2) + var;
       }
       code.putByte(opt);
     } else if (var >= 256) {
@@ -708,7 +731,7 @@ public class CodeWriter implements CodeVisitor {
   }
 
   public void visitTypeInsn (final int opcode, final String desc) {
-    if (computeMaxs && opcode == Constants.NEW) {
+    if (computeMaxs && opcode == Opcodes.NEW) {
       // updates current and max stack sizes only if opcode == NEW
       // (stack size variation = 0 for ANEWARRAY, CHECKCAST, INSTANCEOF)
       int size = stackSize + 1;
@@ -732,13 +755,13 @@ public class CodeWriter implements CodeVisitor {
       // computes the stack size variation
       char c = desc.charAt(0);
       switch (opcode) {
-        case Constants.GETSTATIC:
+        case Opcodes.GETSTATIC:
           size = stackSize + (c == 'D' || c == 'J' ? 2 : 1);
           break;
-        case Constants.PUTSTATIC:
+        case Opcodes.PUTSTATIC:
           size = stackSize + (c == 'D' || c == 'J' ? -2 : -1);
           break;
-        case Constants.GETFIELD:
+        case Opcodes.GETFIELD:
           size = stackSize + (c == 'D' || c == 'J' ? 1 : 0);
           break;
         //case Constants.PUTFIELD:
@@ -762,7 +785,7 @@ public class CodeWriter implements CodeVisitor {
     final String name,
     final String desc)
   {
-    boolean itf = opcode == Constants.INVOKEINTERFACE;
+    boolean itf = opcode == Opcodes.INVOKEINTERFACE;
     Item i = cw.newMethodItem(owner, name, desc, itf);
     int argSize = i.intVal;
     if (computeMaxs) {
@@ -778,7 +801,7 @@ public class CodeWriter implements CodeVisitor {
         i.intVal = argSize;
       }
       int size;
-      if (opcode == Constants.INVOKESTATIC) {
+      if (opcode == Opcodes.INVOKESTATIC) {
         size = stackSize - (argSize >> 2) + (argSize & 0x03) + 1;
       } else {
         size = stackSize - (argSize >> 2) + (argSize & 0x03);
@@ -797,29 +820,22 @@ public class CodeWriter implements CodeVisitor {
           i.intVal = argSize;
         }
       }
-      code.put12(Constants.INVOKEINTERFACE, i.index).put11(argSize >> 2, 0);
+      code.put12(Opcodes.INVOKEINTERFACE, i.index).put11(argSize >> 2, 0);
     } else {
       code.put12(opcode, i.index);
     }
   }
 
   public void visitJumpInsn (final int opcode, final Label label) {
-    if (CHECK) {
-      if (label.owner == null) {
-        label.owner = this;
-      } else if (label.owner != this) {
-        throw new IllegalArgumentException();
-      }
-    }
     if (computeMaxs) {
-      if (opcode == Constants.GOTO) {
+      if (opcode == Opcodes.GOTO) {
         // no stack change, but end of current block (with one new successor)
         if (currentBlock != null) {
           currentBlock.maxStackSize = maxStackSize;
           addSuccessor(stackSize, label);
           currentBlock = null;
         }
-      } else if (opcode == Constants.JSR) {
+      } else if (opcode == Opcodes.JSR) {
         if (currentBlock != null) {
           addSuccessor(stackSize + 1, label);
         }
@@ -839,9 +855,9 @@ public class CodeWriter implements CodeVisitor {
       // with IFNOTxxx <l'> GOTO_W <l>, where IFNOTxxx is the "opposite" opcode
       // of IFxxx (i.e., IFNE for IFEQ) and where <l'> designates the
       // instruction just after the GOTO_W.
-      if (opcode == Constants.GOTO) {
+      if (opcode == Opcodes.GOTO) {
         code.putByte(200); // GOTO_W
-      } else if (opcode == Constants.JSR) {
+      } else if (opcode == Opcodes.JSR) {
         code.putByte(201); // JSR_W
       } else {
         code.putByte(opcode <= 166 ? ((opcode + 1) ^ 1) - 1 : opcode ^ 1);
@@ -859,13 +875,6 @@ public class CodeWriter implements CodeVisitor {
   }
 
   public void visitLabel (final Label label) {
-    if (CHECK) {
-      if (label.owner == null) {
-        label.owner = this;
-      } else if (label.owner != this) {
-        throw new IllegalArgumentException();
-      }
-    }
     if (computeMaxs) {
       if (currentBlock != null) {
         // ends current block (with one new successor)
@@ -887,7 +896,7 @@ public class CodeWriter implements CodeVisitor {
     if (computeMaxs) {
       int size;
       // computes the stack size variation
-      if (i.type == ClassWriter.LONG || i.type == ClassWriter.DOUBLE) {
+      if (i.type == 'J' || i.type == 'D') {
         size = stackSize + 2;
       } else {
         size = stackSize + 1;
@@ -900,12 +909,12 @@ public class CodeWriter implements CodeVisitor {
     }
     // adds the instruction to the bytecode of the method
     int index = i.index;
-    if (i.type == ClassWriter.LONG || i.type == ClassWriter.DOUBLE) {
+    if (i.type =='J' || i.type == 'D') {
       code.put12(20 /*LDC2_W*/, index);
     } else if (index >= 256) {
       code.put12(19 /*LDC_W*/, index);
     } else {
-      code.put11(Constants.LDC, index);
+      code.put11(Opcodes.LDC, index);
     }
   }
 
@@ -919,9 +928,9 @@ public class CodeWriter implements CodeVisitor {
     }
     // adds the instruction to the bytecode of the method
     if ((var > 255) || (increment > 127) || (increment < -128)) {
-      code.putByte(196 /*WIDE*/).put12(Constants.IINC, var).putShort(increment);
+      code.putByte(196 /*WIDE*/).put12(Opcodes.IINC, var).putShort(increment);
     } else {
-      code.putByte(Constants.IINC).put11(var, increment);
+      code.putByte(Opcodes.IINC).put11(var, increment);
     }
   }
 
@@ -946,7 +955,7 @@ public class CodeWriter implements CodeVisitor {
     }
     // adds the instruction to the bytecode of the method
     int source = code.length;
-    code.putByte(Constants.TABLESWITCH);
+    code.putByte(Opcodes.TABLESWITCH);
     while (code.length % 4 != 0) {
       code.putByte(0);
     }
@@ -977,7 +986,7 @@ public class CodeWriter implements CodeVisitor {
     }
     // adds the instruction to the bytecode of the method
     int source = code.length;
-    code.putByte(Constants.LOOKUPSWITCH);
+    code.putByte(Opcodes.LOOKUPSWITCH);
     while (code.length % 4 != 0) {
       code.putByte(0);
     }
@@ -996,7 +1005,7 @@ public class CodeWriter implements CodeVisitor {
       stackSize += 1 - dims;
     }
     // adds the instruction to the bytecode of the method
-    code.put12(Constants.MULTIANEWARRAY, cw.newClass(desc)).putByte(dims);
+    code.put12(Opcodes.MULTIANEWARRAY, cw.newClass(desc)).putByte(dims);
   }
 
   public void visitTryCatchBlock (
@@ -1005,14 +1014,6 @@ public class CodeWriter implements CodeVisitor {
     final Label handler,
     final String type)
   {
-    if (CHECK) {
-      if (start.owner != this || end.owner != this || handler.owner != this) {
-        throw new IllegalArgumentException();
-      }
-      if (!start.resolved || !end.resolved || !handler.resolved) {
-        throw new IllegalArgumentException();
-      }
-    }
     if (computeMaxs) {
       // pushes handler block onto the stack of blocks to be visited
       if (!handler.pushed) {
@@ -1030,6 +1031,50 @@ public class CodeWriter implements CodeVisitor {
     catchTable.putShort(end.position);
     catchTable.putShort(handler.position);
     catchTable.putShort(type != null ? cw.newClass(type) : 0);
+  }
+
+  public void visitLocalVariable (
+    final String name,
+    final String desc,
+    final String signature,
+    final Label start,
+    final Label end,
+    final int index)
+  {
+    if (signature != null) {
+      if (localVarType == null) {
+        cw.newUTF8("LocalVariableTypeTable");
+        localVarType = new ByteVector();
+      }
+      ++localVarTypeCount;
+      localVarType.
+        putShort(start.position)
+        .putShort(end.position - start.position)
+        .putShort(cw.newUTF8(name))
+        .putShort(cw.newUTF8(desc))
+        .putShort(index);
+    }
+    if (localVar == null) {
+      cw.newUTF8("LocalVariableTable");
+      localVar = new ByteVector();
+    }
+    ++localVarCount;
+    localVar
+      .putShort(start.position)
+      .putShort(end.position - start.position)
+      .putShort(cw.newUTF8(name))
+      .putShort(cw.newUTF8(desc))
+      .putShort(index);
+  }
+
+  public void visitLineNumber (final int line, final Label start) {
+    if (lineNumber == null) {
+      cw.newUTF8("LineNumberTable");
+      lineNumber = new ByteVector();
+    }
+    ++lineNumberCount;
+    lineNumber.putShort(start.position);
+    lineNumber.putShort(line);
   }
 
   public void visitMaxs (final int maxStack, final int maxLocals) {
@@ -1072,87 +1117,15 @@ public class CodeWriter implements CodeVisitor {
         }
       }
       this.maxStack = max;
-      // releases all the Edge objects used by this CodeWriter
-      synchronized (SIZE) {
-        // appends the [head ... tail] list at the beginning of the pool list
-        if (tail != null) {
-          tail.poolNext = pool;
-          pool = head;
-        }
-      }
     } else {
       this.maxStack = maxStack;
       this.maxLocals = maxLocals;
     }
   }
 
-  public void visitLocalVariable (
-    final String name,
-    final String desc,
-    final String signature,
-    final Label start,
-    final Label end,
-    final int index)
-  {
-    if (CHECK) {
-      if (start.owner != this || !start.resolved) {
-        throw new IllegalArgumentException();
-      }
-      if (end.owner != this || !end.resolved) {
-        throw new IllegalArgumentException();
-      }
-    }
-    if (signature != null) {
-      if (localVarType == null) {
-        cw.newUTF8("LocalVariableTypeTable");
-        localVarType = new ByteVector();
-      }
-      ++localVarTypeCount;
-      localVarType.
-        putShort(start.position)
-        .putShort(end.position - start.position)
-        .putShort(cw.newUTF8(name))
-        .putShort(cw.newUTF8(desc))
-        .putShort(index);
-    }
-    if (localVar == null) {
-      cw.newUTF8("LocalVariableTable");
-      localVar = new ByteVector();
-    }
-    ++localVarCount;
-    localVar
-      .putShort(start.position)
-      .putShort(end.position - start.position)
-      .putShort(cw.newUTF8(name))
-      .putShort(cw.newUTF8(desc))
-      .putShort(index);
+  public void visitEnd () {
   }
-
-  public void visitLineNumber (final int line, final Label start) {
-    if (CHECK) {
-      if (start.owner != this || !start.resolved) {
-        throw new IllegalArgumentException();
-      }
-    }
-    if (lineNumber == null) {
-      cw.newUTF8("LineNumberTable");
-      lineNumber = new ByteVector();
-    }
-    ++lineNumberCount;
-    lineNumber.putShort(start.position);
-    lineNumber.putShort(line);
-  }
-
-  public void visitAttribute (final Attribute attr) {
-    if (attr.isCodeAttribute()) {
-      attr.next = cattrs;
-      cattrs = attr;
-    } else {
-      attr.next = attrs;
-      attrs = attr;
-    }
-  }
-
+  
   // --------------------------------------------------------------------------
   // Utility methods: control flow analysis algorithm
   // --------------------------------------------------------------------------
@@ -1203,23 +1176,7 @@ public class CodeWriter implements CodeVisitor {
    */
 
   private void addSuccessor (final int stackSize, final Label successor) {
-    Edge b;
-    // creates a new Edge object or reuses one from the shared pool
-    synchronized (SIZE) {
-      if (pool == null) {
-        b = new Edge();
-      } else {
-        b = pool;
-        // removes b from the pool
-        pool = pool.poolNext;
-      }
-    }
-    // adds the previous Edge to the list of Edges used by this CodeWriter
-    if (tail == null) {
-      tail = b;
-    }
-    b.poolNext = head;
-    head = b;
+    Edge b = new Edge();
     // initializes the previous Edge object...
     b.stackSize = stackSize;
     b.successor = successor;
@@ -1264,11 +1221,11 @@ public class CodeWriter implements CodeVisitor {
       cw.newUTF8("Exceptions");
       size += 8 + 2 * exceptionCount;
     }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
+    if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
       cw.newUTF8("Synthetic");
       size += 6;
     }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
+    if ((access & Opcodes.ACC_DEPRECATED) != 0) {
       cw.newUTF8("Deprecated");
       size += 6;
     }
@@ -1278,7 +1235,7 @@ public class CodeWriter implements CodeVisitor {
     }
     if (annd != null) {
       cw.newUTF8("AnnotationDefault");
-      size += 6 + annd.bv.length;
+      size += 6 + annd.length;
     }
     if (anns != null) {
       cw.newUTF8("RuntimeVisibleAnnotations");
@@ -1292,14 +1249,14 @@ public class CodeWriter implements CodeVisitor {
       cw.newUTF8("RuntimeVisibleParameterAnnotations");
       size += 7 + 2*panns.length;
       for (int i = panns.length - 1; i >= 0; --i) {
-        size += panns[i].getSize();
+        size += panns[i] == null ? 0 : panns[i].getSize();
       }
     }
     if (ipanns != null) {
       cw.newUTF8("RuntimeInvisibleParameterAnnotations");
       size += 7 + 2*ipanns.length;
       for (int i = ipanns.length - 1; i >= 0; --i) {
-        size += ipanns[i].getSize();
+        size += ipanns[i] == null ? 0 : ipanns[i].getSize();
       }
     }
     if (attrs != null) {
@@ -1324,10 +1281,10 @@ public class CodeWriter implements CodeVisitor {
     if (exceptionCount > 0) {
       ++attributeCount;
     }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
+    if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
       ++attributeCount;
     }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
+    if ((access & Opcodes.ACC_DEPRECATED) != 0) {
       ++attributeCount;
     }
     if (signature != 0) {
@@ -1413,20 +1370,19 @@ public class CodeWriter implements CodeVisitor {
         out.putShort(exceptions[i]);
       }
     }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
+    if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
       out.putShort(cw.newUTF8("Synthetic")).putInt(0);
     }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
+    if ((access & Opcodes.ACC_DEPRECATED) != 0) {
       out.putShort(cw.newUTF8("Deprecated")).putInt(0);
     }
     if (signature != 0) {
       out.putShort(cw.newUTF8("Signature")).putInt(2).putShort(signature);
     }
     if (annd != null) {
-      ByteVector bv = annd.bv;
       out.putShort(cw.newUTF8("AnnotationDefault"));
-      out.putInt(6 + bv.length);
-      out.putByteArray(bv.data, 0, bv.length);
+      out.putInt(6 + annd.length);
+      out.putByteArray(annd.data, 0, annd.length);
     }
     if (anns != null) {
       out.putShort(cw.newUTF8("RuntimeVisibleAnnotations"));
@@ -1553,7 +1509,7 @@ public class CodeWriter implements CodeVisitor {
             newOffset = getNewOffset(allIndexes, allSizes, u, label);
             if (newOffset < Short.MIN_VALUE || newOffset > Short.MAX_VALUE) {
               if (!resize[u]) {
-                if (opcode == Constants.GOTO || opcode == Constants.JSR) {
+                if (opcode == Opcodes.GOTO || opcode == Opcodes.JSR) {
                   // two additional bytes will be required to replace this
                   // GOTO or JSR instruction with a GOTO_W or a JSR_W
                   insert = 2;
@@ -1610,7 +1566,7 @@ public class CodeWriter implements CodeVisitor {
             break;
           case ClassWriter.WIDE_INSN:
             opcode = b[u + 1] & 0xFF;
-            if (opcode == Constants.IINC) {
+            if (opcode == Opcodes.IINC) {
               u += 6;
             } else {
               u += 4;
@@ -1698,9 +1654,9 @@ public class CodeWriter implements CodeVisitor {
             // IFNOTxxx <l'> GOTO_W <l>, where IFNOTxxx is the "opposite" opcode
             // of IFxxx (i.e., IFNE for IFEQ) and where <l'> designates the
             // instruction just after the GOTO_W.
-            if (opcode == Constants.GOTO) {
+            if (opcode == Opcodes.GOTO) {
               newCode.putByte(200); // GOTO_W
-            } else if (opcode == Constants.JSR) {
+            } else if (opcode == Opcodes.JSR) {
               newCode.putByte(201); // JSR_W
             } else {
               newCode.putByte(opcode <= 166 ? ((opcode + 1) ^ 1) - 1 : opcode ^ 1);
@@ -1727,7 +1683,7 @@ public class CodeWriter implements CodeVisitor {
           v = u;
           u = u + 4 - (v & 3);
           // reads and copies instruction
-          newCode.putByte(Constants.TABLESWITCH);
+          newCode.putByte(Opcodes.TABLESWITCH);
           while (newCode.length % 4 != 0) {
             newCode.putByte(0);
           }
@@ -1749,7 +1705,7 @@ public class CodeWriter implements CodeVisitor {
           v = u;
           u = u + 4 - (v & 3);
           // reads and copies instruction
-          newCode.putByte(Constants.LOOKUPSWITCH);
+          newCode.putByte(Opcodes.LOOKUPSWITCH);
           while (newCode.length % 4 != 0) {
             newCode.putByte(0);
           }
@@ -1767,7 +1723,7 @@ public class CodeWriter implements CodeVisitor {
           break;
         case ClassWriter.WIDE_INSN:
           opcode = b[u + 1] & 0xFF;
-          if (opcode == Constants.IINC) {
+          if (opcode == Opcodes.IINC) {
             newCode.putByteArray(b, u, 6);
             u += 6;
           } else {

@@ -30,25 +30,30 @@
 
 package org.objectweb.asm.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.objectweb.asm.AnnotationVisitor;
 
-public class TraceAnnotationVisitor implements AnnotationVisitor {
+/**
+ * An {@link AnnotationVisitor} that prints a disassembled view of the
+ * annotations it visits.
+ *
+ * @author Eric Bruneton
+ */
 
-  protected final AnnotationVisitor av;
-  
-  protected final List text;
-  
-  protected final StringBuffer buf;
-  
-  public TraceAnnotationVisitor (final AnnotationVisitor av) {
-    this.av = av;
-    this.text = new ArrayList();
-    this.buf = new StringBuffer();
+public class TraceAnnotationVisitor extends AbstractVisitor
+  implements AnnotationVisitor
+{
+
+  /**
+   * Constructs a new {@link TraceAnnotationVisitor}.
+   */
+
+  public TraceAnnotationVisitor () {
   }
-  
+
+  // --------------------------------------------------------------------------
+  // Implementation of the AnnotationVisitor interface
+  // --------------------------------------------------------------------------
+
   public void visitValue (final String name, final Object value) {
     buf.setLength(0);
     if (name != null) {
@@ -56,41 +61,32 @@ public class TraceAnnotationVisitor implements AnnotationVisitor {
     }
     buf.append(value);
     text.add(buf.toString());
-    
-    if (av != null) {
-      av.visitValue(name, value); 
-    }
   }
 
   public void visitEnumValue (
-    final String name, 
-    final String type, 
-    final String value) 
+    final String name,
+    final String desc,
+    final String value)
   {
     buf.setLength(0);
     if (name != null) {
       buf.append(name).append("=");
     }
-    buf.append(type).append('.').append(value);
+    buf.append(desc).append('.').append(value);
     text.add(buf.toString());
-
-    if (av != null) {
-      av.visitEnumValue(name, type, value); 
-    }
   }
 
   public AnnotationVisitor visitAnnotationValue (
-    final String name, 
-    final String type) 
+    final String name,
+    final String desc)
   {
     buf.setLength(0);
     if (name != null) {
       buf.append(name).append('=');
     }
-    buf.append('@').append(type).append('(');
+    buf.append('@').append(desc).append('(');
     text.add(buf.toString());
-    TraceAnnotationVisitor tav = new TraceAnnotationVisitor(
-      av == null ? null : av.visitAnnotationValue(name, type));
+    TraceAnnotationVisitor tav = new TraceAnnotationVisitor();
     text.add(tav.getText());
     text.add(")");
     return tav;
@@ -103,17 +99,12 @@ public class TraceAnnotationVisitor implements AnnotationVisitor {
     }
     buf.append('{');
     text.add(buf.toString());
-    TraceAnnotationVisitor tav = new TraceAnnotationVisitor(
-      av == null ? null : av.visitArrayValue(name));
+    TraceAnnotationVisitor tav = new TraceAnnotationVisitor();
     text.add(tav.getText());
     text.add("}");
     return tav;
   }
 
   public void visitEnd () {
-  }
-  
-  public List getText () {
-    return text;
   }
 }

@@ -30,71 +30,40 @@
 
 package org.objectweb.asm;
 
-import java.net.URL;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
  * ClassAdapter tests.
  * 
- * @author Eric Bruneton, Eugene Kuleshov
+ * @author Eric Bruneton
  */
 
-public class ClassAdapterTest extends TestCase {
+public class ClassAdapterTest extends AbstractTest {
   
-  private String className;
-  
-  static TestClassLoader loader = new TestClassLoader();
-  
-  public ClassAdapterTest (String className) {
-    super("testClassAdapter");
-    this.className = className;
-  }
+  private final static TestClassLoader LOADER = new TestClassLoader();
   
   public static TestSuite suite () throws Exception {
-    TestSuite suite = new TestSuite(ClassAdapterTest.class.getName());
-    Class c = ClassAdapterTest.class;
-    String u = c.getResource("/java/lang/String.class").toString();
-    int n = u.indexOf('!');
-    ZipInputStream zis = 
-      new ZipInputStream(new URL(u.substring(4, n)).openStream());
-    ZipEntry ze = null;
-    while ((ze = zis.getNextEntry()) != null) {
-      if (ze.getName().endsWith(".class")) {
-        suite.addTest(
-          new ClassAdapterTest(u.substring(0, n + 2).concat(ze.getName())));
-      }
-    }
-    return suite;
+    return new ClassAdapterTest().getSuite();
   }
   
-  public void testClassAdapter () throws Exception {
-    ClassReader cr = new ClassReader(new URL(className).openStream());
-    ClassWriter cw = new ClassWriter(false, true);
-    cr.accept(cw, false);
+  public void test () throws Exception {
+    ClassReader cr = new ClassReader(is);
+    ClassWriter cw = new ClassWriter(true);
+    cr.accept(new ClassAdapter(cw), false);
     byte[] b = cw.toByteArray();
     try {
-      loader.defineClass(
-        className.substring(0, className.length() - 6).replace('/', '.'), b);
+      LOADER.defineClass(n, b);
     } catch (ClassFormatError cfe) {
       fail(cfe.getMessage());
     } catch (Throwable ignored) {
     }
-  }
-
-  // workaround for Ant's JUnit test runner
-  public String getName() {
-    return super.getName()+" : "+className;
   }
   
   // -------------------------------------------------------------------------
   
   static class TestClassLoader extends ClassLoader {
     
-    public Class defineClass (String name, byte[] b) throws ClassFormatError {
+    public Class defineClass (final String name, final byte[] b) {
       return defineClass(name, b, 0, b.length);
     }
   }

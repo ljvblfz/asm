@@ -31,20 +31,65 @@
 package org.objectweb.asm;
 
 /**
- * AnnotationVisitor
+ * A visitor to visit a Java annotation. The methods of this interface must be
+ * called in the following order: (<tt>visitValue<tt> | <tt>visitEnumValue<tt> | 
+ * <tt>visitAnnotationValue<tt> | <tt>visitArrayValue<tt>)* <tt>visitEnd<tt>.
  *
+ * @author Eric Bruneton
  * @author Eugene Kuleshov
  */
 
 public interface AnnotationVisitor {
 
+  /**
+   * Visits a primitive value of the annotation.
+   *  
+   * @param name the value name.
+   * @param value the actual value, whose type must be {@link Byte}, 
+   *      {@link Boolean}, {@link Character}, {@link Short}, {@link Integer},
+   *      {@link Long}, {@link Float}, {@link Double}, {@link String} or
+   *      {@link Type}.
+   */
+  
   void visitValue (String name, Object value);
   
-  void visitEnumValue (String name, String type, String value);
+  /**
+   * Visits an enumeration value of the annotation.
+   *  
+   * @param name the value name.
+   * @param desc the class descriptor of the enumeration class.
+   * @param value the actual enumeration value.
+   */
   
-  AnnotationVisitor visitAnnotationValue (String name, String type);
+  void visitEnumValue (String name, String desc, String value);
+  
+  /**
+   * Visits a nested annotation value of the annotation.
+   * 
+   * @param name the value name.
+   * @param desc the class descriptor of the nested annotation class.
+   * @return a visitor to visit the actual nested annotation value. <i>The 
+   *      nested annotation value must be fully visited before calling other
+   *      methods on this annotation visitor</i>.
+   */
+  
+  AnnotationVisitor visitAnnotationValue (String name, String desc);
+  
+  /**
+   * Visits an array value of the annotation.
+   * 
+   * @param name the value name.
+   * @return a visitor to visit the actual array value elements. The 'name'
+   *      parameters passed to the methods of this visitor are ignored. <i>All
+   *      the array values must be visited before calling other methods on this 
+   *      annotation visitor</i>.
+   */
   
   AnnotationVisitor visitArrayValue (String name);
+  
+  /**
+   * Visits the end of the annotation.
+   */
   
   void visitEnd ();
 }

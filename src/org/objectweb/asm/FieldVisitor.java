@@ -28,45 +28,41 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.objectweb.asm.tree;
-
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+package org.objectweb.asm;
 
 /**
- * A node that represents an IINC instruction.
- * 
+ * A visitor to visit a Java field. The methods of this interface must be called
+ * in the following order: ( <tt>visitAnnotation</tt> | <tt>visitAttribute</tt> 
+ * )* <tt>visitEnd</tt>.
+ *
  * @author Eric Bruneton
  */
 
-public class IincInsnNode extends AbstractInsnNode {
+public interface FieldVisitor {
 
   /**
-   * Index of the local variable to be incremented.
+   * Visits an annotation of the field.
+   * 
+   * @param desc the class descriptor of the annotation class.
+   * @param visible <tt>true</tt> if the annotation is visible at runtime.
+   * @return a visitor to visit the annotation values.
    */
-
-  public int var;
+  
+  AnnotationVisitor visitAnnotation (String desc, boolean visible);
 
   /**
-   * Amount to increment the local variable by.
+   * Visits a non standard attribute of the field.
+   * 
+   * @param attr an attribute.
    */
-
-  public int incr;
-
+  
+  void visitAttribute (Attribute attr);
+  
   /**
-   * Constructs a new {@link IincInsnNode}.
-   *
-   * @param var index of the local variable to be incremented.
-   * @param incr increment amount to increment the local variable by.
+   * Visits the end of the field. This method, which is the last one to be
+   * called, is used to inform the visitor that all the annotations and 
+   * attributes of the field have been visited.
    */
-
-  public IincInsnNode (final int var, final int incr) {
-    super(Opcodes.IINC);
-    this.var = var;
-    this.incr = incr;
-  }
-
-  public void accept (final MethodVisitor mv) {
-    mv.visitIincInsn(var, incr);
-  }
+  
+  void visitEnd ();
 }

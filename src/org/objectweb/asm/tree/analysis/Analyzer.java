@@ -33,7 +33,7 @@ package org.objectweb.asm.tree.analysis;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.objectweb.asm.Constants;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -52,7 +52,7 @@ import org.objectweb.asm.tree.VarInsnNode;
  * @author Eric Bruneton
  */
 
-public class Analyzer implements Constants {
+public class Analyzer implements Opcodes {
 
   private Interpreter interpreter;
 

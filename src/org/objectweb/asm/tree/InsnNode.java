@@ -30,7 +30,7 @@
 
 package org.objectweb.asm.tree;
 
-import org.objectweb.asm.CodeVisitor;
+import org.objectweb.asm.MethodVisitor;
 
 /**
  * A node that represents a zero operand instruction.
@@ -41,7 +41,7 @@ import org.objectweb.asm.CodeVisitor;
 public class InsnNode extends AbstractInsnNode {
 
   /**
-   * Constructs a new {@link InsnNode InsnNode} object.
+   * Constructs a new {@link InsnNode}.
    *
    * @param opcode the opcode of the instruction to be constructed. This opcode
    *      must be NOP, ACONST_NULL
@@ -111,12 +111,12 @@ public class InsnNode extends AbstractInsnNode {
   }
 
   /**
-   * Makes the given code visitor visit this instruction.
+   * Makes the given visitor visit this instruction.
    * 
-   * @param cv a code visitor. 
+   * @param mv a method visitor. 
    */
 
-  public void accept (final CodeVisitor cv) {
-    cv.visitInsn(opcode);
+  public void accept (final MethodVisitor mv) {
+    mv.visitInsn(opcode);
   }
 }

@@ -30,40 +30,16 @@
 
 package org.objectweb.asm.util;
 
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Attribute;
-import org.objectweb.asm.MemberVisitor;
+import org.objectweb.asm.FieldVisitor;
 
-public class TraceMemberVisitor extends AbstractMemberVisitor {
-  
-  protected final MemberVisitor av;
-  
-  public TraceMemberVisitor (final MemberVisitor av) {
-    this.av = av;
-  }
-  
-  public AnnotationVisitor visitAnnotation (
-    final String type, 
-    final boolean visible) 
-  {
-    buf.setLength(0);
-    buf.append("  @").append(type).append('(');
-    text.add(buf.toString());
-    TraceAnnotationVisitor tav = new TraceAnnotationVisitor(
-      av == null ? null : av.visitAnnotation(type, visible));
-    text.add(tav.getText());
-    text.add(visible ? ")\n" : ") // invisible\n");
-    return tav;
-  }
-  
-  public void visitAttribute (final Attribute attr) {
-    buf.setLength(0);
-    buf.append("  ATTRIBUTE ").append(attr.type).append(" : ")
-      .append(attr.toString()).append("\n");
-    text.add(buf.toString());
-    
-    if (av != null) {
-      av.visitAttribute(attr);
-    }
-  }
+/**
+ * A {@link FieldVisitor} that prints a disassembled view of the fields it 
+ * visits.
+ * 
+ * @author Eric Bruneton
+ */
+
+public class TraceFieldVisitor extends TraceAbstractVisitor 
+  implements FieldVisitor 
+{
 }

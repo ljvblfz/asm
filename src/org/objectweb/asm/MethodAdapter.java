@@ -31,58 +31,69 @@
 package org.objectweb.asm;
 
 /**
- * An empty {@link CodeVisitor CodeVisitor} that delegates to another {@link
- * CodeVisitor CodeVisitor}. This class can be used as a super class to quickly
- * implement usefull code adapter classes, just by overriding the necessary
+ * An empty {@link MethodVisitor} that delegates to another 
+ * {@link MethodVisitor}. This class can be used as a super class to quickly
+ * implement usefull method adapter classes, just by overriding the necessary
  * methods.
  * 
  * @author Eric Bruneton
  */
 
-public class CodeAdapter implements CodeVisitor {
+public class MethodAdapter implements MethodVisitor {
 
   /**
-   * The {@link CodeVisitor CodeVisitor} to which this adapter delegates calls.
+   * The {@link MethodVisitor} to which this adapter delegates calls.
    */
 
-  protected CodeVisitor cv;
+  protected MethodVisitor mv;
 
   /**
-   * Constructs a new {@link CodeAdapter CodeAdapter} object.
+   * Constructs a new {@link MethodAdapter} object.
    *
-   * @param cv the code visitor to which this adapter must delegate calls.
+   * @param mv the code visitor to which this adapter must delegate calls.
    */
 
-  public CodeAdapter (final CodeVisitor cv) {
-    this.cv = cv;
+  public MethodAdapter (final MethodVisitor mv) {
+    this.mv = mv;
   }
 
   public AnnotationVisitor visitAnnotationDefault () {
-    return cv.visitAnnotationDefault();
+    return mv.visitAnnotationDefault();
   }
 
-  public AnnotationVisitor visitParameterAnnotation (int parameter, String type, boolean visible) {
-    return cv.visitParameterAnnotation(parameter, type, visible);
+  public AnnotationVisitor visitAnnotation (
+    final String desc, 
+    final boolean visible) 
+  {
+    return mv.visitAnnotation(desc, visible);
   }
 
-  public AnnotationVisitor visitAnnotation (String type, boolean visible) {
-    return cv.visitAnnotation(type, visible);
+  public AnnotationVisitor visitParameterAnnotation (
+    final int parameter, 
+    final String desc, 
+    final boolean visible) 
+  {
+    return mv.visitParameterAnnotation(parameter, desc, visible);
+  }
+  
+  public void visitAttribute (final Attribute attr) {
+    mv.visitAttribute(attr);
   }
 
   public void visitInsn (final int opcode) {
-    cv.visitInsn(opcode);
+    mv.visitInsn(opcode);
   }
 
   public void visitIntInsn (final int opcode, final int operand) {
-    cv.visitIntInsn(opcode, operand);
+    mv.visitIntInsn(opcode, operand);
   }
 
   public void visitVarInsn (final int opcode, final int var) {
-    cv.visitVarInsn(opcode, var);
+    mv.visitVarInsn(opcode, var);
   }
 
   public void visitTypeInsn (final int opcode, final String desc) {
-    cv.visitTypeInsn(opcode, desc);
+    mv.visitTypeInsn(opcode, desc);
   }
 
   public void visitFieldInsn (
@@ -91,7 +102,7 @@ public class CodeAdapter implements CodeVisitor {
     final String name,
     final String desc)
   {
-    cv.visitFieldInsn(opcode, owner, name, desc);
+    mv.visitFieldInsn(opcode, owner, name, desc);
   }
 
   public void visitMethodInsn (
@@ -100,23 +111,23 @@ public class CodeAdapter implements CodeVisitor {
     final String name,
     final String desc)
   {
-    cv.visitMethodInsn(opcode, owner, name, desc);
+    mv.visitMethodInsn(opcode, owner, name, desc);
   }
 
   public void visitJumpInsn (final int opcode, final Label label) {
-    cv.visitJumpInsn(opcode, label);
+    mv.visitJumpInsn(opcode, label);
   }
 
   public void visitLabel (final Label label) {
-    cv.visitLabel(label);
+    mv.visitLabel(label);
   }
 
   public void visitLdcInsn (final Object cst) {
-    cv.visitLdcInsn(cst);
+    mv.visitLdcInsn(cst);
   }
 
   public void visitIincInsn (final int var, final int increment) {
-    cv.visitIincInsn(var, increment);
+    mv.visitIincInsn(var, increment);
   }
 
   public void visitTableSwitchInsn (
@@ -125,7 +136,7 @@ public class CodeAdapter implements CodeVisitor {
     final Label dflt,
     final Label labels[])
   {
-    cv.visitTableSwitchInsn(min, max, dflt, labels);
+    mv.visitTableSwitchInsn(min, max, dflt, labels);
   }
 
   public void visitLookupSwitchInsn (
@@ -133,11 +144,11 @@ public class CodeAdapter implements CodeVisitor {
     final int keys[],
     final Label labels[])
   {
-    cv.visitLookupSwitchInsn(dflt, keys, labels);
+    mv.visitLookupSwitchInsn(dflt, keys, labels);
   }
 
   public void visitMultiANewArrayInsn (final String desc, final int dims) {
-    cv.visitMultiANewArrayInsn(desc, dims);
+    mv.visitMultiANewArrayInsn(desc, dims);
   }
 
   public void visitTryCatchBlock (
@@ -146,11 +157,7 @@ public class CodeAdapter implements CodeVisitor {
     final Label handler,
     final String type)
   {
-    cv.visitTryCatchBlock(start, end, handler, type);
-  }
-
-  public void visitMaxs (final int maxStack, final int maxLocals) {
-    cv.visitMaxs(maxStack, maxLocals);
+    mv.visitTryCatchBlock(start, end, handler, type);
   }
 
   public void visitLocalVariable (
@@ -161,14 +168,18 @@ public class CodeAdapter implements CodeVisitor {
     final Label end,
     final int index)
   {
-    cv.visitLocalVariable(name, desc, signature, start, end, index);
+    mv.visitLocalVariable(name, desc, signature, start, end, index);
   }
 
   public void visitLineNumber (final int line, final Label start) {
-    cv.visitLineNumber(line, start);
+    mv.visitLineNumber(line, start);
   }
 
-  public void visitAttribute (final Attribute attr) {
-    cv.visitAttribute(attr);
+  public void visitMaxs (final int maxStack, final int maxLocals) {
+    mv.visitMaxs(maxStack, maxLocals);
+  }
+  
+  public void visitEnd () {
+    mv.visitEnd();
   }
 }

@@ -31,20 +31,21 @@
 package org.objectweb.asm.util;
 
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.CodeVisitor;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Label;
 
 import java.util.HashMap;
 
 /**
- * A {@link PrintCodeVisitor} that prints the ASM code that
- * generates the code it visits.
- * 
- * @author Eric Bruneton, Eugene Kuleshov
+ * A {@link MethodVisitor} that prints the ASM code that generates the methods
+ * it visits.
+ *
+ * @author Eric Bruneton
+ * @author Eugene Kuleshov
  */
 
-public class ASMifierCodeVisitor extends ASMifierMemberVisitor 
-  implements CodeVisitor 
+public class ASMifierMethodVisitor extends ASMifierAbstractVisitor
+  implements MethodVisitor
 {
 
   /**
@@ -54,35 +55,35 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
   private final HashMap labelNames;
 
   /**
-   * Constructs a new {@link ASMifierCodeVisitor} object.
+   * Constructs a new {@link ASMifierMethodVisitor} object.
    */
 
-  public ASMifierCodeVisitor () {
+  public ASMifierMethodVisitor () {
     super("cv");
     this.labelNames = new HashMap();
   }
-    
+
   public AnnotationVisitor visitAnnotationDefault () {
     buf.setLength(0);
-    buf.append("{\n").append("av0 = cv.visitAnnotationDefault();\n");
+    buf.append("{\n").append("av0 = mv.visitAnnotationDefault();\n");
     text.add(buf.toString());
     ASMifierAnnotationVisitor av = new ASMifierAnnotationVisitor(0);
     text.add(av.getText());
     text.add("}\n");
     return av;
   }
-  
+
   public AnnotationVisitor visitParameterAnnotation (
     final int parameter,
-    final String type,
+    final String desc,
     final boolean visible)
   {
     buf.setLength(0);
     buf.append("{\n")
-      .append("av0 = cv.visitParameterAnnotation(")
+      .append("av0 = mv.visitParameterAnnotation(")
       .append(parameter)
       .append(", ");
-    appendConstant(buf, type);
+    appendConstant(buf, desc);
     buf.append(", ").append(visible).append(");\n");
     text.add(buf.toString());
     ASMifierAnnotationVisitor av = new ASMifierAnnotationVisitor(0);
@@ -93,7 +94,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
 
   public void visitInsn (final int opcode) {
     buf.setLength(0);
-    buf.append("cv.visitInsn(")
+    buf.append("mv.visitInsn(")
       .append(OPCODES[opcode])
       .append(");\n");
     text.add(buf.toString());
@@ -101,7 +102,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
 
   public void visitIntInsn (final int opcode, final int operand) {
     buf.setLength(0);
-    buf.append("cv.visitIntInsn(")
+    buf.append("mv.visitIntInsn(")
       .append(OPCODES[opcode])
       .append(", ")
       .append(operand)
@@ -111,7 +112,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
 
   public void visitVarInsn (final int opcode, final int var) {
     buf.setLength(0);
-    buf.append("cv.visitVarInsn(")
+    buf.append("mv.visitVarInsn(")
       .append(OPCODES[opcode])
       .append(", ")
       .append(var)
@@ -121,7 +122,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
 
   public void visitTypeInsn (final int opcode, final String desc) {
     buf.setLength(0);
-    buf.append("cv.visitTypeInsn(")
+    buf.append("mv.visitTypeInsn(")
       .append(OPCODES[opcode])
       .append(", ");
     appendConstant(buf, desc);
@@ -136,7 +137,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
     final String desc)
   {
     buf.setLength(0);
-    buf.append("cv.visitFieldInsn(")
+    buf.append("mv.visitFieldInsn(")
       .append(OPCODES[opcode])
       .append(", ");
     appendConstant(buf, owner);
@@ -155,7 +156,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
     final String desc)
   {
     buf.setLength(0);
-    buf.append("cv.visitMethodInsn(")
+    buf.append("mv.visitMethodInsn(")
       .append(OPCODES[opcode])
       .append(", ");
     appendConstant(buf, owner);
@@ -170,7 +171,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
   public void visitJumpInsn (final int opcode, final Label label) {
     buf.setLength(0);
     declareLabel(label);
-    buf.append("cv.visitJumpInsn(")
+    buf.append("mv.visitJumpInsn(")
       .append(OPCODES[opcode])
       .append(", ");
     appendLabel(label);
@@ -181,7 +182,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
   public void visitLabel (final Label label) {
     buf.setLength(0);
     declareLabel(label);
-    buf.append("cv.visitLabel(");
+    buf.append("mv.visitLabel(");
     appendLabel(label);
     buf.append(");\n");
     text.add(buf.toString());
@@ -189,7 +190,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
 
   public void visitLdcInsn (final Object cst) {
     buf.setLength(0);
-    buf.append("cv.visitLdcInsn(");
+    buf.append("mv.visitLdcInsn(");
     appendConstant(buf, cst);
     buf.append(");\n");
     text.add(buf.toString());
@@ -197,7 +198,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
 
   public void visitIincInsn (final int var, final int increment) {
     buf.setLength(0);
-    buf.append("cv.visitIincInsn(")
+    buf.append("mv.visitIincInsn(")
       .append(var)
       .append(", ")
       .append(increment)
@@ -217,7 +218,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
     }
     declareLabel(dflt);
 
-    buf.append("cv.visitTableSwitchInsn(")
+    buf.append("mv.visitTableSwitchInsn(")
       .append(min)
       .append(", ")
       .append(max)
@@ -243,7 +244,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
     }
     declareLabel(dflt);
 
-    buf.append("cv.visitLookupSwitchInsn(");
+    buf.append("mv.visitLookupSwitchInsn(");
     appendLabel(dflt);
     buf.append(", new int[] {");
     for (int i = 0; i < keys.length; ++i) {
@@ -260,7 +261,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
 
   public void visitMultiANewArrayInsn (final String desc, final int dims) {
     buf.setLength(0);
-    buf.append("cv.visitMultiANewArrayInsn(");
+    buf.append("mv.visitMultiANewArrayInsn(");
     appendConstant(buf, desc);
     buf.append(", ")
       .append(dims)
@@ -275,7 +276,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
     final String type)
   {
     buf.setLength(0);
-    buf.append("cv.visitTryCatchBlock(");
+    buf.append("mv.visitTryCatchBlock(");
     appendLabel(start);
     buf.append(", ");
     appendLabel(end);
@@ -284,16 +285,6 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
     buf.append(", ");
     appendConstant(buf, type);
     buf.append(");\n");
-    text.add(buf.toString());
-  }
-
-  public void visitMaxs (final int maxStack, final int maxLocals) {
-    buf.setLength(0);
-    buf.append("cv.visitMaxs(")
-      .append(maxStack)
-      .append(", ")
-      .append(maxLocals)
-      .append(");\n");
     text.add(buf.toString());
   }
 
@@ -306,7 +297,7 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
     final int index)
   {
     buf.setLength(0);
-    buf.append("cv.visitLocalVariable(");
+    buf.append("mv.visitLocalVariable(");
     appendConstant(buf, name);
     buf.append(", ");
     appendConstant(buf, desc);
@@ -322,11 +313,21 @@ public class ASMifierCodeVisitor extends ASMifierMemberVisitor
 
   public void visitLineNumber (final int line, final Label start) {
     buf.setLength(0);
-    buf.append("cv.visitLineNumber(")
+    buf.append("mv.visitLineNumber(")
       .append(line)
       .append(", ");
     appendLabel(start);
     buf.append(");\n");
+    text.add(buf.toString());
+  }
+
+  public void visitMaxs (final int maxStack, final int maxLocals) {
+    buf.setLength(0);
+    buf.append("mv.visitMaxs(")
+      .append(maxStack)
+      .append(", ")
+      .append(maxLocals)
+      .append(");\n");
     text.add(buf.toString());
   }
 

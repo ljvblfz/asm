@@ -1,6 +1,6 @@
 /*******************************************************************************
  * ASM tests Copyright (c) 2002,2003 France Telecom All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -11,7 +11,7 @@
  * copyright holders nor the names of its contributors may be used to endorse or
  * promote products derived from this software without specific prior written
  * permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -27,8 +27,8 @@
 
 package org.objectweb.asm;
 
-public class EmptyClassVisitor 
-  implements ClassVisitor, CodeVisitor, AnnotationVisitor 
+public class EmptyClassVisitor
+  implements ClassVisitor, FieldVisitor, MethodVisitor, AnnotationVisitor
 {
 
   public void visit (
@@ -43,18 +43,18 @@ public class EmptyClassVisitor
   }
 
   public void visitInnerClass (
-    String name, String outerName, String innerName, int access) 
+    String name, String outerName, String innerName, int access)
   {
   }
 
-  public MemberVisitor visitField (
-    int access, String name, String desc, String signature, Object value) 
+  public FieldVisitor visitField (
+    int access, String name, String desc, String signature, Object value)
   {
     return this;
   }
 
-  public CodeVisitor visitMethod (
-    int access, String name, String desc, String signature, String[] exceptions) 
+  public MethodVisitor visitMethod (
+    int access, String name, String desc, String signature, String[] exceptions)
   {
     return this;
   }
@@ -62,7 +62,7 @@ public class EmptyClassVisitor
   public void visitEnd () {
   }
 
-  public AnnotationVisitor visitAnnotation (String type, boolean visible) {
+  public AnnotationVisitor visitAnnotation (String desc, boolean visible) {
     return this;
   }
 
@@ -73,8 +73,7 @@ public class EmptyClassVisitor
     return this;
   }
 
-  public AnnotationVisitor visitParameterAnnotation 
-    (int parameter, String type, boolean visible) 
+  public AnnotationVisitor visitParameterAnnotation (int parameter, String desc, boolean visible)
   {
     return this;
   }
@@ -92,12 +91,12 @@ public class EmptyClassVisitor
   }
 
   public void visitFieldInsn (
-    int opcode, String owner, String name, String desc) 
+    int opcode, String owner, String name, String desc)
   {
   }
 
   public void visitMethodInsn (
-    int opcode, String owner, String name, String desc) 
+    int opcode, String owner, String name, String desc)
   {
   }
 
@@ -114,7 +113,7 @@ public class EmptyClassVisitor
   }
 
   public void visitTableSwitchInsn (
-    int min, int max, Label dflt, Label[] labels) 
+    int min, int max, Label dflt, Label[] labels)
   {
   }
 
@@ -125,25 +124,25 @@ public class EmptyClassVisitor
   }
 
   public void visitTryCatchBlock (
-    Label start, Label end, Label handler, String type) 
+    Label start, Label end, Label handler, String type)
   {
   }
 
-  public void visitMaxs (int maxStack, int maxLocals) {
-  }
-
   public void visitLocalVariable (
-    String name, String desc, String signature, Label start, Label end, int index) 
+    String name, String desc, String signature, Label start, Label end, int index)
   {
   }
 
   public void visitLineNumber (int line, Label start) {
   }
 
+  public void visitMaxs (int maxStack, int maxLocals) {
+  }
+
   public void visitValue (String name, Object value) {
   }
 
-  public void visitEnumValue (String name, String type, String value) {
+  public void visitEnumValue (String name, String desc, String value) {
   }
 
   public AnnotationVisitor visitAnnotationValue (String name, String type) {

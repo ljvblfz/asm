@@ -31,9 +31,11 @@
 package org.objectweb.asm.tree;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.CodeVisitor;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import java.util.List;
@@ -46,10 +48,10 @@ import java.util.Arrays;
  * @author Eric Bruneton
  */
 
-public class MethodNode extends MemberNode implements CodeVisitor {
+public class MethodNode extends MemberNode implements MethodVisitor {
 
   /**
-   * The method's access flags (see {@link org.objectweb.asm.Constants}). This
+   * The method's access flags (see {@link Opcodes}). This
    * field also indicates if the method is synthetic and/or deprecated.
    */
 
@@ -62,53 +64,60 @@ public class MethodNode extends MemberNode implements CodeVisitor {
   public String name;
 
   /**
-   * The method's descriptor (see {@link org.objectweb.asm.Type Type}).
+   * The method's descriptor (see {@link Type}).
    */
 
   public String desc;
 
   /**
-   * TODO.
+   * The method's signature. May be <tt>null</tt>.
    */
   
   public String signature;
   
   /**
-   * The internal names of the method's exception classes (see {@link
-   * org.objectweb.asm.Type#getInternalName() getInternalName}). This list is a
-   * list of {@link String} objects.
+   * The internal names of the method's exception classes (see 
+   * {@link Type#getInternalName() getInternalName}). This list is a list of 
+   * {@link String} objects.
    */
 
   public final List exceptions;
 
   /**
-   * TODO.
+   * The default value of this annotation interface method. This field must be
+   * a {@link Byte}, {@link Boolean}, {@link Character}, {@link Short}, 
+   * {@link Integer}, {@link Long}, {@link Float}, {@link Double}, 
+   * {@link String} or {@link Type}, or an two elements String array (for 
+   * enumeration values), a {@link AnnotationNode}, or a {@link List} of values 
+   * of one of the preceding types. May be <tt>null</tt>.
    */
   
   public Object annotationDefault;
   
   /**
-   * TODO.
+   * The runtime visible parameter annotations of this method. These lists are
+   * lists of {@link AnnotationNode} objects.
    */
   
   public List[] visibleParameterAnnotations;
   
   /**
-   * TODO.
+   * The runtime invisible parameter annotations of this method. These lists are
+   * lists of {@link AnnotationNode} objects.
    */
   
   public List[] invisibleParameterAnnotations;
 
   /**
-   * The instructions of this method. This list is a list of {@link
-   * AbstractInsnNode AbstractInsnNode} and {@link Label Label} objects.
+   * The instructions of this method. This list is a list of 
+   * {@link AbstractInsnNode} and {@link Label} objects.
    */
 
   public final List instructions;
 
   /**
-   * The try catch blocks of this method. This list is a list of {@link
-   * TryCatchBlockNode TryCatchBlockNode} objects.
+   * The try catch blocks of this method. This list is a list of 
+   * {@link TryCatchBlockNode} objects.
    */
 
   public final List tryCatchBlocks;
@@ -126,32 +135,30 @@ public class MethodNode extends MemberNode implements CodeVisitor {
   public int maxLocals;
 
   /**
-   * The local variables of this method. This list is a list of {@link
-   * LocalVariableNode LocalVariableNode} objects.
+   * The local variables of this method. This list is a list of 
+   * {@link LocalVariableNode} objects.
    */
 
   public final List localVariables;
 
   /**
-   * The line numbers of this method. This list is a list of {@link
-   * LineNumberNode LineNumberNode} objects.
+   * The line numbers of this method. This list is a list of
+   * {@link LineNumberNode} objects.
    */
 
   public final List lineNumbers;
 
   /**
-   * Constructs a new {@link MethodNode MethodNode} object.
+   * Constructs a new {@link MethodNode}.
    *
-   * @param access the method's access flags (see {@link
-   *      org.objectweb.asm.Constants}). This parameter also indicates if the
-   *      method is synthetic and/or deprecated.
+   * @param access the method's access flags (see {@link Opcodes}). This 
+   *      parameter also indicates if the method is synthetic and/or deprecated.
    * @param name the method's name.
-   * @param desc the method's descriptor (see {@link org.objectweb.asm.Type
-   *      Type}).
+   * @param desc the method's descriptor (see {@link Type}).
+   * @param signature the method's signature. May be <tt>null</tt>.
    * @param exceptions the internal names of the method's exception
-   *      classes (see {@link org.objectweb.asm.Type#getInternalName()
-   *      getInternalName}). May be <tt>null</tt>.
-   * @param attrs the non standard attributes of the method.
+   *      classes (see {@link Type#getInternalName() getInternalName}). 
+   *      May be <tt>null</tt>.
    */
 
   public MethodNode (
@@ -182,6 +189,10 @@ public class MethodNode extends MemberNode implements CodeVisitor {
     }    
   }
   
+  // --------------------------------------------------------------------------
+  // Implementation of the MethodVisitor interface
+  // --------------------------------------------------------------------------
+
   public AnnotationVisitor visitAnnotationDefault () {
     return new AnnotationNode(new ArrayList() {
       public boolean add (Object o) {
@@ -193,10 +204,10 @@ public class MethodNode extends MemberNode implements CodeVisitor {
 
   public AnnotationVisitor visitParameterAnnotation (
     final int parameter,
-    final String type,
+    final String desc,
     final boolean visible) 
   {
-    AnnotationNode an = new AnnotationNode(type);
+    AnnotationNode an = new AnnotationNode(desc);
     if (visible) {
       visibleParameterAnnotations[parameter].add(an);
     } else {
@@ -298,11 +309,6 @@ public class MethodNode extends MemberNode implements CodeVisitor {
     tryCatchBlocks.add(n);
   }
 
-  public void visitMaxs (final int maxStack, final int maxLocals) {
-    this.maxStack = maxStack;
-    this.maxLocals = maxLocals;
-  }
-
   public void visitLocalVariable (
     final String name,
     final String desc,
@@ -321,6 +327,14 @@ public class MethodNode extends MemberNode implements CodeVisitor {
     lineNumbers.add(n);
   }
   
+  public void visitMaxs (final int maxStack, final int maxLocals) {
+    this.maxStack = maxStack;
+    this.maxLocals = maxLocals;
+  }
+  
+  // --------------------------------------------------------------------------
+  // Accept method
+  // --------------------------------------------------------------------------
 
   /**
    * Makes the given class visitor visit this method.
@@ -331,23 +345,39 @@ public class MethodNode extends MemberNode implements CodeVisitor {
   public void accept (final ClassVisitor cv) {
     String[] exceptions = new String[this.exceptions.size()];
     this.exceptions.toArray(exceptions);
-    CodeVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
+    MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
     // visits the method attributes
-    int i;
+    int i, j;
     if (annotationDefault != null) {
       AnnotationVisitor av = mv.visitAnnotationDefault();
       AnnotationNode.accept(av, null, annotationDefault);
     }
     for (i = 0; i < visibleAnnotations.size(); ++i) {
       AnnotationNode an = (AnnotationNode)visibleAnnotations.get(i); 
-      an.accept(mv.visitParameterAnnotation(i, an.type, true));
+      an.accept(mv.visitAnnotation(an.desc, true));
     }
     for (i = 0; i < invisibleAnnotations.size(); ++i) {
       AnnotationNode an = (AnnotationNode)invisibleAnnotations.get(i); 
-      an.accept(mv.visitParameterAnnotation(i, an.type, false));
+      an.accept(mv.visitAnnotation(an.desc, false));
     }
-    super.accept(mv);
-    
+    for (i = 0; i < visibleParameterAnnotations.length; ++i) {
+      List l = visibleParameterAnnotations[i];
+      for (j = 0; j < l.size(); ++j) {
+        AnnotationNode an = (AnnotationNode)l.get(j);
+        an.accept(mv.visitParameterAnnotation(i, an.desc, true));
+      }
+    }
+    for (i = 0; i < invisibleParameterAnnotations.length; ++i) {
+      List l = invisibleParameterAnnotations[i];
+      for (j = 0; j < l.size(); ++j) {
+        AnnotationNode an = (AnnotationNode)l.get(j);
+        an.accept(mv.visitParameterAnnotation(i, an.desc, false));
+      }
+    }
+    for (i = 0; i < attrs.size(); ++i) {
+      mv.visitAttribute((Attribute)attrs.get(i));
+    }
+    // visits the method's code
     if (mv != null && instructions.size() > 0) {
       // visits instructions
       for (i = 0; i < instructions.size(); ++i) {
@@ -362,8 +392,6 @@ public class MethodNode extends MemberNode implements CodeVisitor {
       for (i = 0; i < tryCatchBlocks.size(); ++i) {
         ((TryCatchBlockNode)tryCatchBlocks.get(i)).accept(mv);
       }
-      // visits maxs
-      mv.visitMaxs(maxStack, maxLocals);
       // visits local variables
       for (i = 0; i < localVariables.size(); ++i) {
         ((LocalVariableNode)localVariables.get(i)).accept(mv);
@@ -372,6 +400,9 @@ public class MethodNode extends MemberNode implements CodeVisitor {
       for (i = 0; i < lineNumbers.size(); ++i) {
         ((LineNumberNode)lineNumbers.get(i)).accept(mv);
       }
+      // visits maxs
+      mv.visitMaxs(maxStack, maxLocals);
     }
+    mv.visitEnd();
   }
 }

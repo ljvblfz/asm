@@ -35,10 +35,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.objectweb.asm.Attribute;
-import org.objectweb.asm.MemberVisitor;
 import org.objectweb.asm.util.attrs.ASMStackMapAttribute;
+import org.objectweb.asm.util.attrs.ASMifiable;
 
-public abstract class AbstractMemberVisitor implements MemberVisitor {
+/**
+ * An abstract visitor.
+ * 
+ * @author Eric Bruneton
+ */
+
+public abstract class AbstractVisitor {
 
   /**
    * The names of the Java Virtual Machine opcodes.
@@ -47,22 +53,22 @@ public abstract class AbstractMemberVisitor implements MemberVisitor {
   public final static String[] OPCODES = {
       "NOP",
       "ACONST_NULL",
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
+      "ICONST_M1", 
+      "ICONST_0",
+      "ICONST_1",
+      "ICONST_2",
+      "ICONST_3",
+      "ICONST_4",
+      "ICONST_5",
+      "LCONST_0",
+      "LCONST_1",
+      "FCONST_0",
+      "FCONST_1",
+      "FCONST_2",
+      "DCONST_0",
+      "DCONST_1",
+      "BIPUSH",
+      "SIPUSH",
       "LDC",
       null,
       null,
@@ -262,7 +268,7 @@ public abstract class AbstractMemberVisitor implements MemberVisitor {
    * other string lists, and so on.
    */
 
-  protected final List text;
+  public final List text;
 
   /**
    * A buffer that can be used to create strings.
@@ -271,19 +277,18 @@ public abstract class AbstractMemberVisitor implements MemberVisitor {
   protected final StringBuffer buf;
 
   /**
-   * Constructs a new {@link PrintAttributeVisitor} object.
+   * Constructs a new {@link AbstractVisitor}.
    */
 
-  protected AbstractMemberVisitor () {
+  protected AbstractVisitor () {
     this.text = new ArrayList();
     this.buf = new StringBuffer();
   }
 
   /**
-   * Returns the code printed by this code visitor.
+   * Returns the text printed by this visitor.
    *
-   * @return the code printed by this code visitor. See {@link
-   *      PrintClassVisitor#text text}.
+   * @return the text printed by this visitor.
    */
 
   public List getText () {
@@ -293,6 +298,7 @@ public abstract class AbstractMemberVisitor implements MemberVisitor {
   /**
    * Prints the given string tree.
    *
+   * @param pw the writer to be used to print the tree.
    * @param l a string tree, i.e., a string list that can contain other string
    *      lists, and so on recursively.
    */
@@ -308,6 +314,12 @@ public abstract class AbstractMemberVisitor implements MemberVisitor {
     }
   }
 
+  /**
+   * Returns the default {@link ASMifiable} prototypes.
+   * 
+   * @return the default {@link ASMifiable} prototypes.
+   */
+  
   public static Attribute[] getDefaultAttributes () {
     try {
       return new Attribute[] { new ASMStackMapAttribute() };

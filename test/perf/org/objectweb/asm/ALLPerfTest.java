@@ -28,13 +28,15 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.objectweb.asm.test.perf;
+package org.objectweb.asm;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -42,13 +44,12 @@ import java.util.zip.ZipOutputStream;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.EmptyClassVisitor;
-import org.objectweb.asm.util.TraceClassVisitor;
 
 /**
  * @author Eric Bruneton
  */
 
-public abstract class ALL extends ClassLoader  {
+public abstract class ALLPerfTest extends ClassLoader  {
 
   private static ZipFile zip;
 
@@ -68,78 +69,59 @@ public abstract class ALL extends ClassLoader  {
 
   public static void main (String[] args) throws Exception {
     ZipFile zip = new ZipFile(System.getProperty("java.home") + "/lib/rt.jar");
-    int n = 0;
-    
-    for (int i = 0; i < 5; ++i) {
+    List classes = new ArrayList();
+
+    Enumeration entries = zip.entries();
+    while (entries.hasMoreElements()) {
+      ZipEntry e = (ZipEntry)entries.nextElement();
+      String s = e.getName();
+      if (s.endsWith(".class")) {
+        s = s.substring(0, s.length() - 6).replace('/', '.');
+        InputStream is = zip.getInputStream(e);
+        classes.add(readClass(is));
+      }
+    }
+
+    for (int i = 0; i < 10; ++i) {
       long t = System.currentTimeMillis();
-      Enumeration entries = zip.entries();
-      while (entries.hasMoreElements()) {
-        ZipEntry e = (ZipEntry)entries.nextElement();
-        String s = e.getName();
-        if (s.endsWith(".class")) {
-          s = s.substring(0, s.length() - 6).replace('/', '.');
-          InputStream is = zip.getInputStream(e);
-          readClass(is);
-          if (i == 0) {
-            ++n;
-          }
-        }
+      for (int j = 0; j < classes.size(); ++j) {
+        byte[] b = (byte[])classes.get(j);
+        new ClassReader(b).accept(new EmptyClassVisitor(), false);
       }
       t = System.currentTimeMillis() - t;
-      System.out.println("Time to read " + n + " classes = " + t + " ms");
+      System.out.println("Time to deserialize " + classes.size() + " classes = " + t + " ms");
     }
-    
-    for (int i = 0; i < 5; ++i) {
+
+    for (int i = 0; i < 10; ++i) {
       long t = System.currentTimeMillis();
-      Enumeration entries = zip.entries();
-      while (entries.hasMoreElements()) {
-        ZipEntry e = (ZipEntry)entries.nextElement();
-        String s = e.getName();
-        if (s.endsWith(".class")) {
-          s = s.substring(0, s.length() - 6).replace('/', '.');
-          InputStream is = zip.getInputStream(e);
-//          new ClassReader(is).accept(new TraceClassVisitor(new EmptyClassVisitor(), new java.io.PrintWriter(System.out)), false);
-          new ClassReader(is).accept(new EmptyClassVisitor(), false);
-        }
+      for (int j = 0; j < classes.size(); ++j) {
+        byte[] b = (byte[])classes.get(j);
+        ClassWriter cw = new ClassWriter(false);
+        new ClassReader(b).accept(cw, false);
+        cw.toByteArray();
       }
       t = System.currentTimeMillis() - t;
-      System.out.println("Time to deserialize " + n + " classes = " + t + " ms");
+      System.out.println("Time to deserialize and reserialize " + classes.size() + " classes = " + t + " ms");
     }
-    
-    for (int i = 0; i < 5; ++i) {
-      long t = System.currentTimeMillis();
-      Enumeration entries = zip.entries();
-      while (entries.hasMoreElements()) {
-        ZipEntry e = (ZipEntry)entries.nextElement();
-        String s = e.getName();
-        if (s.endsWith(".class")) {
-          s = s.substring(0, s.length() - 6).replace('/', '.');
-          InputStream is = zip.getInputStream(e);
-          ClassWriter cw = new ClassWriter(false);
-          new ClassReader(is).accept(cw, false);
-          cw.toByteArray();
-        }
-      }
-      t = System.currentTimeMillis() - t;
-      System.out.println("Time to deserialize and reserialize " + n + " classes = " + t + " ms");
-    }
-    
+
+    classes = null;
+
     System.out.println("\nComparing ASM, BCEL, SERP and Javassist performances...");
     System.out.println("This may take 20 to 30 minutes\n");
     // measures performances
     System.out.println("ASM PERFORMANCES\n");
-    new ASM().perfs(args);
+    new ASMPerfTest().perfs(args);
     double[][] asmPerfs = perfs;
     System.out.println("\nBCEL PERFORMANCES\n");
-    new BCEL().perfs(args);
+    new BCELPerfTest().perfs(args);
     double[][] bcelPerfs = perfs;
     System.out.println("\nSERP PERFORMANCES\n");
-    new SERP().perfs(args);
+    new SERPPerfTest().perfs(args);
     double[][] serpPerfs = perfs;
     System.out.println("\nJavassist PERFORMANCES\n");
-    new Javassist().perfs(args);
+    new JavassistPerfTest().perfs(args);
     double[][] javassistPerfs = perfs;
-    
+
     // prints results
     System.out.println("\nGLOBAL RESULTS");
     System.out.println("\nWITH DEBUG INFORMATION\n");
@@ -227,7 +209,7 @@ public abstract class ALL extends ClassLoader  {
           new FileOutputStream(args[0] + "classes" + (step + 1) + ".zip"));
         mode = step == 0 ? 1 : 4;
         for (int i = 1; i < args.length; ++i) {
-          ALL loader = newInstance();
+          ALLPerfTest loader = newInstance();
           zip = new ZipFile(args[i]);
           Enumeration entries = zip.entries();
           while (entries.hasMoreElements()) {
@@ -251,7 +233,7 @@ public abstract class ALL extends ClassLoader  {
       zip = new ZipFile(args[0] + "classes" + (step + 1) + ".zip");
       for (mode = 0; mode < 4; ++mode) {
         for (int i = 0; i < 4; ++i) {
-          ALL loader = newInstance();
+          ALLPerfTest loader = newInstance();
           total = 0;
           totalSize = 0;
           Enumeration entries = zip.entries();
@@ -331,7 +313,7 @@ public abstract class ALL extends ClassLoader  {
       }
     }
   }
-  
+
   protected Class findClass (final String name) throws ClassNotFoundException {
     try {
       byte[] b;
@@ -406,7 +388,7 @@ public abstract class ALL extends ClassLoader  {
     }
   }
 
-  abstract ALL newInstance ();
+  abstract ALLPerfTest newInstance ();
 
   abstract byte[] nullAdaptClass (final InputStream is, final String name)
     throws Exception;

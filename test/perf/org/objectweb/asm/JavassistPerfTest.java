@@ -28,87 +28,83 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.objectweb.asm.test.perf;
-
-import serp.bytecode.BCClass;
-import serp.bytecode.BCMethod;
-import serp.bytecode.Code;
-import serp.bytecode.Project;
+package org.objectweb.asm;
 
 import java.io.InputStream;
+import java.lang.reflect.Modifier;
+
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtField;
+import javassist.CtMethod;
+import javassist.bytecode.Bytecode;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.MethodInfo;
 
 /**
  * @author Eric Bruneton
  */
 
-public class SERP extends ALL {
-
-  private static Project p = new Project();
-
-  private static BCClass c;
+public class JavassistPerfTest extends ALLPerfTest {
 
   public static void main (final String args[]) throws Exception {
-    System.out.println("SERP PERFORMANCES\n");
-    new SERP().perfs(args);
+    System.out.println("Javassist PERFORMANCES\n");
+    new JavassistPerfTest().perfs(args);
   }
 
-  ALL newInstance () {
-    return new SERP();
+  ClassPool pool;
+  
+  public JavassistPerfTest () {
+    pool = new ClassPool(null);
+  }
+  
+  ALLPerfTest newInstance () {
+    return new JavassistPerfTest();
   }
 
   byte[] nullAdaptClass (final InputStream is, final String name)
     throws Exception
   {
-    if (c != null) {
-      p.removeClass(c);
-    }
-    c = p.loadClass(is);
-    c.getDeclaredFields();
-    BCMethod[] methods = c.getDeclaredMethods();
-    for (int i = 0; i < methods.length; ++i) {
-      Code code = methods[i].getCode(false);
-      if (code != null) {
-        while (code.hasNext()) {
-          code.next();
-        }
-        if (compute) {
-          code.calculateMaxStack();
-          code.calculateMaxLocals();
-        }
+    CtClass cc = pool.makeClass(is);
+    CtMethod[] ms = cc.getDeclaredMethods();
+    for (int j = 0; j < ms.length; ++j) {
+      if (skipDebug) {
+        // is there a mean to remove the debug attributes?
+      }
+      if (compute) {
+        // is there a mean to force recomputation of maxStack and maxLocals?
       }
     }
-    return c.toByteArray();
+    return cc.toBytecode();
   }
 
   byte[] counterAdaptClass (final InputStream is, final String name)
     throws Exception
   {
-    if (c != null) {
-      p.removeClass(c);
+    CtClass cc = pool.makeClass(is);
+    if (!cc.isInterface()) {
+      cc.addField(new CtField(CtClass.intType, "_counter", cc));
     }
-    c = p.loadClass(is);
-    c.getDeclaredFields();
-    if (!c.isInterface()) {
-      c.declareField("_counter", "I");
-    }
-    BCMethod[] methods = c.getDeclaredMethods();
-    for (int i = 0; i < methods.length; ++i) {
-      BCMethod m = methods[i];
-      if (!m.getName().equals("<init>") &&
-          !m.isStatic() && !m.isAbstract() && !m.isNative())
-      {
-        Code code = m.getCode(false);
-        if (code != null) {
-          code.aload().setLocal(0);
-          code.aload().setLocal(0);
-          code.getfield().setField(name, "_counter", "I");
-          code.constant().setValue(1);
-          code.iadd();
-          code.putfield().setField(name, "_counter", "I");
-          code.setMaxStack(Math.max(code.getMaxStack(), 2));
+    CtMethod[] ms = cc.getDeclaredMethods();
+    for (int j = 0; j < ms.length; ++j) {
+      CtMethod m = ms[j];
+      int modifiers = m.getModifiers();
+      if (!Modifier.isStatic(modifiers) && !Modifier.isAbstract(modifiers) && !Modifier.isNative(modifiers)) {
+        if (!m.isEmpty()) {
+          MethodInfo info = m.getMethodInfo();
+          Bytecode bc = new Bytecode(info.getConstPool(), 1, 0);
+          bc.addAload(0);
+          bc.addAload(0);
+          bc.addGetfield(cc, "_counter", "I");
+          bc.add(Bytecode.ICONST_1);
+          bc.add(Bytecode.IADD);
+          bc.addPutfield(cc, "_counter", "I");
+          CodeIterator iter = info.getCodeAttribute().iterator();
+          iter.begin();
+          iter.insert(bc.get());
         }
       }
     }
-    return c.toByteArray();
+    return cc.toBytecode();
   }
 }

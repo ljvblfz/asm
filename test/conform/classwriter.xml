@@ -1,6 +1,9 @@
 <project name="conform" default="test">
 
   <target name="test">
+    <condition property="asm.test" value="${java.home}/lib/rt.jar">
+      <not><isset property="asm.test"/></not>
+    </condition>
     <mkdir dir="${out.test}/reports"/>
     <path id="classpath">
       <pathelement location="${out.build}"/>
@@ -9,17 +12,19 @@
         <include name="lib/*.jar"/>
       </fileset>
     </path>
-    <junit fork="yes" printsummary="yes"
+    <junit fork="yes" 
+           printsummary="yes"
            errorproperty="test.failed"
            failureproperty="test.failed">
       <batchtest fork="yes" todir="${out.test}/reports">
         <fileset dir="${test}/conform">
-          <include name="**/ClassAdapterTest.java"/>
+          <include name="**/ClassWriterTest.java"/>
         </fileset>
       </batchtest>
       <formatter type="xml"/>
       <classpath refid="classpath"/>
-    </junit>  
+      <jvmarg value="-Dasm.test=${asm.test}"/>
+    </junit>
   </target>
 
 </project>

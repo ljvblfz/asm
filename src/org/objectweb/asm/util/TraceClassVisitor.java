@@ -35,15 +35,15 @@ import java.io.PrintWriter;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
-import org.objectweb.asm.MemberVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.CodeVisitor;
-import org.objectweb.asm.Constants;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.FieldVisitor;
 
 /**
- * A {@link PrintClassVisitor PrintClassVisitor} that prints a disassembled
- * view of the classes it visits. This class visitor can be used alone (see the
+ * A {@link ClassVisitor} that prints a disassembled view of the classes it
+ * visits. This class visitor can be used alone (see the
  * {@link #main main} method) to disassemble a class. It can also be used in
  * the middle of class visitor chain to trace the class that is visited at a
  * given point in this chain. This may be uselful for debugging purposes.
@@ -52,9 +52,21 @@ import org.objectweb.asm.Constants;
  * <p>
  * <blockquote>
  * <pre>
- * // compiled from Hello.java
+ * // class version 49.0 (49)
+ * // access flags 33
  * public class Hello {
- *
+ * 
+ *  // compiled from: Hello.java
+ * 
+ *   // access flags 1
+ *   public <init> ()V
+ *     ALOAD 0
+ *     INVOKESPECIAL java/lang/Object <init> ()V
+ *     RETURN
+ *     MAXSTACK = 1
+ *     MAXLOCALS = 1
+ * 
+ *   // access flags 9
  *   public static main ([Ljava/lang/String;)V
  *     GETSTATIC java/lang/System out Ljava/io/PrintStream;
  *     LDC "hello"
@@ -62,14 +74,6 @@ import org.objectweb.asm.Constants;
  *     RETURN
  *     MAXSTACK = 2
  *     MAXLOCALS = 1
- *
- *   public &lt;init&gt; ()V
- *     ALOAD 0
- *     INVOKESPECIAL java/lang/Object &lt;init&gt; ()V
- *     RETURN
- *     MAXSTACK = 1
- *     MAXLOCALS = 1
- *
  * }
  * </pre>
  * </blockquote>
@@ -85,27 +89,21 @@ import org.objectweb.asm.Constants;
  * }
  * </pre>
  * </blockquote>
- * 
- * @author Eric Bruneton, Eugene Kuleshov
+ *
+ * @author Eric Bruneton
+ * @author Eugene Kuleshov
  */
 
-public class TraceClassVisitor extends TraceMemberVisitor 
+public class TraceClassVisitor extends TraceAbstractVisitor
   implements ClassVisitor
 {
-
-  /**
-   * The {@link ClassVisitor ClassVisitor} to which this visitor delegates
-   * calls. May be <tt>null</tt>.
-   */
-
-  protected final ClassVisitor cv;
 
   /**
    * The print writer to be used to print the class.
    */
 
   protected final PrintWriter pw;
-  
+
   /**
    * Prints a disassembled view of the given class to the standard output.
    * <p>
@@ -119,17 +117,25 @@ public class TraceClassVisitor extends TraceMemberVisitor
    */
 
   public static void main (final String[] args) throws Exception {
-    if (args.length < 1 || args.length > 2) {
-      printUsage();
-    }
     int i = 0;
     boolean skipDebug = true;
-    if (args[0].equals("-debug")) {
+
+    boolean ok = true;
+    if (args.length < 1 || args.length > 2) {
+      ok = false;
+    }
+    if (ok && args[0].equals("-debug")) {
       i = 1;
       skipDebug = false;
       if (args.length != 2) {
-        printUsage();
+        ok = false;
       }
+    }
+    if (!ok) {
+      System.err.println("Prints a disassembled view of the given class.");
+      System.err.println("Usage: TraceClassVisitor [-debug] " +
+                         "<fully qualified class name or class file name>");
+      System.exit(-1);
     }
     ClassReader cr;
     if (args[i].endsWith(".class")) {
@@ -137,30 +143,25 @@ public class TraceClassVisitor extends TraceMemberVisitor
     } else {
       cr = new ClassReader(args[i]);
     }
-    cr.accept(new TraceClassVisitor(
-      null, new PrintWriter(System.out)), getDefaultAttributes(), skipDebug);
+    cr.accept(
+      new TraceClassVisitor(new PrintWriter(System.out)),
+      getDefaultAttributes(),
+      skipDebug);
   }
-  
-  private static void printUsage () {
-    System.err.println("Prints a disassembled view of the given class.");
-    System.err.println("Usage: TraceClassVisitor [-debug] " +
-                       "<fully qualified class name or class file name>");
-    System.exit(-1);
-  }
-  
+
   /**
-   * Constructs a new {@link TraceClassVisitor TraceClassVisitor} object.
+   * Constructs a new {@link TraceClassVisitor}.
    *
-   * @param cv the class visitor to which this adapter must delegate calls. May
-   *      be <tt>null</tt>.
    * @param pw the print writer to be used to print the class.
    */
 
-  public TraceClassVisitor (final ClassVisitor cv, final PrintWriter pw) {
-    super(cv);
-    this.cv = cv;
+  public TraceClassVisitor (final PrintWriter pw) {
     this.pw = pw;
   }
+
+  // --------------------------------------------------------------------------
+  // Implementation of the ClassVisitor interface
+  // --------------------------------------------------------------------------
 
   public void visit (
     final int version,
@@ -174,14 +175,14 @@ public class TraceClassVisitor extends TraceMemberVisitor
     int minor = version >>> 16;
     buf.setLength(0);
     buf.append("// class version " + major + "." + minor + " (" + version + ")\n");
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
+    if ((access & Opcodes.ACC_DEPRECATED) != 0) {
       buf.append("// DEPRECATED\n");
     }
     buf.append("// access flags ").append(access).append("\n");
-    appendAccess(access & ~Constants.ACC_SUPER);
-    if ((access & Constants.ACC_INTERFACE) != 0) {
+    appendAccess(access & ~Opcodes.ACC_SUPER);
+    if ((access & Opcodes.ACC_INTERFACE) != 0) {
       buf.append("interface ");
-    } else if ((access & Constants.ACC_ENUM) != 0) {
+    } else if ((access & Opcodes.ACC_ENUM) != 0) {
       buf.append("enum ");
     } else {
       buf.append("class ");
@@ -201,12 +202,8 @@ public class TraceClassVisitor extends TraceMemberVisitor
     } else {
       buf.append("{\n\n");
     }
-    
-    text.add(buf.toString());
 
-    if (cv != null) {
-      cv.visit(version, access, name, signature, superName, interfaces);
-    }
+    text.add(buf.toString());
   }
 
   public void visitSource (final String file, final String debug) {
@@ -220,16 +217,12 @@ public class TraceClassVisitor extends TraceMemberVisitor
     if (buf.length() > 0) {
       text.add(buf.toString());
     }
-    
-    if (cv != null) {
-      cv.visitSource(file, debug);
-    }
   }
-  
+
   public void visitOuterClass (
-    final String owner, 
-    final String name, 
-    final String desc) 
+    final String owner,
+    final String name,
+    final String desc)
   {
     buf.setLength(0);
     buf.append("  OUTERCLASS ")
@@ -239,13 +232,9 @@ public class TraceClassVisitor extends TraceMemberVisitor
       .append(" ")
       .append(desc)
       .append("\n");
-    text.add(buf.toString());    
-    
-    if (cv != null) {
-      cv.visitOuterClass(owner, name, desc);
-    }
+    text.add(buf.toString());
   }
-    
+
   public void visitInnerClass (
     final String name,
     final String outerName,
@@ -263,13 +252,9 @@ public class TraceClassVisitor extends TraceMemberVisitor
       .append(access)
       .append("\n");
     text.add(buf.toString());
-
-    if (cv != null) {
-      cv.visitInnerClass(name, outerName, innerName, access);
-    }
   }
 
-  public MemberVisitor visitField (
+  public FieldVisitor visitField (
     final int access,
     final String name,
     final String desc,
@@ -278,13 +263,13 @@ public class TraceClassVisitor extends TraceMemberVisitor
   {
     buf.setLength(0);
     buf.append("\n");
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
+    if ((access & Opcodes.ACC_DEPRECATED) != 0) {
       buf.append("  // DEPRECATED\n");
     }
     buf.append("  // access flags ").append(access).append("\n");
     buf.append("  ");
     appendAccess(access);
-    if ((access & Constants.ACC_ENUM) != 0) {
+    if ((access & Opcodes.ACC_ENUM) != 0) {
       buf.append("enum ");
     }
     buf.append(desc)
@@ -304,13 +289,12 @@ public class TraceClassVisitor extends TraceMemberVisitor
     buf.append("\n");
     text.add(buf.toString());
 
-    TraceMemberVisitor tav = new TraceMemberVisitor(
-      cv == null ? null : cv.visitField(access, name, desc, signature, value));
+    TraceFieldVisitor tav = new TraceFieldVisitor();
     text.add(tav.getText());
     return tav;
   }
 
-  public CodeVisitor visitMethod (
+  public MethodVisitor visitMethod (
     final int access,
     final String name,
     final String desc,
@@ -319,19 +303,19 @@ public class TraceClassVisitor extends TraceMemberVisitor
   {
     buf.setLength(0);
     buf.append("\n");
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
+    if ((access & Opcodes.ACC_DEPRECATED) != 0) {
       buf.append("  // DEPRECATED\n");
     }
     buf.append("  // access flags ").append(access).append("\n");
     buf.append("  ");
     appendAccess(access);
-    if ((access & Constants.ACC_NATIVE) != 0) {
+    if ((access & Opcodes.ACC_NATIVE) != 0) {
       buf.append("native ");
     }
-    if ((access & Constants.ACC_VARARGS) != 0) {
+    if ((access & Opcodes.ACC_VARARGS) != 0) {
       buf.append("varargs ");
     }
-    if ((access & Constants.ACC_BRIDGE) != 0) {
+    if ((access & Opcodes.ACC_BRIDGE) != 0) {
       buf.append("bridge ");
     }
     buf.append(name).
@@ -349,36 +333,34 @@ public class TraceClassVisitor extends TraceMemberVisitor
     buf.append("\n");
     text.add(buf.toString());
 
-    TraceCodeVisitor tcv = new TraceCodeVisitor(
-      cv == null ? null : 
-        cv.visitMethod(access, name, desc, signature, exceptions));
+    TraceMethodVisitor tcv = new TraceMethodVisitor();
     text.add(tcv.getText());
     return tcv;
   }
 
   public AnnotationVisitor visitAnnotation (
-    final String type, 
-    final boolean visible) 
+    final String desc,
+    final boolean visible)
   {
     text.add("\n");
-    return super.visitAnnotation(type, visible);
+    return super.visitAnnotation(desc, visible);
   }
-  
+
   public void visitAttribute (final Attribute attr) {
     text.add("\n");
     super.visitAttribute(attr);
   }
-  
+
   public void visitEnd () {
     text.add("}\n");
-
-    if (cv != null) {
-      cv.visitEnd();
-    }
 
     printList(pw, text);
     pw.flush();
   }
+
+  // --------------------------------------------------------------------------
+  // Utility methods
+  // --------------------------------------------------------------------------
 
   /**
    * Appends a string representation of the given access modifiers to {@link
@@ -388,37 +370,37 @@ public class TraceClassVisitor extends TraceMemberVisitor
    */
 
   private void appendAccess (final int access) {
-    if ((access & Constants.ACC_PUBLIC) != 0) {
+    if ((access & Opcodes.ACC_PUBLIC) != 0) {
       buf.append("public ");
     }
-    if ((access & Constants.ACC_PRIVATE) != 0) {
+    if ((access & Opcodes.ACC_PRIVATE) != 0) {
       buf.append("private ");
     }
-    if ((access & Constants.ACC_PROTECTED) != 0) {
+    if ((access & Opcodes.ACC_PROTECTED) != 0) {
       buf.append("protected ");
     }
-    if ((access & Constants.ACC_FINAL) != 0) {
+    if ((access & Opcodes.ACC_FINAL) != 0) {
       buf.append("final ");
     }
-    if ((access & Constants.ACC_STATIC) != 0) {
+    if ((access & Opcodes.ACC_STATIC) != 0) {
       buf.append("static ");
     }
-    if ((access & Constants.ACC_SYNCHRONIZED) != 0) {
+    if ((access & Opcodes.ACC_SYNCHRONIZED) != 0) {
       buf.append("synchronized ");
     }
-    if ((access & Constants.ACC_VOLATILE) != 0) {
+    if ((access & Opcodes.ACC_VOLATILE) != 0) {
       buf.append("volatile ");
     }
-    if ((access & Constants.ACC_TRANSIENT) != 0) {
+    if ((access & Opcodes.ACC_TRANSIENT) != 0) {
       buf.append("transient ");
     }
     // if ((access & Constants.ACC_NATIVE) != 0) {
     //   buf.append("native ");
     // }
-    if ((access & Constants.ACC_ABSTRACT) != 0) {
+    if ((access & Opcodes.ACC_ABSTRACT) != 0) {
       buf.append("abstract ");
     }
-    if ((access & Constants.ACC_STRICT) != 0) {
+    if ((access & Opcodes.ACC_STRICT) != 0) {
       buf.append("strictfp ");
     }
   }

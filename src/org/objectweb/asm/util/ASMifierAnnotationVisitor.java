@@ -30,25 +30,40 @@
 
 package org.objectweb.asm.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.objectweb.asm.AnnotationVisitor;
 
-public class ASMifierAnnotationVisitor implements AnnotationVisitor {
+/**
+ * An {@link AnnotationVisitor} that prints the ASM code that generates the
+ * annotations it visits.
+ *
+ * @author Eric Bruneton
+ */
+
+public class ASMifierAnnotationVisitor extends AbstractVisitor
+  implements AnnotationVisitor
+{
+
+  /**
+   * Identifier of the annotation visitor variable in the produced code.
+   */
 
   protected final int id;
-  
-  protected final List text;
-  
-  protected final StringBuffer buf;
-  
+
+  /**
+   * Constructs a new {@link ASMifierAnnotationVisitor}.
+   *
+   * @param id identifier of the annotation visitor variable in the produced
+   *      code.
+   */
+
   public ASMifierAnnotationVisitor (final int id) {
     this.id = id;
-    this.text = new ArrayList();
-    this.buf = new StringBuffer();
   }
-  
+
+  // --------------------------------------------------------------------------
+  // Implementation of the AnnotationVisitor interface
+  // --------------------------------------------------------------------------
+
   public void visitValue (final String name, final Object value) {
     buf.setLength(0);
     buf.append("av").append(id).append(".visitValue(");
@@ -60,15 +75,15 @@ public class ASMifierAnnotationVisitor implements AnnotationVisitor {
   }
 
   public void visitEnumValue (
-    final String name, 
-    final String type, 
-    final String value) 
+    final String name,
+    final String desc,
+    final String value)
   {
     buf.setLength(0);
     buf.append("av").append(id).append(".visitEnumValue(");
     ASMifierClassVisitor.appendConstant(buf, name);
     buf.append(", ");
-    ASMifierClassVisitor.appendConstant(buf, type);
+    ASMifierClassVisitor.appendConstant(buf, desc);
     buf.append(", ");
     ASMifierClassVisitor.appendConstant(buf, value);
     buf.append(");\n");
@@ -76,8 +91,8 @@ public class ASMifierAnnotationVisitor implements AnnotationVisitor {
   }
 
   public AnnotationVisitor visitAnnotationValue (
-    final String name, 
-    final String type) 
+    final String name,
+    final String desc)
   {
     buf.setLength(0);
     buf.append("{\n");
@@ -85,7 +100,7 @@ public class ASMifierAnnotationVisitor implements AnnotationVisitor {
     buf.append(id).append(".visitAnnotationValue(");
     ASMifierClassVisitor.appendConstant(buf, name);
     buf.append(", ");
-    ASMifierClassVisitor.appendConstant(buf, type);
+    ASMifierClassVisitor.appendConstant(buf, desc);
     buf.append(");\n");
     text.add(buf.toString());
     ASMifierAnnotationVisitor av = new ASMifierAnnotationVisitor(id+1);
@@ -112,9 +127,5 @@ public class ASMifierAnnotationVisitor implements AnnotationVisitor {
     buf.setLength(0);
     buf.append("av").append(id).append(".visitEnd();\n");
     text.add(buf.toString());
-  }
-  
-  public List getText () {
-    return text;
   }
 }

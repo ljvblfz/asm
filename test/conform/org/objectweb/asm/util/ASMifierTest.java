@@ -30,14 +30,79 @@
 
 package org.objectweb.asm.util;
 
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+
+import junit.framework.TestSuite;
+
+import net.janino.ClassLoaderIClassLoader;
+import net.janino.IClassLoader;
+import net.janino.Parser;
+import net.janino.Scanner;
+
+import org.objectweb.asm.AbstractTest;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.util.ASMifierClassVisitor;
+
 /**
  * ASMifier tests.
  * 
- * @author Eric Bruneton, Eugene Kuleshov
+ * @author Eugene Kuleshov
+ * @author Eric Bruneton
  */
 
-public class ASMifierTest {
-
-  // TODO
+public class ASMifierTest extends AbstractTest {
   
+  public static final Compiler COMPILER = new Compiler();
+  
+  private final static TestClassLoader LOADER = new TestClassLoader();
+
+  public static TestSuite suite () throws Exception {
+    return new ASMifierTest().getSuite();
+  }
+
+  public void test () throws Exception {
+    ClassReader cr = new ClassReader(is);
+    
+    if (cr.b.length > 20000) {
+      return;
+    }
+    
+    StringWriter sw = new StringWriter();
+    ASMifierClassVisitor cv = new ASMifierClassVisitor(new PrintWriter(sw));
+    cr.accept(cv, false);
+
+    String generated = sw.toString();
+    
+    byte[] generatorClassData = COMPILER.compile(n, generated);
+    
+    Class c = LOADER.defineClass("asm." + n + "Dump", generatorClassData);
+    Method m = c.getMethod("dump", new Class[0]);
+    byte[] b = (byte[])m.invoke(null, new Object[ 0]);
+    
+    assertEquals(cr, new ClassReader(b));
+  }
+  
+  private static class TestClassLoader extends ClassLoader {
+    
+    public Class defineClass (final String name, final byte[] b) {
+      return defineClass(name, b, 0, b.length);
+    }
+  }
+  
+  private static class Compiler  {
+    
+    final static IClassLoader CL = 
+      new ClassLoaderIClassLoader(new URLClassLoader(new URL[0]));
+
+    public byte[] compile(String name, String source) throws Exception {
+      Parser p = new Parser(new Scanner(name, new StringReader(source)));
+      return p.parseCompilationUnit().compile(CL, 0)[0].toByteArray();
+    }
+  }
 }
+

@@ -35,45 +35,59 @@ import java.util.List;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
-import org.objectweb.asm.MemberVisitor;
 
 /**
- * 
+ * An abstract class, field or method node.
+ *  
  * @author Eric Bruneton
  */
 
-public abstract class MemberNode implements MemberVisitor {
+public abstract class MemberNode {
 
   /**
-   * TODO.
+   * The runtime visible annotations of this class, field or method. This list
+   * is a list of {@link AnnotationNode} objects.
    */
   
   public List visibleAnnotations;
   
   /**
-   * TODO.
+   * The runtime invisible annotations of this class, field or method. This list
+   * is a list of {@link AnnotationNode} objects.
    */
   
   public List invisibleAnnotations;
   
   /**
-   * The non standard attributes of TODO.  This list is a list of 
-   * {@link Attribute Attribute} objects.
+   * The non standard attributes of this class, field or method. This list is a 
+   * list of {@link Attribute} objects.
    */
 
   public List attrs;
 
+  /**
+   * Constructs a new {@link MemberNode}.
+   */
+  
   public MemberNode () {
     this.visibleAnnotations = new ArrayList();
     this.invisibleAnnotations = new ArrayList();
     this.attrs = new ArrayList();
   }
   
+  /**
+   * Visits an annotation of this class, field or method.
+   * 
+   * @param desc the class descriptor of the annotation class.
+   * @param visible <tt>true</tt> if the annotation is visible at runtime.
+   * @return a visitor to visit the annotation values.
+   */
+ 
   public AnnotationVisitor visitAnnotation (
-    final String type, 
+    final String desc, 
     final boolean visible) 
   {
-    AnnotationNode an = new AnnotationNode(type);
+    AnnotationNode an = new AnnotationNode(desc);
     if (visible) {
       visibleAnnotations.add(an);
     } else {
@@ -81,29 +95,21 @@ public abstract class MemberNode implements MemberVisitor {
     }
     return an;
   }
-  
+
+  /**
+   * Visits a non standard attribute of this class, field or method.
+   * 
+   * @param attr an attribute.
+   */
+
   public void visitAttribute (final Attribute attr) {
     attrs.add(attr);
   }
 
   /**
-   * Makes the given attribute visitor visit this attribute node.
-   *
-   * @param av an attribute visitor.
+   * Visits the end of this class, field or method.
    */
-
-  public void accept (final MemberVisitor av) {
-    int i;
-    for (i = 0; i < visibleAnnotations.size(); ++i) {
-      AnnotationNode an = (AnnotationNode)visibleAnnotations.get(i); 
-      an.accept(av.visitAnnotation(an.type, true));
-    }
-    for (i = 0; i < invisibleAnnotations.size(); ++i) {
-      AnnotationNode an = (AnnotationNode)invisibleAnnotations.get(i); 
-      an.accept(av.visitAnnotation(an.type, false));
-    }
-    for (i = 0; i < attrs.size(); ++i) {
-      av.visitAttribute((Attribute)attrs.get(i));
-    }
+  
+  public void visitEnd () {
   }
 }

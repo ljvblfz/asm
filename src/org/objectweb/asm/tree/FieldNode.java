@@ -38,7 +38,7 @@ import org.objectweb.asm.ClassVisitor;
  * @author Eric Bruneton
  */
 
-public class FieldNode extends AttributeNode {
+public class FieldNode extends MemberNode {
 
   /**
    * The field's access flags (see {@link org.objectweb.asm.Constants}). This
@@ -58,6 +58,12 @@ public class FieldNode extends AttributeNode {
    */
 
   public String desc;
+  
+  /**
+   * TODO.
+   */
+  
+  public String signature;
 
   /**
    * The field's initial value. This field, which may be <tt>null</tt> if the
@@ -88,11 +94,13 @@ public class FieldNode extends AttributeNode {
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final Object value)
   {
     this.access = access;
     this.name = name;
     this.desc = desc;
+    this.signature = signature;
     this.value = value;
   }
 
@@ -103,6 +111,6 @@ public class FieldNode extends AttributeNode {
    */
 
   public void accept (final ClassVisitor cv) {
-    accept(cv.visitField(access, name, desc, value));
+    accept(cv.visitField(access, name, desc, signature, value));
   }
 }

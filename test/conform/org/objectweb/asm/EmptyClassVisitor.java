@@ -32,7 +32,7 @@ public class EmptyClassVisitor
 {
 
   public void visit (
-    int version, int access, String name, String superName, String[] interfaces)
+    int version, int access, String name, String signature, String superName, String[] interfaces)
   {
   }
 
@@ -47,14 +47,14 @@ public class EmptyClassVisitor
   {
   }
 
-  public AttributeVisitor visitField (
-    int access, String name, String signature, Object value) 
+  public MemberVisitor visitField (
+    int access, String name, String desc, String signature, Object value) 
   {
     return this;
   }
 
   public CodeVisitor visitMethod (
-    int access, String name, String signature, String[] exceptions) 
+    int access, String name, String desc, String signature, String[] exceptions) 
   {
     return this;
   }
@@ -80,6 +80,9 @@ public class EmptyClassVisitor
   }
 
   public void visitInsn (int opcode) {
+  }
+
+  public void visitIntInsn (int opcode, int operand) {
   }
 
   public void visitVarInsn (int opcode, int var) {
@@ -130,7 +133,7 @@ public class EmptyClassVisitor
   }
 
   public void visitLocalVariable (
-    String name, String desc, Label start, Label end, int index) 
+    String name, String desc, String signature, Label start, Label end, int index) 
   {
   }
 

@@ -43,7 +43,7 @@ import java.util.HashMap;
  * @author Eric Bruneton, Eugene Kuleshov
  */
 
-public class ASMifierCodeVisitor extends ASMifierAttributeVisitor 
+public class ASMifierCodeVisitor extends ASMifierMemberVisitor 
   implements CodeVisitor 
 {
 
@@ -300,6 +300,7 @@ public class ASMifierCodeVisitor extends ASMifierAttributeVisitor
   public void visitLocalVariable (
     final String name,
     final String desc,
+    final String signature,
     final Label start,
     final Label end,
     final int index)
@@ -309,6 +310,8 @@ public class ASMifierCodeVisitor extends ASMifierAttributeVisitor
     appendConstant(buf, name);
     buf.append(", ");
     appendConstant(buf, desc);
+    buf.append(", ");
+    appendConstant(buf, signature);
     buf.append(", ");
     appendLabel(start);
     buf.append(", ");

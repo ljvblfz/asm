@@ -34,7 +34,7 @@ import java.io.FileInputStream;
 import java.util.List;
 
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.AttributeVisitor;
+import org.objectweb.asm.MemberVisitor;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -162,6 +162,7 @@ public class CheckClassAdapter extends ClassAdapter {
     final int version,
     final int access,
     final String name,
+    final String signature,
     final String superName,
     final String[] interfaces)
   {
@@ -191,6 +192,9 @@ public class CheckClassAdapter extends ClassAdapter {
     } else {
       CheckCodeAdapter.checkInternalName(superName, "super class name");
     }
+    if (signature != null) {
+      // TODO
+    }
     if ((access & Constants.ACC_INTERFACE) != 0) {
       if (!superName.equals("java/lang/Object")) {
         throw new IllegalArgumentException(
@@ -203,7 +207,7 @@ public class CheckClassAdapter extends ClassAdapter {
           interfaces[i], "interface name at index " + i);
       }
     }
-    cv.visit(version, access, name, superName, interfaces);
+    cv.visit(version, access, name, signature, superName, interfaces);
   }
 
   public void visitSource (final String file, final String debug) {
@@ -249,10 +253,11 @@ public class CheckClassAdapter extends ClassAdapter {
     cv.visitInnerClass(name, outerName, innerName, access);
   }
 
-  public AttributeVisitor visitField (
+  public MemberVisitor visitField (
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final Object value)
   {
     checkState();
@@ -270,10 +275,13 @@ public class CheckClassAdapter extends ClassAdapter {
       Constants.ACC_DEPRECATED);
     CheckCodeAdapter.checkIdentifier(name, "field name");
     CheckCodeAdapter.checkDesc(desc, false);
+    if (signature != null) {
+      // TODO
+    }
     if (value != null) {
       CheckCodeAdapter.checkConstant(value);
     }
-    AttributeVisitor av = cv.visitField(access, name, desc, value);
+    MemberVisitor av = cv.visitField(access, name, desc, signature, value);
     // TODO return checkadapter(av)
     return av;
   }
@@ -282,6 +290,7 @@ public class CheckClassAdapter extends ClassAdapter {
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final String[] exceptions)
   {
     checkState();
@@ -302,6 +311,9 @@ public class CheckClassAdapter extends ClassAdapter {
       Constants.ACC_DEPRECATED);
     CheckCodeAdapter.checkMethodIdentifier(name, "method name");
     CheckCodeAdapter.checkMethodDesc(desc);
+    if (signature != null) {
+      // TODO
+    }
     if (exceptions != null) {
       for (int i = 0; i < exceptions.length; ++i) {
         CheckCodeAdapter.checkInternalName(
@@ -309,7 +321,7 @@ public class CheckClassAdapter extends ClassAdapter {
       }
     }
     return new CheckCodeAdapter(
-      cv.visitMethod(access, name, desc, exceptions));
+      cv.visitMethod(access, name, desc, signature, exceptions));
   }
 
   public AnnotationVisitor visitAnnotation (

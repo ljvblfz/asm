@@ -62,24 +62,21 @@ public class ClassAdapter implements ClassVisitor {
     final int version,
     final int access,
     final String name,
+    final String signature,
     final String superName,
     final String[] interfaces)
   {
-    cv.visit(version, access, name, superName, interfaces);
+    cv.visit(version, access, name, signature, superName, interfaces);
   }
 
-  public void visitSource (final String file, final String debug) {
-    cv.visitSource(file, debug);
+  public void visitSource (String source, String debug) {
+    cv.visitSource(source, debug);
   }
-  
-  public void visitOuterClass (
-    final String owner, 
-    final String name, 
-    final String desc) 
-  {
+
+  public void visitOuterClass (String owner, String name, String desc) {
     cv.visitOuterClass(owner, name, desc);
   }
-  
+
   public void visitInnerClass (
     final String name,
     final String outerName,
@@ -89,35 +86,34 @@ public class ClassAdapter implements ClassVisitor {
     cv.visitInnerClass(name, outerName, innerName, access);
   }
 
-  public AttributeVisitor visitField (
+  public MemberVisitor visitField (
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final Object value)
   {
-    return cv.visitField(access, name, desc, value);
+    return cv.visitField(access, name, desc, signature, value);
   }
 
   public CodeVisitor visitMethod (
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final String[] exceptions)
   {
-    return new CodeAdapter(cv.visitMethod(access, name, desc, exceptions));
+    return new CodeAdapter(cv.visitMethod(access, name, desc, signature, exceptions));
   }
 
-  public AnnotationVisitor visitAnnotation (
-    final String type, 
-    final boolean visible) 
-  {
+  public AnnotationVisitor visitAnnotation (String type, boolean visible) {
     return cv.visitAnnotation(type, visible);
   }
-  
+
   public void visitAttribute (final Attribute attr) {
     cv.visitAttribute(attr);
   }
-  
+
   public void visitEnd () {
     cv.visitEnd();
   }

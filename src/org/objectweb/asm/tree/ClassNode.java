@@ -30,7 +30,7 @@
 
 package org.objectweb.asm.tree;
 
-import org.objectweb.asm.AttributeVisitor;
+import org.objectweb.asm.MemberVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.CodeVisitor;
 
@@ -44,7 +44,7 @@ import java.util.Arrays;
  * @author Eric Bruneton
  */
 
-public class ClassNode extends AttributeNode implements ClassVisitor {
+public class ClassNode extends MemberNode implements ClassVisitor {
 
   /**
    * The class version.
@@ -66,6 +66,12 @@ public class ClassNode extends AttributeNode implements ClassVisitor {
 
   public String name;
 
+  /**
+   * TODO.
+   */
+  
+  public String signature;
+  
   /**
    * The internal of name of the super class (see {@link
    * org.objectweb.asm.Type#getInternalName() getInternalName}). For interfaces,
@@ -166,12 +172,14 @@ public class ClassNode extends AttributeNode implements ClassVisitor {
     final int version,
     final int access,
     final String name,
+    final String signature,
     final String superName,
     final String[] interfaces)
   {
     this.version = version;
     this.access = access;
     this.name = name;
+    this.signature = signature; 
     this.superName = superName;
     if (interfaces != null) {
       this.interfaces.addAll(Arrays.asList(interfaces));
@@ -203,13 +211,14 @@ public class ClassNode extends AttributeNode implements ClassVisitor {
     innerClasses.add(icn);
   }
 
-  public AttributeVisitor visitField (
+  public MemberVisitor visitField (
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final Object value)
   {
-    FieldNode fn = new FieldNode(access, name, desc, value);
+    FieldNode fn = new FieldNode(access, name, desc, signature, value);
     fields.add(fn);
     return fn;
   }
@@ -218,9 +227,10 @@ public class ClassNode extends AttributeNode implements ClassVisitor {
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final String[] exceptions)
   {
-    MethodNode mn = new MethodNode(access, name, desc, exceptions);
+    MethodNode mn = new MethodNode(access, name, desc, signature, exceptions);
     methods.add(mn);
     return mn;
   }
@@ -238,7 +248,7 @@ public class ClassNode extends AttributeNode implements ClassVisitor {
     // visits header
     String[] interfaces = new String[this.interfaces.size()];
     this.interfaces.toArray(interfaces);
-    cv.visit(version, access, name, superName, interfaces);
+    cv.visit(version, access, name, signature, superName, interfaces);
     // visits source
     if (sourceFile != null || sourceDebug != null) {
       cv.visitSource(sourceFile, sourceDebug);

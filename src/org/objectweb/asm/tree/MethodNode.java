@@ -46,7 +46,7 @@ import java.util.Arrays;
  * @author Eric Bruneton
  */
 
-public class MethodNode extends AttributeNode implements CodeVisitor {
+public class MethodNode extends MemberNode implements CodeVisitor {
 
   /**
    * The method's access flags (see {@link org.objectweb.asm.Constants}). This
@@ -67,6 +67,12 @@ public class MethodNode extends AttributeNode implements CodeVisitor {
 
   public String desc;
 
+  /**
+   * TODO.
+   */
+  
+  public String signature;
+  
   /**
    * The internal names of the method's exception classes (see {@link
    * org.objectweb.asm.Type#getInternalName() getInternalName}). This list is a
@@ -152,11 +158,13 @@ public class MethodNode extends AttributeNode implements CodeVisitor {
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final String[] exceptions)
   {
     this.access = access;
     this.name = name;
-    this.desc = desc;    
+    this.desc = desc;
+    this.signature = signature;
     this.exceptions = new ArrayList();
     int params = Type.getArgumentTypes(desc).length;
     this.visibleParameterAnnotations = new List[params];
@@ -199,6 +207,11 @@ public class MethodNode extends AttributeNode implements CodeVisitor {
   
   public void visitInsn (final int opcode) {
     AbstractInsnNode n = new InsnNode(opcode);
+    instructions.add(n);
+  }
+
+  public void visitIntInsn (final int opcode, final int operand) {
+    AbstractInsnNode n = new IntInsnNode(opcode, operand);
     instructions.add(n);
   }
 
@@ -293,11 +306,13 @@ public class MethodNode extends AttributeNode implements CodeVisitor {
   public void visitLocalVariable (
     final String name,
     final String desc,
+    final String signature,
     final Label start,
     final Label end,
     final int index)
   {
-    LocalVariableNode n = new LocalVariableNode(name, desc, start, end, index);
+    LocalVariableNode n;
+    n = new LocalVariableNode(name, desc, signature, start, end, index);
     localVariables.add(n);
   }
 
@@ -316,7 +331,7 @@ public class MethodNode extends AttributeNode implements CodeVisitor {
   public void accept (final ClassVisitor cv) {
     String[] exceptions = new String[this.exceptions.size()];
     this.exceptions.toArray(exceptions);
-    CodeVisitor mv = cv.visitMethod(access, name, desc, exceptions);
+    CodeVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
     // visits the method attributes
     int i;
     if (annotationDefault != null) {

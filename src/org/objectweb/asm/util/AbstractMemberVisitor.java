@@ -35,10 +35,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.objectweb.asm.Attribute;
-import org.objectweb.asm.AttributeVisitor;
+import org.objectweb.asm.MemberVisitor;
 import org.objectweb.asm.util.attrs.ASMStackMapAttribute;
 
-public abstract class AbstractAttributeVisitor implements AttributeVisitor {
+public abstract class AbstractMemberVisitor implements MemberVisitor {
 
   /**
    * The names of the Java Virtual Machine opcodes.
@@ -274,7 +274,7 @@ public abstract class AbstractAttributeVisitor implements AttributeVisitor {
    * Constructs a new {@link PrintAttributeVisitor} object.
    */
 
-  protected AbstractAttributeVisitor () {
+  protected AbstractMemberVisitor () {
     this.text = new ArrayList();
     this.buf = new StringBuffer();
   }

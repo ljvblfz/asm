@@ -57,31 +57,24 @@ public class CodeAdapter implements CodeVisitor {
     this.cv = cv;
   }
 
-  public AnnotationVisitor visitAnnotation (
-    final String type, 
-    final boolean visible) 
-  {
-    return cv.visitAnnotation(type, visible);
-  }
-  
   public AnnotationVisitor visitAnnotationDefault () {
     return cv.visitAnnotationDefault();
   }
 
-  public AnnotationVisitor visitParameterAnnotation (
-    final int parameter,
-    final String type,
-    final boolean visible) 
-  {
+  public AnnotationVisitor visitParameterAnnotation (int parameter, String type, boolean visible) {
     return cv.visitParameterAnnotation(parameter, type, visible);
   }
-  
-  public void visitAttribute (final Attribute attr) {
-    cv.visitAttribute(attr);
+
+  public AnnotationVisitor visitAnnotation (String type, boolean visible) {
+    return cv.visitAnnotation(type, visible);
   }
-  
+
   public void visitInsn (final int opcode) {
     cv.visitInsn(opcode);
+  }
+
+  public void visitIntInsn (final int opcode, final int operand) {
+    cv.visitIntInsn(opcode, operand);
   }
 
   public void visitVarInsn (final int opcode, final int var) {
@@ -163,15 +156,19 @@ public class CodeAdapter implements CodeVisitor {
   public void visitLocalVariable (
     final String name,
     final String desc,
+    final String signature,
     final Label start,
     final Label end,
     final int index)
   {
-    cv.visitLocalVariable(name, desc, start, end, index);
+    cv.visitLocalVariable(name, desc, signature, start, end, index);
   }
 
   public void visitLineNumber (final int line, final Label start) {
     cv.visitLineNumber(line, start);
   }
-}
 
+  public void visitAttribute (final Attribute attr) {
+    cv.visitAttribute(attr);
+  }
+}

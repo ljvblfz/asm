@@ -28,19 +28,49 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.objectweb.asm;
+package org.objectweb.asm.tree;
 
+import org.objectweb.asm.CodeVisitor;
 
 /**
- * AttributeVisitor
- *
- * @author Eugene Kuleshov
+ * A node that represents an instruction with a single int operand.
+ * 
+ * @author Eric Bruneton
  */
 
-public interface AttributeVisitor {
+public class IntInsnNode extends AbstractInsnNode {
 
-  AnnotationVisitor visitAnnotation (String type, boolean visible);
+  /**
+   * The operand of this instruction.
+   */
 
-  void visitAttribute (Attribute attr);
+  public int operand;
 
+  /**
+   * Constructs a new {@link IntInsnNode IntInsnNode} object.
+   *
+   * @param opcode the opcode of the instruction to be constructed. This opcode
+   *      must be BIPUSH, SIPUSH or NEWARRAY.
+   * @param operand the operand of the instruction to be constructed.
+   */
+
+  public IntInsnNode (final int opcode, final int operand) {
+    super(opcode);
+    this.operand = operand;
+  }
+
+  /**
+   * Sets the opcode of this instruction.
+   *
+   * @param opcode the new instruction opcode. This opcode must be BIPUSH,
+   *      SIPUSH or NEWARRAY.
+   */
+
+  public void setOpcode (final int opcode) {
+    this.opcode = opcode;
+  }
+
+  public void accept (final CodeVisitor cv) {
+    cv.visitIntInsn(opcode, operand);
+  }
 }

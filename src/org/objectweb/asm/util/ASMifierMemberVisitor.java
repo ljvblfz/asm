@@ -35,11 +35,11 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.util.attrs.ASMifiable;
 
-public class ASMifierAttributeVisitor extends AbstractAttributeVisitor {
+public class ASMifierMemberVisitor extends AbstractMemberVisitor {
   
   protected String name;
   
-  protected ASMifierAttributeVisitor (final String name) {
+  protected ASMifierMemberVisitor (final String name) {
     this.name = name;
   }
   

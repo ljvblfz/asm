@@ -44,7 +44,7 @@ import java.util.HashMap;
  * @author Eric Bruneton
  */
 
-public class TraceCodeVisitor extends TraceAttributeVisitor 
+public class TraceCodeVisitor extends TraceMemberVisitor 
   implements CodeVisitor
 {
 
@@ -109,6 +109,19 @@ public class TraceCodeVisitor extends TraceAttributeVisitor
 
     if (cv != null) {
       cv.visitInsn(opcode);
+    }
+  }
+
+  public void visitIntInsn (final int opcode, final int operand) {
+    buf.setLength(0);
+    buf.append("    ")
+      .append(OPCODES[opcode])
+      .append(" ").append(operand)
+      .append("\n");
+    text.add(buf.toString());
+
+    if (cv != null) {
+      cv.visitIntInsn(opcode, operand);
     }
   }
 
@@ -345,6 +358,7 @@ public class TraceCodeVisitor extends TraceAttributeVisitor
   public void visitLocalVariable (
     final String name,
     final String desc,
+    final String signature,
     final Label start,
     final Label end,
     final int index)
@@ -354,6 +368,8 @@ public class TraceCodeVisitor extends TraceAttributeVisitor
       .append(name)
       .append(" ")
       .append(desc)
+      .append(" ")
+      .append(signature)
       .append(" ");
     appendLabel(start);
     buf.append(" ");
@@ -364,7 +380,7 @@ public class TraceCodeVisitor extends TraceAttributeVisitor
     text.add(buf.toString());
     
     if (cv != null) {
-      cv.visitLocalVariable(name, desc, start, end, index);
+      cv.visitLocalVariable(name, desc, signature, start, end, index);
     }
   }
 

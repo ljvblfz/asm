@@ -42,6 +42,7 @@ import java.util.zip.ZipOutputStream;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.EmptyClassVisitor;
+import org.objectweb.asm.util.TraceClassVisitor;
 
 /**
  * @author Eric Bruneton
@@ -67,9 +68,9 @@ public abstract class ALL extends ClassLoader  {
 
   public static void main (String[] args) throws Exception {
     ZipFile zip = new ZipFile(System.getProperty("java.home") + "/lib/rt.jar");
+    int n = 0;
     
     for (int i = 0; i < 5; ++i) {
-      int n = 0;
       long t = System.currentTimeMillis();
       Enumeration entries = zip.entries();
       while (entries.hasMoreElements()) {
@@ -79,28 +80,35 @@ public abstract class ALL extends ClassLoader  {
           s = s.substring(0, s.length() - 6).replace('/', '.');
           InputStream is = zip.getInputStream(e);
           readClass(is);
-          ++n;
+          if (i == 0) {
+            ++n;
+          }
         }
       }
       t = System.currentTimeMillis() - t;
       System.out.println("Time to read " + n + " classes = " + t + " ms");
-      
-      t = System.currentTimeMillis();
-      entries = zip.entries();
+    }
+    
+    for (int i = 0; i < 5; ++i) {
+      long t = System.currentTimeMillis();
+      Enumeration entries = zip.entries();
       while (entries.hasMoreElements()) {
         ZipEntry e = (ZipEntry)entries.nextElement();
         String s = e.getName();
         if (s.endsWith(".class")) {
           s = s.substring(0, s.length() - 6).replace('/', '.');
           InputStream is = zip.getInputStream(e);
+//          new ClassReader(is).accept(new TraceClassVisitor(new EmptyClassVisitor(), new java.io.PrintWriter(System.out)), false);
           new ClassReader(is).accept(new EmptyClassVisitor(), false);
         }
       }
       t = System.currentTimeMillis() - t;
-      System.out.println("Time to deserialze " + n + " classes = " + t + " ms");
-      
-      t = System.currentTimeMillis();
-      entries = zip.entries();
+      System.out.println("Time to deserialize " + n + " classes = " + t + " ms");
+    }
+    
+    for (int i = 0; i < 5; ++i) {
+      long t = System.currentTimeMillis();
+      Enumeration entries = zip.entries();
       while (entries.hasMoreElements()) {
         ZipEntry e = (ZipEntry)entries.nextElement();
         String s = e.getName();
@@ -113,10 +121,10 @@ public abstract class ALL extends ClassLoader  {
         }
       }
       t = System.currentTimeMillis() - t;
-      System.out.println("Time to deserialze and reserialze " + n + " classes = " + t + " ms\n");
+      System.out.println("Time to deserialize and reserialize " + n + " classes = " + t + " ms");
     }
     
-    System.out.println("Comparing ASM, BCEL, SERP and Javassist performances...");
+    System.out.println("\nComparing ASM, BCEL, SERP and Javassist performances...");
     System.out.println("This may take 20 to 30 minutes\n");
     // measures performances
     System.out.println("ASM PERFORMANCES\n");

@@ -53,6 +53,8 @@ public class LocalVariableNode {
 
   public String desc;
 
+  public String signature;
+  
   /**
    * The first instruction corresponding to the scope of this local variable
    * (inclusive).
@@ -88,12 +90,14 @@ public class LocalVariableNode {
   public LocalVariableNode (
     final String name,
     final String desc,
+    final String signature,
     final Label start,
     final Label end,
     final int index)
   {
     this.name = name;
     this.desc = desc;
+    this.signature = signature;
     this.start = start;
     this.end = end;
     this.index = index;
@@ -106,6 +110,6 @@ public class LocalVariableNode {
    */
 
   public void accept (final CodeVisitor cv) {
-    cv.visitLocalVariable(name, desc, start, end, index);
+    cv.visitLocalVariable(name, desc, signature, start, end, index);
   }
 }

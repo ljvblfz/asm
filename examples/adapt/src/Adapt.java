@@ -28,7 +28,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.objectweb.asm.AttributeVisitor;
+import org.objectweb.asm.MemberVisitor;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -114,20 +114,23 @@ class TraceFieldClassAdapter extends ClassAdapter implements Constants {
     final int version,
     final int access,
     final String name,
+    final String signature,
     final String superName,
     final String[] interfaces)
   {
     owner = name;
-    super.visit(version, access, name, superName, interfaces);
+    super.visit(version, access, name, signature, superName, interfaces);
   }
 
-  public AttributeVisitor visitField (
+  public MemberVisitor visitField (
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final Object value)
   {
-    AttributeVisitor fv = super.visitField(access, name, desc, value);
+    MemberVisitor fv = 
+      super.visitField(access, name, desc, signature, value);
     if ((access & ACC_STATIC) == 0) {
       Type t = Type.getType(desc);
       int size = t.getSize();
@@ -135,7 +138,7 @@ class TraceFieldClassAdapter extends ClassAdapter implements Constants {
       // generates getter method
       String gDesc = "()" + desc;
       CodeVisitor gv =
-        cv.visitMethod(ACC_PRIVATE, "_get" + name, gDesc, null);
+        cv.visitMethod(ACC_PRIVATE, "_get" + name, gDesc, null, null);
       gv.visitFieldInsn(GETSTATIC,
         "java/lang/System", "err", "Ljava/io/PrintStream;");
       gv.visitLdcInsn("_get" + name + " called");
@@ -149,7 +152,7 @@ class TraceFieldClassAdapter extends ClassAdapter implements Constants {
       // generates setter method
       String sDesc = "(" + desc + ")V";
       CodeVisitor sv =
-        cv.visitMethod(ACC_PRIVATE, "_set" + name, sDesc, null);
+        cv.visitMethod(ACC_PRIVATE, "_set" + name, sDesc, null, null);
       sv.visitFieldInsn(GETSTATIC,
         "java/lang/System", "err", "Ljava/io/PrintStream;");
       sv.visitLdcInsn("_set" + name + " called");
@@ -168,9 +171,10 @@ class TraceFieldClassAdapter extends ClassAdapter implements Constants {
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final String[] exceptions)
   {
-    CodeVisitor mv = cv.visitMethod(access, name, desc, exceptions);
+    CodeVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
     return mv == null ? null : new TraceFieldCodeAdapter(mv, owner);
   }
 }

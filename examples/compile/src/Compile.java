@@ -80,10 +80,10 @@ abstract class Exp implements Constants {
     // class header
     String[] itfs = {Expression.class.getName()};
     ClassWriter cw = new ClassWriter(true);
-    cw.visit(V1_1, ACC_PUBLIC, name, "java/lang/Object", itfs);
+    cw.visit(V1_1, ACC_PUBLIC, name, null, "java/lang/Object", itfs);
 
     // default public constructor
-    CodeVisitor mw = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null);
+    CodeVisitor mw = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
     mw.visitVarInsn(ALOAD, 0);
     mw.visitMethodInsn(
       INVOKESPECIAL,
@@ -92,7 +92,7 @@ abstract class Exp implements Constants {
     mw.visitMaxs(1, 1);
 
     // eval method
-    mw = cw.visitMethod(ACC_PUBLIC, "eval", "(II)I", null);
+    mw = cw.visitMethod(ACC_PUBLIC, "eval", "(II)I", null, null);
     compile(mw);
     mw.visitInsn(IRETURN);
     // max stack and max locals automatically computed

@@ -36,7 +36,7 @@ package org.objectweb.asm;
  * @author Eugene Kuleshov
  */
 
-class AnnotationWriter implements AnnotationVisitor {
+final class AnnotationWriter implements AnnotationVisitor {
   
   private final ClassWriter cw;
   
@@ -134,5 +134,52 @@ class AnnotationWriter implements AnnotationVisitor {
     byte[] data = parent.data;
     data[offset] = (byte)(size >>> 8);
     data[offset+1] = (byte)size;
+  }
+  
+  int getSize () {
+    int size = 0;
+    AnnotationWriter aw = this;
+    while (aw != null) {
+      size += aw.bv.length;
+      aw = aw.next;
+    }
+    return size;
+  }
+  
+  void put (ByteVector out) {
+    int n = 0;
+    int size = 0;
+    AnnotationWriter aw = this;
+    while (aw != null) {
+      n += 1;
+      size += aw.bv.length;
+      aw = aw.next;
+    }
+    out.putInt(8 + size); // TODO reserve space, complete after
+    out.putShort(n); // TODO reserve space, complete after
+    aw = this;
+    while (aw != null) {
+      out.putByteArray(aw.bv.data, 0, aw.bv.length);
+      aw = aw.next;
+    }
+  }
+  
+  static void put (AnnotationWriter[] panns, ByteVector out) {
+    out.putInt(7 + 2*panns.length + 0/*totalsize*/); //TODO reserve space, complete after
+    out.putByte(panns.length);
+    for (int i = 0; i < panns.length; ++i) {
+      AnnotationWriter aw = panns[i];
+      int n = 0;
+      while (aw != null) {
+        aw = aw.next;
+        ++n;
+      }
+      out.putShort(n); // TODO reserve space, complete after
+      aw = panns[i];
+      while (aw != null) {
+        out.putByteArray(aw.bv.data, 0, aw.bv.length);
+        aw = aw.next;
+      }
+    }
   }
 }

@@ -28,42 +28,82 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.objectweb.asm.util;
+package org.objectweb.asm.tree;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
-import org.objectweb.asm.AttributeVisitor;
+import org.objectweb.asm.MemberVisitor;
 
-public class TraceAttributeVisitor extends AbstractAttributeVisitor {
+/**
+ * 
+ * @author Eric Bruneton
+ */
+
+public abstract class MemberNode implements MemberVisitor {
+
+  /**
+   * TODO.
+   */
   
-  protected final AttributeVisitor av;
+  public List visibleAnnotations;
   
-  public TraceAttributeVisitor (final AttributeVisitor av) {
-    this.av = av;
+  /**
+   * TODO.
+   */
+  
+  public List invisibleAnnotations;
+  
+  /**
+   * The non standard attributes of TODO.  This list is a list of 
+   * {@link Attribute Attribute} objects.
+   */
+
+  public List attrs;
+
+  public MemberNode () {
+    this.visibleAnnotations = new ArrayList();
+    this.invisibleAnnotations = new ArrayList();
+    this.attrs = new ArrayList();
   }
   
   public AnnotationVisitor visitAnnotation (
     final String type, 
     final boolean visible) 
   {
-    buf.setLength(0);
-    buf.append("  @").append(type).append('(');
-    text.add(buf.toString());
-    TraceAnnotationVisitor tav = new TraceAnnotationVisitor(
-      av == null ? null : av.visitAnnotation(type, visible));
-    text.add(tav.getText());
-    text.add(visible ? ")\n" : ") // invisible\n");
-    return tav;
+    AnnotationNode an = new AnnotationNode(type);
+    if (visible) {
+      visibleAnnotations.add(an);
+    } else {
+      invisibleAnnotations.add(an);
+    }
+    return an;
   }
   
   public void visitAttribute (final Attribute attr) {
-    buf.setLength(0);
-    buf.append("  ATTRIBUTE ").append(attr.type).append(" : ")
-      .append(attr.toString()).append("\n");
-    text.add(buf.toString());
-    
-    if (av != null) {
-      av.visitAttribute(attr);
+    attrs.add(attr);
+  }
+
+  /**
+   * Makes the given attribute visitor visit this attribute node.
+   *
+   * @param av an attribute visitor.
+   */
+
+  public void accept (final MemberVisitor av) {
+    int i;
+    for (i = 0; i < visibleAnnotations.size(); ++i) {
+      AnnotationNode an = (AnnotationNode)visibleAnnotations.get(i); 
+      an.accept(av.visitAnnotation(an.type, true));
+    }
+    for (i = 0; i < invisibleAnnotations.size(); ++i) {
+      AnnotationNode an = (AnnotationNode)invisibleAnnotations.get(i); 
+      an.accept(av.visitAnnotation(an.type, false));
+    }
+    for (i = 0; i < attrs.size(); ++i) {
+      av.visitAttribute((Attribute)attrs.get(i));
     }
   }
 }

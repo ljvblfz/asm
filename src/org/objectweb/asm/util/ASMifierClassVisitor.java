@@ -34,7 +34,7 @@ import java.io.FileInputStream;
 import java.io.PrintWriter;
 
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.AttributeVisitor;
+import org.objectweb.asm.MemberVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.CodeVisitor;
@@ -109,7 +109,7 @@ import org.objectweb.asm.Constants;
  * @author Eric Bruneton, Eugene Kuleshov
  */
 
-public class ASMifierClassVisitor extends ASMifierAttributeVisitor 
+public class ASMifierClassVisitor extends ASMifierMemberVisitor 
   implements ClassVisitor
 {
 
@@ -180,6 +180,7 @@ public class ASMifierClassVisitor extends ASMifierAttributeVisitor
     final int version,
     final int access,
     final String name,
+    final String signature,
     final String superName,
     final String[] interfaces)
   {
@@ -200,6 +201,8 @@ public class ASMifierClassVisitor extends ASMifierAttributeVisitor
     appendAccess(access | ACCESS_CLASS);
     buf.append(", ");
     appendConstant(buf, name);
+    buf.append(", ");
+    appendConstant(buf, signature);
     buf.append(", ");
     appendConstant(buf, superName);
     buf.append(", ");
@@ -262,10 +265,11 @@ public class ASMifierClassVisitor extends ASMifierAttributeVisitor
     text.add(buf.toString());
   }
 
-  public AttributeVisitor visitField (
+  public MemberVisitor visitField (
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final Object value)
   {
     buf.setLength(0);
@@ -277,10 +281,12 @@ public class ASMifierClassVisitor extends ASMifierAttributeVisitor
     buf.append(", ");
     appendConstant(buf, desc);
     buf.append(", ");
+    appendConstant(buf, signature);
+    buf.append(", ");
     appendConstant(buf, value);
     buf.append(");\n");
     text.add(buf.toString());
-    ASMifierAttributeVisitor aav = new ASMifierAttributeVisitor("fv");
+    ASMifierMemberVisitor aav = new ASMifierMemberVisitor("fv");
     text.add(aav.getText());
     text.add("}\n");    
     return aav;
@@ -290,6 +296,7 @@ public class ASMifierClassVisitor extends ASMifierAttributeVisitor
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final String[] exceptions)
   {
     buf.setLength(0);
@@ -300,6 +307,8 @@ public class ASMifierClassVisitor extends ASMifierAttributeVisitor
     appendConstant(buf, name);
     buf.append(", ");
     appendConstant(buf, desc);
+    buf.append(", ");
+    appendConstant(buf, signature);
     buf.append(", ");
     if (exceptions != null && exceptions.length > 0) {
       buf.append("new String[] {");

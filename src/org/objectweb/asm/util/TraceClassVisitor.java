@@ -35,7 +35,7 @@ import java.io.PrintWriter;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
-import org.objectweb.asm.AttributeVisitor;
+import org.objectweb.asm.MemberVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.CodeVisitor;
@@ -89,7 +89,7 @@ import org.objectweb.asm.Constants;
  * @author Eric Bruneton, Eugene Kuleshov
  */
 
-public class TraceClassVisitor extends TraceAttributeVisitor 
+public class TraceClassVisitor extends TraceMemberVisitor 
   implements ClassVisitor
 {
 
@@ -166,6 +166,7 @@ public class TraceClassVisitor extends TraceAttributeVisitor
     final int version,
     final int access,
     final String name,
+    final String signature,
     final String superName,
     final String[] interfaces)
   {
@@ -195,11 +196,16 @@ public class TraceClassVisitor extends TraceAttributeVisitor
         buf.append(interfaces[i]).append(" ");
       }
     }
-    buf.append("{\n\n");
+    if (signature != null) {
+      buf.append("/* ").append(signature).append(" */ {\n\n");
+    } else {
+      buf.append("{\n\n");
+    }
+    
     text.add(buf.toString());
 
     if (cv != null) {
-      cv.visit(version, access, name, superName, interfaces);
+      cv.visit(version, access, name, signature, superName, interfaces);
     }
   }
 
@@ -263,10 +269,11 @@ public class TraceClassVisitor extends TraceAttributeVisitor
     }
   }
 
-  public AttributeVisitor visitField (
+  public MemberVisitor visitField (
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final Object value)
   {
     buf.setLength(0);
@@ -291,11 +298,14 @@ public class TraceClassVisitor extends TraceAttributeVisitor
         buf.append(value);
       }
     }
+    if (signature != null) {
+      buf.append("// ").append(signature);
+    }
     buf.append("\n");
     text.add(buf.toString());
 
-    TraceAttributeVisitor tav = new TraceAttributeVisitor(
-      cv == null ? null : cv.visitField(access, name, desc, value));
+    TraceMemberVisitor tav = new TraceMemberVisitor(
+      cv == null ? null : cv.visitField(access, name, desc, signature, value));
     text.add(tav.getText());
     return tav;
   }
@@ -304,6 +314,7 @@ public class TraceClassVisitor extends TraceAttributeVisitor
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final String[] exceptions)
   {
     buf.setLength(0);
@@ -332,11 +343,15 @@ public class TraceClassVisitor extends TraceAttributeVisitor
         buf.append(exceptions[i]).append(" ");
       }
     }
+    if (signature != null) {
+      buf.append("// ").append(signature);
+    }
     buf.append("\n");
     text.add(buf.toString());
 
     TraceCodeVisitor tcv = new TraceCodeVisitor(
-      cv == null ? null : cv.visitMethod(access, name, desc, exceptions));
+      cv == null ? null : 
+        cv.visitMethod(access, name, desc, signature, exceptions));
     text.add(tcv.getText());
     return tcv;
   }

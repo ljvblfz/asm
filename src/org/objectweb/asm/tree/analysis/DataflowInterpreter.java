@@ -56,6 +56,12 @@ public class DataflowInterpreter implements Constants, Interpreter {
   public Value newOperation (final AbstractInsnNode insn) {
     int size;
     switch (insn.getOpcode()) {
+      case LCONST_0:
+      case LCONST_1:
+      case DCONST_0:
+      case DCONST_1:
+        size = 2;
+        break;
       case LDC:
         Object cst = ((LdcInsnNode)insn).cst;
         size = cst instanceof Long || cst instanceof Double ? 2 : 1;

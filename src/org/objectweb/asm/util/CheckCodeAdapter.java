@@ -323,6 +323,26 @@ public class CheckCodeAdapter extends CodeAdapter {
     cv.visitInsn(opcode);
   }
 
+  public void visitIntInsn (final int opcode, final int operand) {
+    checkEnd();
+    checkOpcode(opcode, 1);
+    switch (opcode) {
+      case Constants.BIPUSH:
+        checkSignedByte(operand, "Invalid operand");
+        break;
+      case Constants.SIPUSH:
+        checkSignedShort(operand, "Invalid operand");
+        break;
+      //case Constants.NEWARRAY:
+      default:
+        if (operand < Constants.T_BOOLEAN || operand > Constants.T_LONG) {
+          throw new IllegalArgumentException(
+            "Invalid operand (must be an array type code T_...): " + operand);
+        }
+    }
+    cv.visitIntInsn(opcode, operand);
+  }
+
   public void visitVarInsn (final int opcode, final int var) {
     checkEnd();
     checkOpcode(opcode, 2);
@@ -332,7 +352,6 @@ public class CheckCodeAdapter extends CodeAdapter {
 
   public void visitTypeInsn (final int opcode, final String desc) {
     checkEnd();
-    // TODO checks for NEWARRAY
     checkOpcode(opcode, 3);
     if (desc != null && desc.length() > 0 && desc.charAt(0) == '[') {
       checkDesc(desc, false);
@@ -496,6 +515,7 @@ public class CheckCodeAdapter extends CodeAdapter {
   public void visitLocalVariable (
     final String name,
     final String desc,
+    final String signature,
     final Label start,
     final Label end,
     final int index)
@@ -511,7 +531,7 @@ public class CheckCodeAdapter extends CodeAdapter {
       throw new IllegalArgumentException(
         "Invalid start and end labels (end must be greater than start)");
     }
-    cv.visitLocalVariable(name, desc, start, end, index);
+    cv.visitLocalVariable(name, desc, signature, start, end, index);
   }
 
   public void visitLineNumber (final int line, final Label start) {

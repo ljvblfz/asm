@@ -29,7 +29,7 @@
  */
 
 import org.objectweb.asm.Attribute;
-import org.objectweb.asm.AttributeVisitor;
+import org.objectweb.asm.MemberVisitor;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -79,20 +79,22 @@ class AddCommentClassAdapter extends ClassAdapter implements Constants {
     final int version,
     final int access,
     final String name,
+    final String signature,
     final String superName,
     final String[] interfaces)
   {
-    super.visit(version, access, name, superName, interfaces);
+    super.visit(version, access, name, signature, superName, interfaces);
     visitAttribute(new CommentAttribute("this is a class comment"));
   }
 
-  public AttributeVisitor visitField (
+  public MemberVisitor visitField (
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final Object value)
   {
-    AttributeVisitor av = super.visitField(access, name, desc, value);
+    MemberVisitor av = super.visitField(access, name, desc, signature, value);
     av.visitAttribute(new CommentAttribute("this is a field comment"));
     return av;
   }
@@ -101,9 +103,10 @@ class AddCommentClassAdapter extends ClassAdapter implements Constants {
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final String[] exceptions)
   {
-    CodeVisitor mv = cv.visitMethod(access, name, desc, exceptions);
+    CodeVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
     if (mv != null) {
       mv.visitAttribute(new CommentAttribute("this is a method comment"));
     }

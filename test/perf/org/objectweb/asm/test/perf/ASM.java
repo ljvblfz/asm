@@ -89,12 +89,13 @@ public class ASM extends ALL {
       int version,
       int access,
       String name,
+      String signature,
       String superName,
       String[] interfaces)
     {
-      super.visit(version, access, name, superName, interfaces);
+      super.visit(version, access, name, signature, superName, interfaces);
       if ((access & ACC_INTERFACE) == 0) {
-        cv.visitField(ACC_PUBLIC, "_counter", "I", null);
+        cv.visitField(ACC_PUBLIC, "_counter", "I", null, null);
       }
       owner = name;
     }
@@ -103,9 +104,11 @@ public class ASM extends ALL {
       int access,
       String name,
       String desc,
+      String signature,
       String[] exceptions)
     {
-      CodeVisitor cv = super.visitMethod(access, name, desc, exceptions);
+      CodeVisitor cv = 
+        super.visitMethod(access, name, desc, signature, exceptions);
       if (!name.equals("<init>") &&
           (access & (ACC_STATIC + ACC_NATIVE + ACC_ABSTRACT)) == 0)
       {

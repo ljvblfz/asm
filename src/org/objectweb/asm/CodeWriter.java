@@ -30,7 +30,6 @@
 
 package org.objectweb.asm;
 
-
 /**
  * A {@link CodeVisitor CodeVisitor} that generates Java bytecode instructions.
  * Each visit method of this class appends the bytecode corresponding to the
@@ -72,6 +71,8 @@ public class CodeWriter implements CodeVisitor {
 
   private int desc;
 
+  private int signature;
+  
   /**
    * Access flags of this method.
    */
@@ -122,11 +123,21 @@ public class CodeWriter implements CodeVisitor {
 
   private int[] exceptions;
 
+  private AnnotationWriter annd;
+  
+  private AnnotationWriter anns;
+  
+  private AnnotationWriter ianns;
+
+  private AnnotationWriter[] panns;
+  
+  private AnnotationWriter[] ipanns;
+
   /**
    * The non standard attributes of the method.
    */
 
-  private AttributeWriter attrs;
+  private Attribute attrs;
 
   /**
    * Number of entries in the LocalVariableTable attribute.
@@ -137,19 +148,11 @@ public class CodeWriter implements CodeVisitor {
   /**
    * The LocalVariableTable attribute.
    */
-
+  
   private ByteVector localVar;
 
-  /**
-   * Number of entries in the LocalVariableTypeTable attribute.
-   */
-
   private int localVarTypeCount;
-
-  /**
-   * The LocalVariableTypeTable attribute.
-   */
-
+  
   private ByteVector localVarType;
 
   /**
@@ -168,7 +171,7 @@ public class CodeWriter implements CodeVisitor {
    * The non standard attributes of the method's code.
    */
 
-  private AttributeWriter cattrs;
+  private Attribute cattrs;
 
   /**
    * Indicates if some jump instructions are too small and need to be resized.
@@ -536,7 +539,6 @@ public class CodeWriter implements CodeVisitor {
       currentBlock.pushed = true;
       blockStack = currentBlock;
     }
-    attrs = new AttributeWriter(cw, 0);
   }
 
   /**
@@ -547,18 +549,21 @@ public class CodeWriter implements CodeVisitor {
    * @param desc the method's descriptor (see {@link Type Type}).
    * @param exceptions the internal names of the method's exceptions. May be
    *      <tt>null</tt>.
-   * @param attrs the non standard attributes of the method.
    */
 
   protected void init (
     final int access,
     final String name,
     final String desc,
+    final String signature,
     final String[] exceptions)
   {
     this.access = access;
     this.name = cw.newUTF8(name);
     this.desc = cw.newUTF8(desc);
+    if (signature != null) {
+      this.signature = cw.newUTF8(signature);
+    }
     if (exceptions != null && exceptions.length > 0) {
       exceptionCount = exceptions.length;
       this.exceptions = new int[exceptionCount];
@@ -576,41 +581,47 @@ public class CodeWriter implements CodeVisitor {
         maxLocals = size;
       }
     }
-    attrs.access = access;
-    cattrs = new AttributeWriter(cw, Type.getArgumentTypes(desc).length);
   }
 
   // --------------------------------------------------------------------------
   // Implementation of the CodeVisitor interface
   // --------------------------------------------------------------------------
 
-  public AnnotationVisitor visitAnnotation (
-    final String type, 
-    final boolean visible) 
-  {
-    return attrs.visitAnnotation(type, visible);
-  }
-  
   public AnnotationVisitor visitAnnotationDefault () {
-    return attrs.visitAnnotationDefault();
+    annd = new AnnotationWriter(cw, new ByteVector(), null, 0, false);
+    return annd;
   }
 
-  public AnnotationVisitor visitParameterAnnotation (
-    final int parameter,
-    final String type,
-    final boolean visible) 
-  {
-    return attrs.visitParameterAnnotation(parameter, type, visible);
-  }  
-  
-  public void visitAttribute (final Attribute attr) {
-    if (attr.isCodeAttribute()) {
-      cattrs.visitAttribute(attr);
+  public AnnotationVisitor visitParameterAnnotation (int parameter, String type, boolean visible) {
+    ByteVector bv = new ByteVector();
+    // write type, and reserve space for values count
+    bv.putShort(cw.newUTF8(type)).putShort(0);
+    AnnotationWriter aw = new AnnotationWriter(cw, bv, bv, bv.length - 2, true);
+    if (visible) {
+      aw.next = panns[parameter];
+      panns[parameter] = aw;
     } else {
-      attrs.visitAttribute(attr);
+      aw.next = ipanns[parameter];
+      ipanns[parameter] = aw;
     }
+    return aw;
   }
-  
+
+  public AnnotationVisitor visitAnnotation (String type, boolean visible) {
+    ByteVector bv = new ByteVector();
+    // write type, and reserve space for values count
+    bv.putShort(cw.newUTF8(type)).putShort(0);
+    AnnotationWriter aw = new AnnotationWriter(cw, bv, bv, bv.length - 2, true);
+    if (visible) {
+      aw.next = anns;
+      anns = aw;
+    } else {
+      aw.next = ianns;
+      ianns = aw;
+    }
+    return aw;
+  }
+
   public void visitInsn (final int opcode) {
     if (computeMaxs) {
       // updates current and max stack sizes
@@ -631,6 +642,24 @@ public class CodeWriter implements CodeVisitor {
     }
     // adds the instruction to the bytecode of the method
     code.putByte(opcode);
+  }
+
+  public void visitIntInsn (final int opcode, final int operand) {
+    if (computeMaxs && opcode != Constants.NEWARRAY) {
+      // updates current and max stack sizes only if opcode == NEWARRAY
+      // (stack size variation = 0 for BIPUSH or SIPUSH)
+      int size = stackSize + 1;
+      if (size > maxStackSize) {
+        maxStackSize = size;
+      }
+      stackSize = size;
+    }
+    // adds the instruction to the bytecode of the method
+    if (opcode == Constants.SIPUSH) {
+      code.put12(opcode, operand);
+    } else { // BIPUSH or NEWARRAY
+      code.put11(opcode, operand);
+    }
   }
 
   public void visitVarInsn (final int opcode, final int var) {
@@ -689,37 +718,7 @@ public class CodeWriter implements CodeVisitor {
       stackSize = size;
     }
     // adds the instruction to the bytecode of the method
-    if (opcode == Constants.NEWARRAY) {
-      int operand;
-      switch (desc.charAt(0)) {
-        case 'Z': 
-          operand = 4; 
-          break;
-        case 'C': 
-          operand = 5;
-          break;
-        case 'B': 
-          operand = 8;
-          break;
-        case 'S': 
-          operand = 9;
-          break;
-        case 'I': 
-          operand = 10;
-          break;
-        case 'F': 
-          operand = 6;
-          break;
-        case 'J': 
-          operand = 11;
-          break;
-        default: 
-          operand = 7;
-      }      
-      code.put11(opcode, operand);
-    } else {
-      code.put12(opcode, cw.newClass(desc));
-    }
+    code.put12(opcode, cw.newClass(desc));
   }
 
   public void visitFieldInsn (
@@ -884,60 +883,11 @@ public class CodeWriter implements CodeVisitor {
   }
 
   public void visitLdcInsn (final Object cst) {
-    Item item = null;
-    if (cst instanceof Integer) {
-      int i = ((Integer)cst).intValue();
-      if (i >= -1 && i < 6) {
-        code.putByte(3 /*ICONST_0*/ + i);
-      } else if (i >= Byte.MIN_VALUE && i <= Byte.MAX_VALUE) {
-        code.put11(16 /*BIPUSH*/, i);
-      } else if (i >= Short.MIN_VALUE && i <= Short.MAX_VALUE) {
-        code.put12(17 /*SIPUSH*/, i);
-      } else {
-        item = cw.newInteger(i);
-      }        
-    } else if (cst instanceof Long) {
-      long l = ((Long)cst).longValue();
-      if (l == 0 || l == 1) {
-        code.putByte(9 /*LCONST_0*/ + (int)l);
-      } else {
-        item = cw.newLong(l);
-      }
-    } else if (cst instanceof Float) {
-      float f = ((Float)cst).floatValue();
-      if (f == 0) {
-        code.putByte(11 /*FCONST_0*/);
-      } else if (f == 1) {
-        code.putByte(12 /*FCONST_1*/);
-      } else if (f == 2) {
-        code.putByte(13 /*FCONST_2*/);
-      } else {
-        item = cw.newFloat(f);
-      }
-    } else if (cst instanceof Double) {
-      double d = ((Double)cst).doubleValue();
-      if (d == 0) {
-        code.putByte(14 /*DCONST_0*/);
-      } else if (d == 1) {
-        code.putByte(15 /*DCONST_1*/);
-      } else {
-        item = cw.newDouble(d);
-      }
-    } else if (cst instanceof String) {
-      item = cw.newString((String)cst);
-    } else if (cst instanceof Type) {
-      Type t = (Type)cst;
-      item = cw.newClassItem(
-          t.getSort() == Type.OBJECT ? t.getInternalName() : t.getDescriptor());      
-    } else {
-      throw new IllegalArgumentException("value " + cst);
-    }
+    Item i = cw.newConstItem(cst);
     if (computeMaxs) {
       int size;
       // computes the stack size variation
-      if (item != null && 
-          (item.type == ClassWriter.LONG || item.type == ClassWriter.DOUBLE)) 
-      {
+      if (i.type == ClassWriter.LONG || i.type == ClassWriter.DOUBLE) {
         size = stackSize + 2;
       } else {
         size = stackSize + 1;
@@ -948,16 +898,14 @@ public class CodeWriter implements CodeVisitor {
       }
       stackSize = size;
     }
-    if (item != null) {
-      // adds the instruction to the bytecode of the method
-      int index = item.index;
-      if (item.type == ClassWriter.LONG || item.type == ClassWriter.DOUBLE) {
-        code.put12(20 /*LDC2_W*/, index);
-      } else if (index >= 256) {
-        code.put12(19 /*LDC_W*/, index);
-      } else {
-        code.put11(Constants.LDC, index);
-      }
+    // adds the instruction to the bytecode of the method
+    int index = i.index;
+    if (i.type == ClassWriter.LONG || i.type == ClassWriter.DOUBLE) {
+      code.put12(20 /*LDC2_W*/, index);
+    } else if (index >= 256) {
+      code.put12(19 /*LDC_W*/, index);
+    } else {
+      code.put11(Constants.LDC, index);
     }
   }
 
@@ -1141,6 +1089,7 @@ public class CodeWriter implements CodeVisitor {
   public void visitLocalVariable (
     final String name,
     final String desc,
+    final String signature,
     final Label start,
     final Label end,
     final int index)
@@ -1153,28 +1102,30 @@ public class CodeWriter implements CodeVisitor {
         throw new IllegalArgumentException();
       }
     }
-    if (false) { //TODO isSignature
+    if (signature != null) {
       if (localVarType == null) {
         cw.newUTF8("LocalVariableTypeTable");
         localVarType = new ByteVector();
       }
       ++localVarTypeCount;
-      localVarType.putShort(start.position);
-      localVarType.putShort(end.position - start.position);
-      localVarType.putShort(cw.newUTF8(name));
-      localVarType.putShort(cw.newUTF8(desc));
-      localVarType.putShort(index);
+      localVarType.
+        putShort(start.position)
+        .putShort(end.position - start.position)
+        .putShort(cw.newUTF8(name))
+        .putShort(cw.newUTF8(desc))
+        .putShort(index);
     }
     if (localVar == null) {
       cw.newUTF8("LocalVariableTable");
       localVar = new ByteVector();
     }
     ++localVarCount;
-    localVar.putShort(start.position);
-    localVar.putShort(end.position - start.position);
-    localVar.putShort(cw.newUTF8(name));
-    localVar.putShort(cw.newUTF8(desc));// TODO toDescriptor
-    localVar.putShort(index);
+    localVar
+      .putShort(start.position)
+      .putShort(end.position - start.position)
+      .putShort(cw.newUTF8(name))
+      .putShort(cw.newUTF8(desc))
+      .putShort(index);
   }
 
   public void visitLineNumber (final int line, final Label start) {
@@ -1190,6 +1141,16 @@ public class CodeWriter implements CodeVisitor {
     ++lineNumberCount;
     lineNumber.putShort(start.position);
     lineNumber.putShort(line);
+  }
+
+  public void visitAttribute (final Attribute attr) {
+    if (attr.isCodeAttribute()) {
+      attr.next = cattrs;
+      cattrs = attr;
+    } else {
+      attr.next = attrs;
+      attrs = attr;
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -1282,10 +1243,10 @@ public class CodeWriter implements CodeVisitor {
       // replaces the temporary jump opcodes introduced by Label.resolve.
       resizeInstructions(new int[0], new int[0], 0);
     }
-    int size = 6;
+    int size = 8;
     if (code.length > 0) {
       cw.newUTF8("Code");
-      size += 16 + code.length + 8 * catchCount;
+      size += 18 + code.length + 8 * catchCount;
       if (localVar != null) {
         size += 8 + localVar.length;
       }
@@ -1296,15 +1257,53 @@ public class CodeWriter implements CodeVisitor {
         size += 8 + lineNumber.length;
       }
       if (cattrs != null) {
-        size += cattrs.getSize(code.data, code.length, maxStack, maxLocals);
+        size += cattrs.getSize(cw, code.data, code.length, maxStack, maxLocals);
       }
     }
     if (exceptionCount > 0) {
       cw.newUTF8("Exceptions");
       size += 8 + 2 * exceptionCount;
     }
+    if ((access & Constants.ACC_SYNTHETIC) != 0) {
+      cw.newUTF8("Synthetic");
+      size += 6;
+    }
+    if ((access & Constants.ACC_DEPRECATED) != 0) {
+      cw.newUTF8("Deprecated");
+      size += 6;
+    }
+    if (signature != 0) {
+      cw.newUTF8("Signature");
+      size += 8;
+    }
+    if (annd != null) {
+      cw.newUTF8("AnnotationDefault");
+      size += 6 + annd.bv.length;
+    }
+    if (anns != null) {
+      cw.newUTF8("RuntimeVisibleAnnotations");
+      size += 8 + anns.getSize();
+    }
+    if (ianns != null) {
+      cw.newUTF8("RuntimeInvisibleAnnotations");
+      size += 8 + ianns.getSize();
+    }    
+    if (panns != null) {
+      cw.newUTF8("RuntimeVisibleParameterAnnotations");
+      size += 7 + 2*panns.length;
+      for (int i = panns.length - 1; i >= 0; --i) {
+        size += panns[i].getSize();
+      }
+    }
+    if (ipanns != null) {
+      cw.newUTF8("RuntimeInvisibleParameterAnnotations");
+      size += 7 + 2*ipanns.length;
+      for (int i = ipanns.length - 1; i >= 0; --i) {
+        size += ipanns[i].getSize();
+      }
+    }
     if (attrs != null) {
-      size += attrs.getSize(null, 0, -1, -1);
+      size += attrs.getSize(cw, null, 0, -1, -1);
     }
     return size;
   }
@@ -1325,9 +1324,36 @@ public class CodeWriter implements CodeVisitor {
     if (exceptionCount > 0) {
       ++attributeCount;
     }
-    attrs.put(attributeCount, null, 0, -1, -1, out);
+    if ((access & Constants.ACC_SYNTHETIC) != 0) {
+      ++attributeCount;
+    }
+    if ((access & Constants.ACC_DEPRECATED) != 0) {
+      ++attributeCount;
+    }
+    if (signature != 0) {
+      ++attributeCount;
+    }
+    if (annd != null) {
+      ++attributeCount;
+    }
+    if (anns != null) {
+      ++attributeCount;
+    }
+    if (ianns != null) {
+      ++attributeCount;
+    }
+    if (panns != null) {
+      ++attributeCount;
+    }
+    if (ipanns != null) {
+      ++attributeCount;
+    }
+    if (attrs != null) {
+      attributeCount += attrs.getCount();
+    }
+    out.putShort(attributeCount);
     if (code.length > 0) {
-      int size = 10 + code.length + 8 * catchCount;
+      int size = 12 + code.length + 8 * catchCount;
       if (localVar != null) {
         size += 8 + localVar.length;
       }
@@ -1338,7 +1364,7 @@ public class CodeWriter implements CodeVisitor {
         size += 8 + lineNumber.length;
       }
       if (cattrs != null) {
-        size += cattrs.getSize(code.data, code.length, maxStack, maxLocals);
+        size += cattrs.getSize(cw, code.data, code.length, maxStack, maxLocals);
       }
       out.putShort(cw.newUTF8("Code")).putInt(size);
       out.putShort(maxStack).putShort(maxLocals);
@@ -1357,7 +1383,10 @@ public class CodeWriter implements CodeVisitor {
       if (lineNumber != null) {
         ++attributeCount;
       }
-      cattrs.put(attributeCount, code.data, code.length, maxLocals, maxStack, out);
+      if (cattrs != null) {
+        attributeCount += cattrs.getCount();
+      }
+      out.putShort(attributeCount);
       if (localVar != null) {
         out.putShort(cw.newUTF8("LocalVariableTable"));
         out.putInt(localVar.length + 2).putShort(localVarCount);
@@ -1365,13 +1394,16 @@ public class CodeWriter implements CodeVisitor {
       }
       if (localVarType != null) {
         out.putShort(cw.newUTF8("LocalVariableTypeTable"));
-        out.putInt(localVarType.length + 2).putShort(localVarTypeCount);
+        out.putInt(localVarType.length + 2).putShort(localVarCount);
         out.putByteArray(localVarType.data, 0, localVarType.length);
       }
       if (lineNumber != null) {
         out.putShort(cw.newUTF8("LineNumberTable"));
         out.putInt(lineNumber.length + 2).putShort(lineNumberCount);
         out.putByteArray(lineNumber.data, 0, lineNumber.length);
+      }
+      if (cattrs != null) {
+        cattrs.put(cw, code.data, code.length, maxLocals, maxStack, out);
       }
     }
     if (exceptionCount > 0) {
@@ -1380,6 +1412,40 @@ public class CodeWriter implements CodeVisitor {
       for (int i = 0; i < exceptionCount; ++i) {
         out.putShort(exceptions[i]);
       }
+    }
+    if ((access & Constants.ACC_SYNTHETIC) != 0) {
+      out.putShort(cw.newUTF8("Synthetic")).putInt(0);
+    }
+    if ((access & Constants.ACC_DEPRECATED) != 0) {
+      out.putShort(cw.newUTF8("Deprecated")).putInt(0);
+    }
+    if (signature != 0) {
+      out.putShort(cw.newUTF8("Signature")).putInt(2).putShort(signature);
+    }
+    if (annd != null) {
+      ByteVector bv = annd.bv;
+      out.putShort(cw.newUTF8("AnnotationDefault"));
+      out.putInt(6 + bv.length);
+      out.putByteArray(bv.data, 0, bv.length);
+    }
+    if (anns != null) {
+      out.putShort(cw.newUTF8("RuntimeVisibleAnnotations"));
+      anns.put(out);
+    }
+    if (ianns != null) {
+      out.putShort(cw.newUTF8("RuntimeInvisibleAnnotations"));
+      ianns.put(out);
+    }
+    if (panns != null) {
+      out.putShort(cw.newUTF8("RuntimeVisibleParameterAnnotations"));
+      AnnotationWriter.put(panns, out);
+    }
+    if (ipanns != null) {
+      out.putShort(cw.newUTF8("RuntimeInvisibleParameterAnnotations"));
+      AnnotationWriter.put(ipanns, out);
+    }
+    if (attrs != null) {
+      attrs.put(cw, null, 0, -1, -1, out);
     }
   }
 
@@ -1552,9 +1618,8 @@ public class CodeWriter implements CodeVisitor {
             break;
           case ClassWriter.VAR_INSN:
           case ClassWriter.SBYTE_INSN:
-            u += 2;
           case ClassWriter.LDC_INSN:
-            u += (opcode == Constants.LDC ? 2 : 1);
+            u += 2;
             break;
           case ClassWriter.SHORT_INSN:
           case ClassWriter.LDCW_INSN:
@@ -1712,16 +1777,9 @@ public class CodeWriter implements CodeVisitor {
           break;
         case ClassWriter.VAR_INSN:
         case ClassWriter.SBYTE_INSN:
+        case ClassWriter.LDC_INSN:
           newCode.putByteArray(b, u, 2);
           u += 2;
-        case ClassWriter.LDC_INSN:
-          if (opcode == Constants.LDC) {
-            newCode.putByteArray(b, u, 2);
-            u += 2;
-          } else {
-            newCode.putByte(opcode);
-            u += 1;
-          }          
           break;
         case ClassWriter.SHORT_INSN:
         case ClassWriter.LDCW_INSN:
@@ -1771,6 +1829,19 @@ public class CodeWriter implements CodeVisitor {
         u += 10;
       }
     }
+    if (localVarType != null) {
+      b = localVarType.data;
+      u = 0;
+      while (u < localVarType.length) {
+        label = readUnsignedShort(b, u);
+        newOffset = getNewOffset(allIndexes, allSizes, 0, label);
+        writeShort(b, u, newOffset);
+        label += readUnsignedShort(b, u + 2);
+        newOffset = getNewOffset(allIndexes, allSizes, 0, label) - newOffset;
+        writeShort(b, u, newOffset);
+        u += 10;
+      }
+    }
     if (lineNumber != null) {
       b = lineNumber.data;
       u = 0;
@@ -1782,7 +1853,7 @@ public class CodeWriter implements CodeVisitor {
     }
     // updates the labels of the other attributes
     while (cattrs != null) {
-      Label[] labels = cattrs.attrs.getLabels();
+      Label[] labels = cattrs.getLabels();
       if (labels != null) {
         for (i = labels.length - 1; i >= 0; --i) {
           if (!labels[i].resized) {
@@ -1920,4 +1991,3 @@ public class CodeWriter implements CodeVisitor {
     return code.data;
   }
 }
-

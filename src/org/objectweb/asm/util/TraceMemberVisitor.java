@@ -28,82 +28,42 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.objectweb.asm.tree;
-
-import java.util.ArrayList;
-import java.util.List;
+package org.objectweb.asm.util;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
-import org.objectweb.asm.AttributeVisitor;
+import org.objectweb.asm.MemberVisitor;
 
-/**
- * 
- * @author Eric Bruneton
- */
-
-public abstract class AttributeNode implements AttributeVisitor {
-
-  /**
-   * TODO.
-   */
+public class TraceMemberVisitor extends AbstractMemberVisitor {
   
-  public List visibleAnnotations;
+  protected final MemberVisitor av;
   
-  /**
-   * TODO.
-   */
-  
-  public List invisibleAnnotations;
-  
-  /**
-   * The non standard attributes of TODO.  This list is a list of 
-   * {@link Attribute Attribute} objects.
-   */
-
-  public List attrs;
-
-  public AttributeNode () {
-    this.visibleAnnotations = new ArrayList();
-    this.invisibleAnnotations = new ArrayList();
-    this.attrs = new ArrayList();
+  public TraceMemberVisitor (final MemberVisitor av) {
+    this.av = av;
   }
   
   public AnnotationVisitor visitAnnotation (
     final String type, 
     final boolean visible) 
   {
-    AnnotationNode an = new AnnotationNode(type);
-    if (visible) {
-      visibleAnnotations.add(an);
-    } else {
-      invisibleAnnotations.add(an);
-    }
-    return an;
+    buf.setLength(0);
+    buf.append("  @").append(type).append('(');
+    text.add(buf.toString());
+    TraceAnnotationVisitor tav = new TraceAnnotationVisitor(
+      av == null ? null : av.visitAnnotation(type, visible));
+    text.add(tav.getText());
+    text.add(visible ? ")\n" : ") // invisible\n");
+    return tav;
   }
   
   public void visitAttribute (final Attribute attr) {
-    attrs.add(attr);
-  }
-
-  /**
-   * Makes the given attribute visitor visit this attribute node.
-   *
-   * @param av an attribute visitor.
-   */
-
-  public void accept (final AttributeVisitor av) {
-    int i;
-    for (i = 0; i < visibleAnnotations.size(); ++i) {
-      AnnotationNode an = (AnnotationNode)visibleAnnotations.get(i); 
-      an.accept(av.visitAnnotation(an.type, true));
-    }
-    for (i = 0; i < invisibleAnnotations.size(); ++i) {
-      AnnotationNode an = (AnnotationNode)invisibleAnnotations.get(i); 
-      an.accept(av.visitAnnotation(an.type, false));
-    }
-    for (i = 0; i < attrs.size(); ++i) {
-      av.visitAttribute((Attribute)attrs.get(i));
+    buf.setLength(0);
+    buf.append("  ATTRIBUTE ").append(attr.type).append(" : ")
+      .append(attr.toString()).append("\n");
+    text.add(buf.toString());
+    
+    if (av != null) {
+      av.visitAttribute(attr);
     }
   }
 }

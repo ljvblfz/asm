@@ -34,7 +34,7 @@ package org.objectweb.asm;
  * A visitor to visit a Java class. The methods of this interface must be called
  * in the following order: <tt>visit</tt> [ <tt>visitSource</tt> ]
  * [ <tt>visitOuterClass</tt> ] ( <tt>visitAnnotation</tt> |
- * <tt>visitAttribute</tt> | <tt>visitInnerClass</tt> | <tt>visitField</tt> |
+ * <tt>visitAttribute</tt> )* (<tt>visitInnerClass</tt> | <tt>visitField</tt> |
  * <tt>visitMethod</tt> )* <tt>visitEnd</tt>.
  *
  * @author Eric Bruneton

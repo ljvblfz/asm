@@ -62,7 +62,7 @@ public class JumpInsnNode extends AbstractInsnNode {
    */
 
   public JumpInsnNode (final int opcode, final Label label) {
-    super(opcode);
+    super(opcode, JUMP_INSN);
     this.label = label;
   }
 

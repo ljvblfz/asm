@@ -110,7 +110,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
 
   /**
    * The instructions of this method. This list is a list of 
-   * {@link AbstractInsnNode} and {@link Label} objects.
+   * {@link AbstractInsnNode} objects.
    */
 
   public final List instructions;
@@ -262,7 +262,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
   }
 
   public void visitLabel (final Label label) {
-    instructions.add(label);
+    instructions.add(new LabelNode(label));
   }
 
   public void visitLdcInsn (final Object cst) {
@@ -381,12 +381,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
     if (mv != null && instructions.size() > 0) {
       // visits instructions
       for (i = 0; i < instructions.size(); ++i) {
-        Object insn = instructions.get(i);
-        if (insn instanceof Label) {
-          mv.visitLabel((Label)insn);
-        } else {
-          ((AbstractInsnNode)insn).accept(mv);
-        }
+        ((AbstractInsnNode)instructions.get(i)).accept(mv);
       }
       // visits try catch blocks
       for (i = 0; i < tryCatchBlocks.size(); ++i) {

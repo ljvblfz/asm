@@ -31,75 +31,22 @@
 package org.objectweb.asm.tree;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-
 /**
- * A node that represents a LOOKUPSWITCH instruction.
- *
- * @author Eric Bruneton
+ * An {@link AbstractInsnNode} that encapsulates a {@link Label}.
  */
 
-public class LookupSwitchInsnNode extends AbstractInsnNode {
+public class LabelNode extends AbstractInsnNode {
 
-  /**
-   * Beginning of the default handler block.
-   */
-
-  public Label dflt;
-
-  /**
-   * The values of the keys. This list is a list of {@link Integer} objects.
-   */
-
-  public final List keys;
-
-  /**
-   * Beginnings of the handler blocks. This list is a list of {@link Label}
-   * objects.
-   */
-
-  public final List labels;
-
-  /**
-   * Constructs a new {@link LookupSwitchInsnNode}.
-   *
-   * @param dflt beginning of the default handler block.
-   * @param keys the values of the keys.
-   * @param labels beginnings of the handler blocks. <tt>labels[i]</tt> is the
-   *      beginning of the handler block for the <tt>keys[i]</tt> key.
-   */
-
-  public LookupSwitchInsnNode (
-    final Label dflt,
-    final int[] keys,
-    final Label[] labels)
-  {
-    super(Opcodes.LOOKUPSWITCH, LOOKUPSWITCH_INSN);
-    this.dflt = dflt;
-    this.keys = new ArrayList();
-    this.labels = new ArrayList();
-    if (keys != null) {
-      for (int i = 0; i < keys.length; ++i) {
-        this.keys.add(new Integer(keys[i]));
-      }
-    }
-    if (labels != null) {
-      this.labels.addAll(Arrays.asList(labels));
-    }
+  public Label label;
+  
+  public LabelNode (final Label label) {
+    super(-1, LABEL);
+    this.label = label;
   }
 
-  public void accept (final MethodVisitor mv) {
-    int[] keys = new int[this.keys.size()];
-    for (int i = 0; i < keys.length; ++i) {
-      keys[i] = ((Integer)this.keys.get(i)).intValue();
-    }
-    Label[] labels = new Label[this.labels.size()];
-    this.labels.toArray(labels);
-    mv.visitLookupSwitchInsn(dflt, keys, labels);
+  public void accept (final MethodVisitor cv) {
+    cv.visitLabel(label);
   }
 }

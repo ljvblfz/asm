@@ -61,7 +61,7 @@ public class IincInsnNode extends AbstractInsnNode {
    */
 
   public IincInsnNode (final int var, final int incr) {
-    super(Opcodes.IINC);
+    super(Opcodes.IINC, IINC_INSN);
     this.var = var;
     this.incr = incr;
   }

@@ -79,7 +79,7 @@ public class MethodInsnNode extends AbstractInsnNode {
     final String name,
     final String desc)
   {
-    super(opcode);
+    super(opcode, METHOD_INSN);
     this.owner = owner;
     this.name = name;
     this.desc = desc;

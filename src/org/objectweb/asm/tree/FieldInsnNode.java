@@ -78,7 +78,7 @@ public class FieldInsnNode extends AbstractInsnNode {
     final String name,
     final String desc)
   {
-    super(opcode);
+    super(opcode, FIELD_INSN);
     this.owner = owner;
     this.name = name;
     this.desc = desc;

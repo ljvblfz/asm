@@ -55,7 +55,7 @@ public class IntInsnNode extends AbstractInsnNode {
    */
 
   public IntInsnNode (final int opcode, final int operand) {
-    super(opcode);
+    super(opcode, INT_INSN);
     this.operand = operand;
   }
 

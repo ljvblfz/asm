@@ -72,7 +72,7 @@ public class InsnNode extends AbstractInsnNode {
    */
 
   public InsnNode (final int opcode) {
-    super(opcode);
+    super(opcode, INSN);
   }
 
   /**

@@ -59,7 +59,7 @@ public class LdcInsnNode extends AbstractInsnNode {
    */
 
   public LdcInsnNode (final Object cst) {
-    super(Opcodes.LDC);
+    super(Opcodes.LDC, LDC_INSN);
     this.cst = cst;
   }
 

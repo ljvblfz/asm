@@ -62,7 +62,7 @@ public class MultiANewArrayInsnNode extends AbstractInsnNode {
    */
 
   public MultiANewArrayInsnNode (final String desc, final int dims) {
-    super(Opcodes.MULTIANEWARRAY);
+    super(Opcodes.MULTIANEWARRAY, MULTIANEWARRAY_INSN);
     this.desc = desc;
     this.dims = dims;
   }

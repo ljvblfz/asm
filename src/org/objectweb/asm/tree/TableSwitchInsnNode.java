@@ -87,7 +87,7 @@ public class TableSwitchInsnNode extends AbstractInsnNode {
     final Label dflt,
     final Label[] labels)
   {
-    super(Opcodes.TABLESWITCH);
+    super(Opcodes.TABLESWITCH, TABLESWITCH_INSN);
     this.min = min;
     this.max = max;
     this.dflt = dflt;

@@ -59,7 +59,7 @@ public class TypeInsnNode extends AbstractInsnNode {
    */
 
   public TypeInsnNode (final int opcode, final String desc) {
-    super(opcode);
+    super(opcode, TYPE_INSN);
     this.desc = desc;
   }
 

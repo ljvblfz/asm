@@ -236,9 +236,6 @@ public class Type {
    */
 
   public static Type getType (final String typeDescriptor) {
-  if (typeDescriptor.charAt(0) == 'L' && typeDescriptor.charAt(typeDescriptor.length()-1) !=';') {
- new Exception().printStackTrace();
-  }
     return getType(typeDescriptor.toCharArray(), 0);
   }
 

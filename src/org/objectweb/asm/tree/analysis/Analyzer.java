@@ -72,6 +72,8 @@ public class Analyzer implements Constants {
 
   private int top;
 
+  private boolean jsr;
+
   /**
    * Constructs a new {@link Analyzer}.
    * 
@@ -157,6 +159,7 @@ public class Analyzer implements Constants {
 
       try {
         Object o = m.instructions.get(insn);
+        jsr = false;
         
         if (o instanceof Label) {
           merge(insn + 1, f, subroutine);
@@ -173,9 +176,11 @@ public class Analyzer implements Constants {
               merge(insn + 1, current, subroutine);
             }
             if (insnOpcode == JSR) {
-              subroutine = new Subroutine(j.label, m.maxLocals, j);
+              jsr = true;
+              merge(indexes.get(j.label), current, new Subroutine(j.label, m.maxLocals, j));
+            } else {
+              merge(indexes.get(j.label), current, subroutine);
             }
-            merge(indexes.get(j.label), current, subroutine);
           } else if (insnNode instanceof LookupSwitchInsnNode) {
             LookupSwitchInsnNode lsi = (LookupSwitchInsnNode)insnNode;
             merge(indexes.get(lsi.dflt), current, subroutine);
@@ -197,7 +202,7 @@ public class Analyzer implements Constants {
             } else {
               for (int i = 0; i < subroutine.callers.size(); ++i) {
                 int caller = indexes.get(subroutine.callers.get(i));
-                merge(caller + 1, frames[caller], current, subroutine.access);
+                merge(caller + 1, frames[caller], current, subroutines[caller], subroutine.access);
               }
             }
           } else if (insnOpcode != ATHROW && (insnOpcode < IRETURN || insnOpcode > RETURN)) {
@@ -352,7 +357,7 @@ public class Analyzer implements Constants {
         }
       } else {
         if (subroutine != null) {
-          changes |= oldSubroutine.merge(subroutine);
+          changes |= oldSubroutine.merge(subroutine, !jsr);
         }
       }
       if (changes && !queued[insn]) {
@@ -366,12 +371,14 @@ public class Analyzer implements Constants {
     final int insn, 
     final Frame beforeJSR,
     final Frame afterRET,
+    final Subroutine subroutineBeforeJSR,
     final boolean[] access) throws AnalyzerException
   {
     if (insn > n - 1) {
       throw new AnalyzerException("Execution can fall off end of the code");
     } else {
       Frame oldFrame = frames[insn];
+      Subroutine oldSubroutine = subroutines[insn];
       boolean changes = false;
 
       afterRET.merge(beforeJSR, access);
@@ -385,6 +392,16 @@ public class Analyzer implements Constants {
       
       newControlFlowEdge(afterRET, oldFrame);
 
+      if (oldSubroutine == null) {
+        if (subroutineBeforeJSR != null) {
+          subroutines[insn] = subroutineBeforeJSR.copy();
+          changes = true;
+        }
+      } else {
+        if (subroutineBeforeJSR != null) {
+          changes |= oldSubroutine.merge(subroutineBeforeJSR, !jsr);
+        }
+      }
       if (changes && !queued[insn]) {
         queued[insn] = true;
         queue[top++] = insn;
@@ -453,8 +470,8 @@ public class Analyzer implements Constants {
       return result;
     }
 
-    public boolean merge (final Subroutine subroutine) throws AnalyzerException {
-      if (subroutine.start != start) {
+    public boolean merge (final Subroutine subroutine, boolean checkOverlap) throws AnalyzerException {
+      if (checkOverlap && subroutine.start != start) {
         throw new AnalyzerException("Overlapping sub routines");
       }
       boolean changes = false;

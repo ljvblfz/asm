@@ -1772,30 +1772,20 @@ public class MethodWriter implements MethodVisitor {
         u += 8;
       }
     }
-    if (localVar != null) {
-      b = localVar.data;
-      u = 0;
-      while (u < localVar.length) {
-        label = readUnsignedShort(b, u);
-        newOffset = getNewOffset(allIndexes, allSizes, 0, label);
-        writeShort(b, u, newOffset);
-        label += readUnsignedShort(b, u + 2);
-        newOffset = getNewOffset(allIndexes, allSizes, 0, label) - newOffset;
-        writeShort(b, u, newOffset);
-        u += 10;
-      }
-    }
-    if (localVarType != null) {
-      b = localVarType.data;
-      u = 0;
-      while (u < localVarType.length) {
-        label = readUnsignedShort(b, u);
-        newOffset = getNewOffset(allIndexes, allSizes, 0, label);
-        writeShort(b, u, newOffset);
-        label += readUnsignedShort(b, u + 2);
-        newOffset = getNewOffset(allIndexes, allSizes, 0, label) - newOffset;
-        writeShort(b, u, newOffset);
-        u += 10;
+    for (i = 0; i < 2; ++i) {
+      ByteVector bv = i == 0 ? localVar : localVarType;
+      if (bv != null) {
+        b = bv.data;
+        u = 0;
+        while (u < bv.length) {
+          label = readUnsignedShort(b, u);
+          newOffset = getNewOffset(allIndexes, allSizes, 0, label);
+          writeShort(b, u, newOffset);
+          label += readUnsignedShort(b, u + 2);
+          newOffset = getNewOffset(allIndexes, allSizes, 0, label) - newOffset;
+          writeShort(b, u, newOffset);
+          u += 10;
+        }
       }
     }
     if (lineNumber != null) {

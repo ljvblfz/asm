@@ -28,6 +28,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.objectweb.asm.AttributeVisitor;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -36,7 +37,6 @@ import org.objectweb.asm.CodeAdapter;
 import org.objectweb.asm.CodeVisitor;
 import org.objectweb.asm.Constants;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.Attribute;
 
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -115,21 +115,19 @@ class TraceFieldClassAdapter extends ClassAdapter implements Constants {
     final int access,
     final String name,
     final String superName,
-    final String[] interfaces,
-    final String sourceFile)
+    final String[] interfaces)
   {
     owner = name;
-    super.visit(version, access, name, superName, interfaces, sourceFile);
+    super.visit(version, access, name, superName, interfaces);
   }
 
-  public void visitField (
+  public AttributeVisitor visitField (
     final int access,
     final String name,
     final String desc,
-    final Object value,
-    final Attribute attrs)
+    final Object value)
   {
-    super.visitField(access, name, desc, value, attrs);
+    AttributeVisitor fv = super.visitField(access, name, desc, value);
     if ((access & ACC_STATIC) == 0) {
       Type t = Type.getType(desc);
       int size = t.getSize();
@@ -137,7 +135,7 @@ class TraceFieldClassAdapter extends ClassAdapter implements Constants {
       // generates getter method
       String gDesc = "()" + desc;
       CodeVisitor gv =
-        cv.visitMethod(ACC_PRIVATE, "_get" + name, gDesc, null, null);
+        cv.visitMethod(ACC_PRIVATE, "_get" + name, gDesc, null);
       gv.visitFieldInsn(GETSTATIC,
         "java/lang/System", "err", "Ljava/io/PrintStream;");
       gv.visitLdcInsn("_get" + name + " called");
@@ -151,28 +149,28 @@ class TraceFieldClassAdapter extends ClassAdapter implements Constants {
       // generates setter method
       String sDesc = "(" + desc + ")V";
       CodeVisitor sv =
-        cv.visitMethod(ACC_PRIVATE, "_set" + name, sDesc, null, null);
+        cv.visitMethod(ACC_PRIVATE, "_set" + name, sDesc, null);
       sv.visitFieldInsn(GETSTATIC,
         "java/lang/System", "err", "Ljava/io/PrintStream;");
       sv.visitLdcInsn("_set" + name + " called");
       sv.visitMethodInsn(INVOKEVIRTUAL,
         "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
       sv.visitVarInsn(ALOAD, 0);
-      sv.visitIntInsn(t.getOpcode(ILOAD), 1);
+      sv.visitVarInsn(t.getOpcode(ILOAD), 1);
       sv.visitFieldInsn(PUTFIELD, owner, name, desc);
       sv.visitInsn(RETURN);
       sv.visitMaxs(1 + size, 1 + size);
     }
+    return fv;
   }
 
   public CodeVisitor visitMethod (
     final int access,
     final String name,
     final String desc,
-    final String[] exceptions,
-    final Attribute attrs)
+    final String[] exceptions)
   {
-    CodeVisitor mv = cv.visitMethod(access, name, desc, exceptions, attrs);
+    CodeVisitor mv = cv.visitMethod(access, name, desc, exceptions);
     return mv == null ? null : new TraceFieldCodeAdapter(mv, owner);
   }
 }

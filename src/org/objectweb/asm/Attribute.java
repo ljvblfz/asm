@@ -32,7 +32,7 @@ package org.objectweb.asm;
 
 /**
  * A non standard class, field, method or code attribute.
- * 
+ *
  * @author Eric Bruneton, Eugene Kuleshov
  */
 
@@ -62,22 +62,22 @@ public class Attribute {
 
   /**
    * Returns <tt>true</tt> if this type of attribute is unknown.
-   * 
-   * @return <tt>true</tt> if the class of this object is equal to 
+   *
+   * @return <tt>true</tt> if the class of this object is equal to
    *      {@link Attribute}.
    */
-  
+
   public boolean isUnknown () {
     return getClass().getName().equals("org.objectweb.asm.Attribute");
   }
-  
+
   /**
    * Returns the labels corresponding to this attribute.
    *
    * @return the labels corresponding to this attribute, or <tt>null</tt> if
    *      this attribute is not a code attribute that contains labels.
    */
-  
+
   protected Label[] getLabels () {
     return null;
   }
@@ -147,7 +147,9 @@ public class Attribute {
     int count = 0;
     Attribute attr = this;
     while (attr != null) {
-      count += 1;
+      if (!attr.isUnknown()) {
+        count += 1;
+      }
       attr = attr.next;
     }
     return count;

@@ -140,11 +140,11 @@
     <javac srcdir="${test.perf}" destdir="${out.test}">
       <classpath refid="test.classpath"/>
       <include name="**/*.java"/>
+      <exclude name="**/xml/*.java"/>
     </javac>
   </target>
 
-  <!--target name="compile" depends="compile.test.conform,compile.test.deviance,compile.test.thread,compile.test.stress,compile.test.perf"/-->
-  <target name="compile" depends="compile.test.conform,compile.test.deviance,compile.test.thread,compile.test.stress"/>
+  <target name="compile" depends="compile.test.conform,compile.test.deviance,compile.test.thread,compile.test.stress,compile.test.perf"/>
 
   <!-- ============================= -->
   <!-- =========== TEST ============ -->
@@ -154,8 +154,8 @@
     <multipleAnt dir="${test.conform}" inheritRefs="true"/>
     <!--multipleAnt dir="${test.deviance}" inheritRefs="true"/>
     <multipleAnt dir="${test.thread}" inheritRefs="true"/>
-    <multipleAnt dir="${test.stress}" inheritRefs="true"/>
-    <multipleAnt dir="${test.perf}" inheritRefs="true"/-->
+    <multipleAnt dir="${test.stress}" inheritRefs="true"/-->
+    <multipleAnt dir="${test.perf}" inheritRefs="true"/>
   </target>
 
   <target name="testType" depends="compile" if="test.type">
@@ -170,8 +170,8 @@
     <multipleAnt dir="${test.conform}" target="${test.name}" inheritRefs="true"/>
     <!--multipleAnt dir="${test.deviance}" target="${test.name}" inheritRefs="true"/>
     <multipleAnt dir="${test.thread}" target="${test.name}" inheritRefs="true"/>
-    <multipleAnt dir="${test.stress}" target="${test.name}" inheritRefs="true"/>
-    <multipleAnt dir="${test.perf}" target="${test.name}" inheritRefs="true"/-->
+    <multipleAnt dir="${test.stress}" target="${test.name}" inheritRefs="true"/-->
+    <multipleAnt dir="${test.perf}" target="${test.name}" inheritRefs="true"/>
   </target>
 
   <target name="test" depends="testAll,testType,testGroup,testName"/>

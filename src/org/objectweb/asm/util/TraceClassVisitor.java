@@ -192,6 +192,11 @@ public class TraceClassVisitor extends TraceAbstractVisitor
       buf.append("// DEPRECATED\n");
     }
     buf.append("// access flags ").append(access).append('\n');
+    
+    if( signature!=null) {
+      buf.append( "// signature ").append( signature).append( "\n");
+    }
+    
     appendAccess(access & ~Opcodes.ACC_SUPER);
     if ((access & Opcodes.ACC_ANNOTATION) != 0) {
       buf.append("@interface ");

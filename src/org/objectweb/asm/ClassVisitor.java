@@ -39,7 +39,7 @@ package org.objectweb.asm;
  * @author Eric Bruneton
  */
 
-public interface ClassVisitor {
+public interface ClassVisitor extends MetadataVisitor {
 
   /**
    * Visits the header of the class.
@@ -108,7 +108,7 @@ public interface ClassVisitor {
    *      <tt>next</tt> field. May be <tt>null</tt>.
    */
 
-  void visitField (
+  MetadataVisitor visitField (
     int access,
     String name,
     String desc,

@@ -78,14 +78,14 @@ public class ClassAdapter implements ClassVisitor {
     cv.visitInnerClass(name, outerName, innerName, access);
   }
 
-  public void visitField (
+  public MetadataVisitor visitField (
     final int access,
     final String name,
     final String desc,
     final Object value,
     final Attribute attrs)
   {
-    cv.visitField(access, name, desc, value, attrs);
+    return cv.visitField(access, name, desc, value, attrs);
   }
 
   public CodeVisitor visitMethod (
@@ -105,4 +105,9 @@ public class ClassAdapter implements ClassVisitor {
   public void visitEnd () {
     cv.visitEnd();
   }
+
+  public AnnotationVisitor visitAnnotation( String type, boolean visible) {
+    return cv.visitAnnotation(type, visible);
+  }
+  
 }

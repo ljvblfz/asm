@@ -306,4 +306,13 @@ public interface CodeVisitor {
    */
 
   void visitAttribute (Attribute attr);
+  
+  
+  AnnotationVisitor visitAnnotationDefault ();
+  
+  MetadataVisitor visitParameterAnnotations ( int parameter);
+
+  AnnotationVisitor visitAnnotation( String type, boolean visible);
+
 }
+

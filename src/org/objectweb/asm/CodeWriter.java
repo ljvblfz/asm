@@ -30,6 +30,7 @@
 
 package org.objectweb.asm;
 
+
 /**
  * A {@link CodeVisitor CodeVisitor} that generates Java bytecode instructions.
  * Each visit method of this class appends the bytecode corresponding to the
@@ -260,6 +261,14 @@ public class CodeWriter implements CodeVisitor {
    */
 
   private static Edge pool;
+
+  private ByteVector annotationDefault;
+
+  private ByteVector annotations;
+  private int annotationCount;
+  private int paramCount;
+  private ByteVector[] paramAnnotations;
+  private int[] paramAnnotationCount;
 
   // --------------------------------------------------------------------------
   // Static initializer
@@ -546,6 +555,9 @@ public class CodeWriter implements CodeVisitor {
     this.access = access;
     this.name = cw.newUTF8(name);
     this.desc = cw.newUTF8(desc);
+    
+    this.paramCount = Type.getArgumentTypes(desc).length;
+    
     if (exceptions != null && exceptions.length > 0) {
       exceptionCount = exceptions.length;
       this.exceptions = new int[exceptionCount];
@@ -1225,6 +1237,9 @@ public class CodeWriter implements CodeVisitor {
     if ((access & Constants.ACC_DEPRECATED) != 0) {
       ++attributeCount;
     }
+    
+    // add method and parameter annotations
+    
     if (attrs != null) {
       attributeCount += attrs.getCount();
     }
@@ -1818,4 +1833,24 @@ public class CodeWriter implements CodeVisitor {
   public byte[] getCode () {
     return code.data;
   }
+
+  public AnnotationVisitor visitAnnotationDefault() {
+    return new AnnotationWriter( cw, annotationDefault);
+  }
+
+  public MetadataVisitor visitParameterAnnotations( int parameter) {
+    if( this.paramAnnotations==null) {
+      this.paramAnnotations = new ByteVector[ this.paramCount];
+      this.paramAnnotationCount = new int[ this.paramCount];
+    }
+    ++paramAnnotationCount[ parameter];
+    return new MetadataWriter( cw, paramAnnotations[ parameter], true);
+  }
+
+  public AnnotationVisitor visitAnnotation( String type, boolean visible) {
+    ++annotationCount;
+    return new AnnotationWriter( cw, annotations);
+  }
+  
 }
+

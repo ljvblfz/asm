@@ -190,13 +190,15 @@ public class ClassWriter implements ClassVisitor {
 
   private ByteVector fields;
 
+  private ByteVector classAnnotations;
+  
   /**
    * <tt>true</tt> if the maximum stack size and number of local variables must
    * be automatically computed.
    */
 
   private boolean computeMaxs;
-  
+
   /**
    * <tt>true</tt> to test that all attributes are known.
    */
@@ -554,7 +556,7 @@ public class ClassWriter implements ClassVisitor {
     innerClasses.putShort(access);
   }
 
-  public void visitField (
+  public MetadataVisitor visitField (
     final int access,
     final String name,
     final String desc,
@@ -579,6 +581,8 @@ public class ClassWriter implements ClassVisitor {
     if (attrs != null) {
       attributeCount += attrs.getCount();
     }
+    
+    // TODO calculate annotation attributes or move code below into MetadataWriter
     fields.putShort(attributeCount);
     if (value != null) {
       fields.putShort(newUTF8("ConstantValue"));
@@ -593,6 +597,7 @@ public class ClassWriter implements ClassVisitor {
     if (attrs != null) {
       attrs.put(this, null, 0, -1, -1, fields);
     }
+    return new MetadataWriter( this, fields, false);
   }
 
   public CodeVisitor visitMethod (
@@ -698,6 +703,9 @@ public class ClassWriter implements ClassVisitor {
     if (attrs != null) {
       attrs.put(this, null, 0, -1, -1, out);
     }
+    
+    // TODO save class annotations
+    
     return out.data;
   }
 
@@ -717,24 +725,38 @@ public class ClassWriter implements ClassVisitor {
    */
 
   Item newConstItem (final Object cst) {
-    if (cst instanceof Integer) {
-      int val = ((Integer)cst).intValue();
-      return newInteger(val);
+    if (cst instanceof Integer ) {
+      return newInteger((( Integer) cst).intValue());
+
+    } else if (cst instanceof Boolean ) {
+      return newInteger((( Boolean) cst).booleanValue() ? 0 : 1); // TODO verify this
+    
+    } else if (cst instanceof Character ) {
+      return newInteger((( Character) cst).charValue());
+    
+    } else if (cst instanceof Byte ) {
+      return newInteger((( Byte) cst).intValue());
+    
+    } else if (cst instanceof Short ) {
+      return newInteger((( Short) cst).intValue());
+    
     } else if (cst instanceof Float) {
-      float val = ((Float)cst).floatValue();
-      return newFloat(val);
+      return newFloat(((Float)cst).floatValue());
+    
     } else if (cst instanceof Long) {
-      long val = ((Long)cst).longValue();
-      return newLong(val);
+      return newLong(((Long)cst).longValue());
+    
     } else if (cst instanceof Double) {
-      double val = ((Double)cst).doubleValue();
-      return newDouble(val);
+      return newDouble(((Double)cst).doubleValue());
+    
     } else if (cst instanceof String) {
       return newString((String)cst);
+    
     } else if (cst instanceof Type) {
       Type t = (Type)cst;
       return newClassItem(
         t.getSort() == Type.OBJECT ? t.getInternalName() : t.getDescriptor());
+    
     } else {
       throw new IllegalArgumentException("value " + cst);
     }
@@ -1069,4 +1091,10 @@ public class ClassWriter implements ClassVisitor {
   private void put122 (final int b, final int s1, final int s2) {
     pool.put12(b, s1).putShort(s2);
   }
+
+  public AnnotationVisitor visitAnnotation( String type, boolean visible) {
+    return new AnnotationWriter( this, classAnnotations);
+  }
+  
 }
+

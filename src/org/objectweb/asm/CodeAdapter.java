@@ -158,4 +158,18 @@ public class CodeAdapter implements CodeVisitor {
   public void visitAttribute (final Attribute attr) {
     cv.visitAttribute(attr);
   }
+
+  public AnnotationVisitor visitAnnotationDefault() {
+    return cv.visitAnnotationDefault();
+  }
+
+  public MetadataVisitor visitParameterAnnotations( int parameter) {
+    return cv.visitParameterAnnotations( parameter);
+  }
+
+  public AnnotationVisitor visitAnnotation( String type, boolean visible) {
+    return cv.visitAnnotation(type, visible);
+  }
+
 }
+

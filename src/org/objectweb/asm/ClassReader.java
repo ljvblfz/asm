@@ -285,7 +285,11 @@ public class ClassReader {
         v += 6 + readInt(v + 2);
       }
     }
+    
     // reads the class's attributes
+
+    int classAttributesStart = v;
+    
     i = readUnsignedShort(v); v += 2;
     for ( ; i > 0; --i) {
       String attrName = readUTF8(v, c);
@@ -297,13 +301,13 @@ public class ClassReader {
         access |= Constants.ACC_SYNTHETIC;
       } else if (attrName.equals("InnerClasses")) {
         w = v + 6;
-      } else {
-        attr = readAttribute(
-          attrs, attrName, v + 6, readInt(v + 2), c, -1, null);
-        if (attr != null) {
-          attr.next = clattrs;
-          clattrs = attr;
-        }
+//      } else {
+//        attr = readAttribute(
+//          attrs, attrName, v + 6, readInt(v + 2), c, -1, null);
+//        if (attr != null) {
+//          attr.next = clattrs;
+//          clattrs = attr;
+//        }
       }
       v += 6 + readInt(v + 2);
     }
@@ -343,6 +347,10 @@ public class ClassReader {
           access |= Constants.ACC_SYNTHETIC;
         } else if (attrName.equals("Deprecated")) {
           access |= Constants.ACC_DEPRECATED;
+        } else if (attrName.equals("RuntimeInvisibleAnnotations")) {
+          // TODO
+        } else if (attrName.equals("RuntimeVisibleAnnotations")) {
+          // TODO
         } else {
           attr = readAttribute(
             attrs, attrName, u + 6, readInt(u + 2), c, -1, null);
@@ -356,7 +364,9 @@ public class ClassReader {
       // reads the field's value, if any
       Object value = (fieldValueItem == 0 ? null : readConst(fieldValueItem, c));
       // visits the field
-      classVisitor.visitField(access, fieldName, fieldDesc, value, fattrs);
+      MetadataVisitor fmetaVisitor = classVisitor.visitField(access, fieldName, fieldDesc, value, fattrs);
+      // fmetaVisitor.visitAnnotation(fieldDesc, skipDebug);
+      // fmetaVisitor.visitEnd();
     }
 
     // visits the methods
@@ -383,6 +393,14 @@ public class ClassReader {
           access |= Constants.ACC_SYNTHETIC;
         } else if (attrName.equals("Deprecated")) {
           access |= Constants.ACC_DEPRECATED;
+        } else if (attrName.equals("RuntimeInvisibleAnnotations")) {
+          // TODO
+        } else if (attrName.equals("RuntimeVisibleAnnotations")) {
+          // TODO
+        } else if (attrName.equals("RuntimeInvisibleParameterAnnotations")) {
+          // TODO
+        } else if (attrName.equals("RuntimeVisibleParameterAnnotations")) {
+          // TODO
         } else {
           attr = readAttribute(attrs, attrName, u, attrSize, c, -1, null);
           if (attr != null) {
@@ -756,15 +774,39 @@ public class ClassReader {
         cv.visitMaxs(maxStack, maxLocals);
       }
     }
-    // visits the class attributes
-    while (clattrs != null) {
-      attr = clattrs.next;
-      clattrs.next = null;
-      classVisitor.visitAttribute(clattrs);
-      clattrs = attr;
+    
+    // visits the class attributes and annotations
+    v = classAttributesStart;
+    i = readUnsignedShort( v); v += 2;
+    for ( ; i > 0; --i) {
+      String attrName = readUTF8(v, c);
+      if (attrName.equals("SourceFile") || 
+          attrName.equals("Deprecated") ||
+          attrName.equals("Synthetic") ||
+          attrName.equals("InnerClasses")) {
+        continue;
+      
+      } else if (attrName.equals("RuntimeInvisibleAnnotations")) {
+        readAnnotation( classVisitor.visitAnnotation( attrName, false), v + 6);
+
+      } else if (attrName.equals("RuntimeVisibleAnnotations")) {
+        readAnnotation( classVisitor.visitAnnotation( attrName, true), v + 6);
+      
+      } else {
+        classVisitor.visitAttribute( readAttribute(
+          attrs, attrName, v + 6, readInt(v + 2), c, -1, null));
+      
+      }
+      v += 6 + readInt(v + 2);
     }
+    
     // visits the end of the class
     classVisitor.visitEnd();
+  }
+
+  private void readAnnotation( AnnotationVisitor annotationVisitor, int v) {
+    // TODO visit annotations
+    
   }
 
   // --------------------------------------------------------------------------

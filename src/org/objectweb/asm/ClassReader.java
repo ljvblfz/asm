@@ -999,6 +999,7 @@ public class ClassReader {
     final String name,
     final AnnotationVisitor av)
   {
+    int i;
     switch (readByte(v++)) {
       case 'B':  // pointer to CONSTANT_Byte
       case 'C':  // pointer to CONSTANT_Char
@@ -1028,13 +1029,81 @@ public class ClassReader {
         v = readAnnotationValues(v, buf, av.visitAnnotation(name, desc));
         break;
       case '[':  // array_value
-        AnnotationVisitor aav = av.visitArray(name);
-        int i = readUnsignedShort(v); v += 2;
-        for ( ; i > 0; --i) {
-          v = readAnnotationValue(v, buf, null, aav);
+        // support for arrays: TODO should we keep this? 
+        int size = readUnsignedShort(v); v += 2;
+        switch (readByte(v++)) {
+	      case 'B':
+		    byte[] bv = new byte[size];
+		    for (i = 0; i < size; i++) {
+			  bv[i] = (byte)readInt(items[readUnsignedShort(v)]);
+			  v += 3;
+	        }
+		    av.visit(name, bv);
+		    break;
+	      case 'Z':
+		    boolean[] zv = new boolean[size];
+		    for (i = 0; i < size; i++) {
+			  zv[i] = readInt(items[readUnsignedShort(v)]) != 0;
+			  v += 3;
+	        }
+		    av.visit(name, zv);
+		    break;         
+	      case 'S':
+		    short[] sv = new short[size];
+		    for (i = 0; i < size; i++) {
+			  sv[i] = (short)readInt(items[readUnsignedShort(v)]);
+			  v += 3;
+	        }
+		    av.visit(name, sv);
+		    break;
+	      case 'C':
+		    char[] cv = new char[size];
+		    for (i = 0; i < size; i++) {
+			  cv[i] = (char)readInt(items[readUnsignedShort(v)]);
+			  v += 3;
+	        }
+		    av.visit(name, cv);
+		    break;	          
+	      case 'I':
+		    int[] iv = new int[size];
+		    for (i = 0; i < size; i++) {
+			  iv[i] = readInt(items[readUnsignedShort(v)]);
+			  v += 3;
+	        }
+		    av.visit(name, iv);
+	        break;
+	      case 'J':
+		    long[] lv = new long[size];
+		    for (i = 0; i < size; i++) {
+			  lv[i] = readLong(items[readUnsignedShort(v)]);
+			  v += 3;
+	        }
+		    av.visit(name, lv);
+		    break;
+	      case 'F':
+		    float[] fv = new float[size];
+		    for (i = 0; i < size; i++) {
+			  fv[i] = Float.intBitsToFloat(readInt(items[readUnsignedShort(v)]));
+			  v += 3;
+	        }
+		    av.visit(name, fv);
+		    break;
+	      case 'D':
+		    double[] dv = new double[size];
+		    for (i = 0; i < size; i++) {
+			  dv[i] = Double.longBitsToDouble(readLong(items[readUnsignedShort(v)]));
+			  v += 3;
+	        }
+		    av.visit(name, dv);
+		    break;
+	      default:
+	        v--;
+	        AnnotationVisitor aav = av.visitArray(name);
+	        for (i = size ; i > 0; --i) {
+	          v = readAnnotationValue(v, buf, null, aav);
+	        }
+	        aav.visitEnd();
         }
-        aav.visitEnd();
-        break;
     }
     return v;
   }

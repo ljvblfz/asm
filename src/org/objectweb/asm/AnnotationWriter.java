@@ -140,7 +140,56 @@ final class AnnotationWriter implements AnnotationVisitor {
     } else if (value instanceof Short) {
       bv.put12('S', cw.newInteger(((Short)value).shortValue()).index);
     } else if (value instanceof Type) {
-      bv.put12('c', cw.newUTF8(((Type)value).getDescriptor()));  
+      bv.put12('c', cw.newUTF8(((Type)value).getDescriptor()));
+    } else if (value instanceof byte[]) {
+      byte[] v = (byte[])value;
+      bv.put12('[', v.length);
+      for (int i = 0; i < v.length; i++) {
+        bv.put12('B', cw.newInteger(v[i]).index);
+      }
+    // support for arrays: TODO should we keep this? 
+    } else if (value instanceof boolean[]) {
+      boolean[] v = (boolean[])value;
+      bv.put12('[', v.length);
+      for (int i = 0; i < v.length; i++) {
+        bv.put12('Z', cw.newInteger(v[i] ? 1 : 0).index);
+      }
+    } else if (value instanceof short[]) {
+      short[] v = (short[])value;
+      bv.put12('[', v.length);
+      for (int i = 0; i < v.length; i++) {
+        bv.put12('S', cw.newInteger(v[i]).index);
+      }
+    } else if (value instanceof char[]) {
+      char[] v = (char[])value;
+      bv.put12('[', v.length);
+      for (int i = 0; i < v.length; i++) {
+        bv.put12('C', cw.newInteger(v[i]).index);
+      }
+    } else if (value instanceof int[]) {
+      int[] v = (int[])value;
+      bv.put12('[', v.length);
+      for (int i = 0; i < v.length; i++) {
+        bv.put12('I', cw.newInteger(v[i]).index);
+      }
+    } else if (value instanceof long[]) {
+      long[] v = (long[])value;
+      bv.put12('[', v.length);
+      for (int i = 0; i < v.length; i++) {
+        bv.put12('J', cw.newLong(v[i]).index);
+      }
+    } else if (value instanceof float[]) {
+      float[] v = (float[])value;
+      bv.put12('[', v.length);
+      for (int i = 0; i < v.length; i++) {
+        bv.put12('F', cw.newFloat(v[i]).index);
+      }
+    } else if (value instanceof double[]) {
+      double[] v = (double[])value;
+      bv.put12('[', v.length);
+      for (int i = 0; i < v.length; i++) {
+        bv.put12('D', cw.newDouble(v[i]).index);
+      }
     } else {
       Item i = cw.newConstItem(value);
       bv.put12(i.type, i.index);

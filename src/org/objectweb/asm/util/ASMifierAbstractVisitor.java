@@ -174,6 +174,63 @@ public class ASMifierAbstractVisitor extends AbstractVisitor {
       } else {
         buf.append("new Double(").append(cst).append(")");
       }
+    // support for arrays: TODO should we keep this? 
+    } else if (cst instanceof byte[]) {
+      byte[] v = (byte[])cst;
+      buf.append("new byte[] {");
+      for (int i = 0; i < v.length; i++) {
+        buf.append(i == 0 ? "" : ",").append(v[i]);
+      }
+      buf.append("}");
+    } else if (cst instanceof boolean[]) {
+      boolean[] v = (boolean[])cst;
+      buf.append("new boolean[] {");
+      for (int i = 0; i < v.length; i++) {
+        buf.append(i == 0 ? "" : ",").append(v[i]);
+      }
+      buf.append("}");
+    } else if (cst instanceof short[]) {
+      short[] v = (short[])cst;
+      buf.append("new short[] {");
+      for (int i = 0; i < v.length; i++) {
+        buf.append(i == 0 ? "" : ",").append("(short)").append(v[i]);
+      }
+      buf.append("}");
+    } else if (cst instanceof char[]) {
+      char[] v = (char[])cst;
+      buf.append("new char[] {");
+      for (int i = 0; i < v.length; i++) {
+        buf.append(i == 0 ? "" : ",").append("(char)").append((int)v[i]);
+      }
+      buf.append("}");
+    } else if (cst instanceof int[]) {
+      int[] v = (int[])cst;
+      buf.append("new int[] {");
+      for (int i = 0; i < v.length; i++) {
+        buf.append(i == 0 ? "" : ",").append(v[i]);
+      }
+      buf.append("}");
+    } else if (cst instanceof long[]) {
+      long[] v = (long[])cst;
+      buf.append("new long[] {");
+      for (int i = 0; i < v.length; i++) {
+        buf.append(i == 0 ? "" : ",").append(v[i]).append("L");
+      }
+      buf.append("}");
+    } else if (cst instanceof float[]) {
+      float[] v = (float[])cst;
+      buf.append("new float[] {");
+      for (int i = 0; i < v.length; i++) {
+        buf.append(i == 0 ? "" : ",").append(v[i]).append("f");
+      }
+      buf.append("}");
+    } else if (cst instanceof double[]) {
+      double[] v = (double[])cst;
+      buf.append("new double[] {");
+      for (int i = 0; i < v.length; i++) {
+        buf.append(i == 0 ? "" : ",").append(v[i]).append("d");
+      }
+      buf.append("}");
     }
   }
 }

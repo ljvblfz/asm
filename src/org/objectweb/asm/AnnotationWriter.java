@@ -132,22 +132,18 @@ final class AnnotationWriter implements AnnotationVisitor {
       bv.putShort(cw.newUTF8(name));
     }
     if (value instanceof Byte) {
-      bv.putByte('B')
-        .putShort(cw.newInteger(((Byte)value).byteValue()).index);
+      bv.put12('B', cw.newInteger(((Byte)value).byteValue()).index);
     } else if (value instanceof Boolean) {
-      bv.putByte('Z')
-        .putShort(cw.newInteger(((Boolean)value).booleanValue() ? 1 : 0).index);
+      bv.put12('Z', cw.newInteger(((Boolean)value).booleanValue() ? 1 : 0).index);
     } else if (value instanceof Character) {
-      bv.putByte('C')
-        .putShort(cw.newInteger(((Character)value).charValue()).index);
+      bv.put12('C', cw.newInteger(((Character)value).charValue()).index);
     } else if (value instanceof Short) {
-      bv.putByte('S')
-        .putShort(cw.newInteger(((Short)value).shortValue()).index);
+      bv.put12('S', cw.newInteger(((Short)value).shortValue()).index);
     } else if (value instanceof Type) {
-      bv.putByte('c').putShort(cw.newUTF8(((Type)value).getDescriptor()));  
+      bv.put12('c', cw.newUTF8(((Type)value).getDescriptor()));  
     } else {
       Item i = cw.newConstItem(value);
-      bv.putByte(i.type).putByte(i.index);
+      bv.put12(i.type, i.index);
     }
   }
 
@@ -160,7 +156,7 @@ final class AnnotationWriter implements AnnotationVisitor {
     if (named) {
       bv.putShort(cw.newUTF8(name));
     }
-    bv.putByte('e').putShort(cw.newUTF8(desc)).putShort(cw.newUTF8(value));
+    bv.put12('e', cw.newUTF8(desc)).putShort(cw.newUTF8(value));
   }
 
   public AnnotationVisitor visitAnnotationValue (
@@ -172,7 +168,7 @@ final class AnnotationWriter implements AnnotationVisitor {
       bv.putShort(cw.newUTF8(name));
     }
     // write tag and type, and reserve space for values count
-    bv.putByte('@').putShort(cw.newUTF8(desc)).putShort(0);
+    bv.put12('@', cw.newUTF8(desc)).putShort(0);
     return new AnnotationWriter(cw, true, bv, bv, bv.length - 2);
   }
 
@@ -182,7 +178,7 @@ final class AnnotationWriter implements AnnotationVisitor {
       bv.putShort(cw.newUTF8(name));
     }
     // write tag, and reserve space for array size
-    bv.putByte('[').putShort(0);
+    bv.put12('[', 0);
     return new AnnotationWriter(cw, false, bv, bv, bv.length - 2);
   }
   

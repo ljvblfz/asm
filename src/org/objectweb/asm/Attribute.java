@@ -182,13 +182,12 @@ public class Attribute {
     final int maxStack,
     final int maxLocals)
   {
-    int size = 0;
     Attribute attr = this;
+    int size = 0;
     while (attr != null) {
-      ByteVector b = attr.write(cw, code, len, maxStack, maxLocals);
-      if (b.length > 0) {
+      if (!attr.isUnknown()) {
         cw.newUTF8(attr.type);
-        size += b.length + 6;
+        size += attr.write(cw, code, len, maxStack, maxLocals).length + 6;
       }
       attr = attr.next;
     }
@@ -225,12 +224,12 @@ public class Attribute {
     if (next != null) {
       next.put(cw, code, len, maxStack, maxLocals, out);
     }
-    ByteVector b = write(cw, code, len, maxStack, maxLocals);
-    if (b.length == 0) {
+    if (isUnknown()) {
       if (cw.checkAttributes) {
         throw new IllegalArgumentException("Unknown attribute type " + type);
       }
     } else {
+      ByteVector b = write(cw, code, len, maxStack, maxLocals);
       out.putShort(cw.newUTF8(type)).putInt(b.length);
       out.putByteArray(b.data, 0, b.length);
     }

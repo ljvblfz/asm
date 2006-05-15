@@ -54,6 +54,9 @@ import org.apache.bcel.verifier.structurals.ModifiedPass3bVerifier;
 import org.objectweb.asm.commons.EmptyVisitor;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.analysis.Analyzer;
+import org.objectweb.asm.tree.analysis.SimpleVerifier;
 
 import serp.bytecode.BCClass;
 import serp.bytecode.BCMethod;
@@ -214,6 +217,31 @@ public abstract class ALLPerfTest extends ClassLoader {
                     + " ms");
         }
 
+        for (int i = 0; i < 10; ++i) {
+            int errors = 0;
+            long t = System.currentTimeMillis();
+            for (int j = 0; j < classes.size()/10; ++j) {
+                byte[] b = (byte[]) classes.get(j);
+                ClassReader cr = new ClassReader(b);
+                ClassNode cn = new ClassNode();
+                cr.accept(cn, ClassReader.SKIP_DEBUG);
+                List methods = cn.methods;
+                for (int k = 0; k < methods.size(); ++k) {
+                    MethodNode method = (MethodNode) methods.get(k);
+                    if (method.instructions.size() > 0) {
+                        Analyzer a = new Analyzer(new SimpleVerifier());
+                        try {
+                            a.analyze(cn.name, method);
+                        } catch (Throwable th) {
+                            ++errors;
+                        }
+                    }
+                }
+            }
+            t = System.currentTimeMillis() - t;
+            System.out.println("Time to analyze " + classes.size()/10
+                    + " classes with SimpleVerifier = " + t + " ms (" + errors + " errors)");
+        }
         System.out.println();
 
         for (int i = 0; i < 10; ++i) {

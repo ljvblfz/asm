@@ -31,6 +31,7 @@ package org.objectweb.asm.tree;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -60,7 +61,7 @@ public class FrameNode extends AbstractInsnNode {
 
     /**
      * The types of the local variables of this stack map frame. Elements of
-     * this list can be Integer, String or Label objects (for primitive,
+     * this list can be Integer, String or LabelNode objects (for primitive,
      * reference and uninitialized types respectively - see
      * {@link MethodVisitor}).
      */
@@ -68,11 +69,15 @@ public class FrameNode extends AbstractInsnNode {
 
     /**
      * The types of the operand stack elements of this stack map frame. Elements
-     * of this list can be Integer, String or Label objects (for primitive,
+     * of this list can be Integer, String or LabelNode objects (for primitive,
      * reference and uninitialized types respectively - see
      * {@link MethodVisitor}).
      */
     public List stack;
+
+    private FrameNode() {
+        super(-1);
+    }
 
     /**
      * Constructs a new {@link FrameNode}.
@@ -84,12 +89,12 @@ public class FrameNode extends AbstractInsnNode {
      *        {@link Opcodes#F_SAME1} for compressed frames.
      * @param nLocal number of local variables of this stack map frame.
      * @param local the types of the local variables of this stack map frame.
-     *        Elements of this list can be Integer, String or Label objects (for
-     *        primitive, reference and uninitialized types respectively - see
-     *        {@link MethodVisitor}).
+     *        Elements of this list can be Integer, String or LabelNode objects
+     *        (for primitive, reference and uninitialized types respectively -
+     *        see {@link MethodVisitor}).
      * @param nStack number of operand stack elements of this stack map frame.
      * @param stack the types of the operand stack elements of this stack map
-     *        frame. Elements of this list can be Integer, String or Label
+     *        frame. Elements of this list can be Integer, String or LabelNode
      *        objects (for primitive, reference and uninitialized types
      *        respectively - see {@link MethodVisitor}).
      */
@@ -122,6 +127,10 @@ public class FrameNode extends AbstractInsnNode {
         }
     }
 
+    public int getType() {
+        return FRAME;
+    }
+
     /**
      * Makes the given visitor visit this stack map frame.
      * 
@@ -133,12 +142,12 @@ public class FrameNode extends AbstractInsnNode {
             case Opcodes.F_FULL:
                 mv.visitFrame(type,
                         local.size(),
-                        local.toArray(),
+                        asArray(local),
                         stack.size(),
-                        stack.toArray());
+                        asArray(stack));
                 break;
             case Opcodes.F_APPEND:
-                mv.visitFrame(type, local.size(), local.toArray(), 0, null);
+                mv.visitFrame(type, local.size(), asArray(local), 0, null);
                 break;
             case Opcodes.F_CHOP:
                 mv.visitFrame(type, local.size(), null, 0, null);
@@ -147,20 +156,56 @@ public class FrameNode extends AbstractInsnNode {
                 mv.visitFrame(type, 0, null, 0, null);
                 break;
             case Opcodes.F_SAME1:
-                mv.visitFrame(type, 0, null, 1, new Object[] { stack.get(0) });
+                mv.visitFrame(type, 0, null, 1, asArray(stack));
                 break;
         }
     }
 
-    public int getType() {
-        return FRAME;
+    public AbstractInsnNode clone(Map labels) {
+        FrameNode clone = new FrameNode();
+        clone.type = type;
+        if (local != null) {
+            clone.local = new ArrayList();
+            for (int i = 0; i < local.size(); ++i) {
+                Object l = local.get(i);
+                if (l instanceof LabelNode) {
+                    l = labels.get(l);
+                }
+                clone.local.add(l);
+            }
+        }
+        if (stack != null) {
+            clone.stack = new ArrayList();
+            for (int i = 0; i < stack.size(); ++i) {
+                Object s = stack.get(i);
+                if (s instanceof LabelNode) {
+                    s = labels.get(s);
+                }
+                clone.stack.add(s);
+            }
+        }
+        return clone;
     }
 
-    private final static List asList(final int n, final Object[] o) {
+    // ------------------------------------------------------------------------
+
+    private static List asList(final int n, final Object[] o) {
         List l = new ArrayList(n);
         for (int i = 0; i < n; ++i) {
             l.add(o[i]);
         }
         return l;
+    }
+
+    private static Object[] asArray(final List l) {
+        Object[] objs = new Object[l.size()];
+        for (int i = 0; i < objs.length; ++i) {
+            Object o = l.get(i);
+            if (o instanceof LabelNode) {
+                o = ((LabelNode) o).getLabel();
+            }
+            objs[i] = o;
+        }
+        return objs;
     }
 }

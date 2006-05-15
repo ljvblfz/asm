@@ -29,7 +29,6 @@
  */
 package org.objectweb.asm.tree;
 
-import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 
 import junit.framework.TestCase;
@@ -43,41 +42,41 @@ public class ClassNodeUnitTest extends TestCase implements Opcodes {
 
     public void testFrameNode() {
         FrameNode fn = new FrameNode(F_SAME, 0, null, 0, null);
-        assertEquals(fn.getType(), AbstractInsnNode.FRAME);
+        assertEquals(AbstractInsnNode.FRAME, fn.getType());
     }
-    
+
     public void testInsnNode() {
-        InsnNode in = InsnNode.getByOpcode(NOP);
+        InsnNode in = new InsnNode(NOP);
         assertEquals(in.getOpcode(), NOP);
-        assertEquals(in.getType(), AbstractInsnNode.INSN);
+        assertEquals(AbstractInsnNode.INSN, in.getType());
     }
 
     public void testIntInsnNode() {
         IntInsnNode iin = new IntInsnNode(BIPUSH, 0);
         iin.setOpcode(SIPUSH);
-        assertEquals(iin.getOpcode(), SIPUSH);
-        assertEquals(iin.getType(), AbstractInsnNode.INT_INSN);
+        assertEquals(SIPUSH, iin.getOpcode());
+        assertEquals(AbstractInsnNode.INT_INSN, iin.getType());
     }
 
     public void testVarInsnNode() {
         VarInsnNode vn = new VarInsnNode(ALOAD, 0);
         vn.setOpcode(ASTORE);
-        assertEquals(vn.getOpcode(), ASTORE);
-        assertEquals(vn.getType(), AbstractInsnNode.VAR_INSN);
+        assertEquals(ASTORE, vn.getOpcode());
+        assertEquals(AbstractInsnNode.VAR_INSN, vn.getType());
     }
 
     public void testTypeInsnNode() {
         TypeInsnNode tin = new TypeInsnNode(NEW, "java/lang/Object");
         tin.setOpcode(CHECKCAST);
-        assertEquals(tin.getOpcode(), CHECKCAST);
-        assertEquals(tin.getType(), AbstractInsnNode.TYPE_INSN);
+        assertEquals(CHECKCAST, tin.getOpcode());
+        assertEquals(AbstractInsnNode.TYPE_INSN, tin.getType());
     }
 
     public void testFieldInsnNode() {
         FieldInsnNode fn = new FieldInsnNode(GETSTATIC, "owner", "name", "I");
         fn.setOpcode(PUTSTATIC);
-        assertEquals(fn.getOpcode(), PUTSTATIC);
-        assertEquals(fn.getType(), AbstractInsnNode.FIELD_INSN);
+        assertEquals(PUTSTATIC, fn.getOpcode());
+        assertEquals(AbstractInsnNode.FIELD_INSN, fn.getType());
     }
 
     public void testMethodInsnNode() {
@@ -86,44 +85,44 @@ public class ClassNodeUnitTest extends TestCase implements Opcodes {
                 "name",
                 "I");
         mn.setOpcode(INVOKESPECIAL);
-        assertEquals(mn.getOpcode(), INVOKESPECIAL);
-        assertEquals(mn.getType(), AbstractInsnNode.METHOD_INSN);
+        assertEquals(INVOKESPECIAL, mn.getOpcode());
+        assertEquals(AbstractInsnNode.METHOD_INSN, mn.getType());
     }
 
     public void testJumpInsnNode() {
-        JumpInsnNode jn = new JumpInsnNode(GOTO, new Label());
+        JumpInsnNode jn = new JumpInsnNode(GOTO, new LabelNode());
         jn.setOpcode(IFEQ);
-        assertEquals(jn.getOpcode(), IFEQ);
-        assertEquals(jn.getType(), AbstractInsnNode.JUMP_INSN);
+        assertEquals(IFEQ, jn.getOpcode());
+        assertEquals(AbstractInsnNode.JUMP_INSN, jn.getType());
     }
 
     public void testLabelNode() {
-        LabelNode ln = new LabelNode(new Label());
-        assertEquals(ln.getType(), AbstractInsnNode.LABEL);
+        LabelNode ln = new LabelNode();
+        assertEquals(AbstractInsnNode.LABEL, ln.getType());
     }
 
     public void testIincInsnNode() {
         IincInsnNode iincn = new IincInsnNode(1, 1);
-        assertEquals(iincn.getType(), AbstractInsnNode.IINC_INSN);
+        assertEquals(AbstractInsnNode.IINC_INSN, iincn.getType());
     }
 
     public void testLdcInsnNode() {
         LdcInsnNode ldcn = new LdcInsnNode("s");
-        assertEquals(ldcn.getType(), AbstractInsnNode.LDC_INSN);
+        assertEquals(AbstractInsnNode.LDC_INSN, ldcn.getType());
     }
 
     public void testLookupSwitchInsnNode() {
         LookupSwitchInsnNode lsn = new LookupSwitchInsnNode(null, null, null);
-        assertEquals(lsn.getType(), AbstractInsnNode.LOOKUPSWITCH_INSN);
+        assertEquals(AbstractInsnNode.LOOKUPSWITCH_INSN, lsn.getType());
     }
 
     public void testTableSwitchInsnNode() {
         TableSwitchInsnNode tsn = new TableSwitchInsnNode(0, 1, null, null);
-        assertEquals(tsn.getType(), AbstractInsnNode.TABLESWITCH_INSN);
+        assertEquals(AbstractInsnNode.TABLESWITCH_INSN, tsn.getType());
     }
 
     public void testMultiANewArrayInsnNode() {
         MultiANewArrayInsnNode manan = new MultiANewArrayInsnNode("[[I", 2);
-        assertEquals(manan.getType(), AbstractInsnNode.MULTIANEWARRAY_INSN);
+        assertEquals(AbstractInsnNode.MULTIANEWARRAY_INSN, manan.getType());
     }
 }

@@ -41,6 +41,7 @@ import java.util.jar.JarInputStream;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodNode;
 
 /*
@@ -123,7 +124,7 @@ public class ASMMemTest {
                 List l = clazz.methods;
                 for (int k = 0, lim = l.size(); k < lim; k++) {
                     MethodNode m = (MethodNode) l.get(k);
-                    List insn = m.instructions;
+                    InsnList insn = m.instructions;
                     if (insn != null)
                         insn.clear();
                     /*

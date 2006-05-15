@@ -61,7 +61,6 @@ public class SimpleVerifierUnitTest extends TestCase implements Opcodes {
         a.analyze("C", mn);
         a.getFrames();
         a.getHandlers(0);
-        a.getIndex(mn.instructions.get(mn.instructions.size() - 1));
     }
 
     private void assertInvalid() {

@@ -41,7 +41,7 @@ import org.objectweb.asm.Type;
  * method. It may be used by inheriting from this class, but the preferred way
  * of using it is via delegation: the next visitor in the chain can indeed add
  * new locals when needed by calling {@link #newLocal} on this adapter (this
- * requires a reference back to this {@link LocalVariableSorter}).
+ * requires a reference back to this {@link LocalVariablesSorter}).
  * 
  * @author Chris Nokleberg
  * @author Eugene Kuleshov

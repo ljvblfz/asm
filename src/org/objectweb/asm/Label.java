@@ -78,6 +78,11 @@ public class Label {
     final static int REACHABLE = 64;
 
     /**
+     * Field used to associate user information to a label.
+     */
+    public Object info;
+    
+    /**
      * Flags that indicate the status of this label.
      * 
      * @see #DEBUG

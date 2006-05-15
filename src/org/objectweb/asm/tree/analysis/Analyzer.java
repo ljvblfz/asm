@@ -33,11 +33,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.FrameNode;
 import org.objectweb.asm.tree.IincInsnNode;
+import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
@@ -57,7 +56,7 @@ public class Analyzer implements Opcodes {
 
     private int n;
 
-    private IntMap indexes;
+    private InsnList insns;
 
     private List[] handlers;
 
@@ -99,7 +98,7 @@ public class Analyzer implements Opcodes {
             throws AnalyzerException
     {
         n = m.instructions.size();
-        indexes = new IntMap(2 * n);
+        insns = m.instructions;
         handlers = new List[n];
         frames = new Frame[n];
         subroutines = new Subroutine[n];
@@ -107,20 +106,11 @@ public class Analyzer implements Opcodes {
         queue = new int[n];
         top = 0;
 
-        // computes instruction indexes
-        for (int i = 0; i < n; ++i) {
-            Object insn = m.instructions.get(i);
-            if (insn instanceof LabelNode) {
-                insn = ((LabelNode) insn).label;
-            }
-            indexes.put(insn, i);
-        }
-
         // computes exception handlers for each instruction
         for (int i = 0; i < m.tryCatchBlocks.size(); ++i) {
             TryCatchBlockNode tcb = (TryCatchBlockNode) m.tryCatchBlocks.get(i);
-            int begin = indexes.get(tcb.start);
-            int end = indexes.get(tcb.end);
+            int begin = insns.indexOf(tcb.start);
+            int end = insns.indexOf(tcb.end);
             for (int j = begin; j < end; ++j) {
                 List insnHandlers = handlers[j];
                 if (insnHandlers == null) {
@@ -160,17 +150,17 @@ public class Analyzer implements Opcodes {
             queued[insn] = false;
 
             try {
-                Object o = m.instructions.get(insn);
+                AbstractInsnNode insnNode = m.instructions.get(insn);
+                int insnOpcode = insnNode.getOpcode();
+                int insnType = insnNode.getType();
                 jsr = false;
 
-                if (o instanceof LabelNode) {
+                if (insnType == AbstractInsnNode.LABEL
+                        || insnType == AbstractInsnNode.LINE
+                        || insnType == AbstractInsnNode.FRAME)
+                {
                     merge(insn + 1, f, subroutine);
-                } else if (o instanceof FrameNode) {
-                    continue;
                 } else {
-                    AbstractInsnNode insnNode = (AbstractInsnNode) o;
-                    int insnOpcode = insnNode.getOpcode();
-
                     current.init(f).execute(insnNode, interpreter);
                     subroutine = subroutine == null ? null : subroutine.copy();
 
@@ -181,36 +171,37 @@ public class Analyzer implements Opcodes {
                         }
                         if (insnOpcode == JSR) {
                             jsr = true;
-                            merge(indexes.get(j.label),
+                            merge(insns.indexOf(j.label),
                                     current,
                                     new Subroutine(j.label, m.maxLocals, j));
                         } else {
-                            merge(indexes.get(j.label), current, subroutine);
+                            merge(insns.indexOf(j.label), current, subroutine);
                         }
                     } else if (insnNode instanceof LookupSwitchInsnNode) {
                         LookupSwitchInsnNode lsi = (LookupSwitchInsnNode) insnNode;
-                        merge(indexes.get(lsi.dflt), current, subroutine);
+                        merge(insns.indexOf(lsi.dflt), current, subroutine);
                         for (int j = 0; j < lsi.labels.size(); ++j) {
-                            Label label = (Label) lsi.labels.get(j);
-                            merge(indexes.get(label), current, subroutine);
+                            LabelNode label = (LabelNode) lsi.labels.get(j);
+                            merge(insns.indexOf(label), current, subroutine);
                         }
                     } else if (insnNode instanceof TableSwitchInsnNode) {
                         TableSwitchInsnNode tsi = (TableSwitchInsnNode) insnNode;
-                        merge(indexes.get(tsi.dflt), current, subroutine);
+                        merge(insns.indexOf(tsi.dflt), current, subroutine);
                         for (int j = 0; j < tsi.labels.size(); ++j) {
-                            Label label = (Label) tsi.labels.get(j);
-                            merge(indexes.get(label), current, subroutine);
+                            LabelNode label = (LabelNode) tsi.labels.get(j);
+                            merge(insns.indexOf(label), current, subroutine);
                         }
                     } else if (insnOpcode == RET) {
                         if (subroutine == null) {
                             throw new AnalyzerException("RET instruction outside of a sub routine");
                         }
                         for (int i = 0; i < subroutine.callers.size(); ++i) {
-                            int caller = indexes.get(subroutine.callers.get(i));
-                            merge(caller + 1,
-                                    frames[caller],
+                            Object caller = subroutine.callers.get(i);
+                            int call = insns.indexOf((AbstractInsnNode) caller);
+                            merge(call + 1,
+                                    frames[call],
                                     current,
-                                    subroutines[caller],
+                                    subroutines[call],
                                     subroutine.access);
                         }
                     } else if (insnOpcode != ATHROW
@@ -248,7 +239,7 @@ public class Analyzer implements Opcodes {
                         handler.init(f);
                         handler.clearStack();
                         handler.push(interpreter.newValue(type));
-                        merge(indexes.get(tcb.handler), handler, subroutine);
+                        merge(insns.indexOf(tcb.handler), handler, subroutine);
                     }
                 }
             } catch (AnalyzerException e) {
@@ -273,18 +264,6 @@ public class Analyzer implements Opcodes {
      */
     public Frame[] getFrames() {
         return frames;
-    }
-
-    /**
-     * Returns the index of the given instruction.
-     * 
-     * @param insn a {@link Label} or {@link AbstractInsnNode} of the last
-     *        recently analyzed method.
-     * @return the index of the given instruction of the last recently analyzed
-     *         method.
-     */
-    public int getIndex(final Object insn) {
-        return indexes.get(insn);
     }
 
     /**

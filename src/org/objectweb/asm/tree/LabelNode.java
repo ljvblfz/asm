@@ -45,7 +45,7 @@ public class LabelNode extends AbstractInsnNode {
         super(-1);
     }
 
-    LabelNode(final Label label) {
+    public LabelNode(final Label label) {
         super(-1);
         this.label = label;
     }
@@ -54,7 +54,7 @@ public class LabelNode extends AbstractInsnNode {
         return LABEL;
     }
 
-    Label getLabel() {
+    public Label getLabel() {
         if (label == null) {
             label = new Label();
         }

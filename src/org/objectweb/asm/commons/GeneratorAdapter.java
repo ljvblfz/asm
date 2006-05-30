@@ -1414,6 +1414,7 @@ public class GeneratorAdapter extends LocalVariablesSorter {
         if ((access & Opcodes.ACC_ABSTRACT) == 0) {
             mv.visitMaxs(0, 0);
         }
+        mv.visitEnd();
     }
 
     /**

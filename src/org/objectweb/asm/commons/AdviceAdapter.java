@@ -83,6 +83,10 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         methodDesc = desc;
 
         constructor = "<init>".equals(name);
+    }
+    
+    public void visitCode() {
+        mv.visitCode();
         if (!constructor) {
             superInitialized = true;
             onMethodEnter();

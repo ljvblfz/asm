@@ -98,7 +98,17 @@ public class AnalyzerAdapter extends MethodAdapter {
      * the final, initialized type value.
      */
     private Map uninitializedTypes;
-
+    
+    /**
+     * The maximum stack size of this method.
+     */
+    private int maxStack;
+    
+    /**
+     * The maximum number of local variables of this method.
+     */
+    private int maxLocals;
+    
     /**
      * Creates a new {@link AnalyzerAdapter}.
      * 
@@ -184,6 +194,7 @@ public class AnalyzerAdapter extends MethodAdapter {
         }
         visitFrameTypes(nLocal, local, this.locals);
         visitFrameTypes(nStack, stack, this.stack);
+        maxStack = Math.max(maxStack, this.stack.size());
     }
 
     private void visitFrameTypes(
@@ -379,14 +390,24 @@ public class AnalyzerAdapter extends MethodAdapter {
         }
         execute(Opcodes.MULTIANEWARRAY, dims, desc);
     }
+    
+    public void visitMaxs(final int maxStack, final int maxLocals) {
+        if (mv != null) {
+            this.maxStack = Math.max(this.maxStack, maxStack);
+            this.maxLocals = Math.max(this.maxLocals, maxLocals);
+            mv.visitMaxs(this.maxStack, this.maxLocals);
+        }
+    }
 
     // ------------------------------------------------------------------------
 
     private Object get(final int local) {
+        maxLocals = Math.max(maxLocals, local);
         return local < locals.size() ? locals.get(local) : Opcodes.TOP;
     }
 
     private void set(final int local, final Object type) {
+        maxLocals = Math.max(maxLocals, local);
         while (local >= locals.size()) {
             locals.add(Opcodes.TOP);
         }
@@ -395,6 +416,7 @@ public class AnalyzerAdapter extends MethodAdapter {
 
     private void push(final Object type) {
         stack.add(type);
+        maxStack = Math.max(maxStack, stack.size());
     }
 
     private void pushDesc(final String desc) {

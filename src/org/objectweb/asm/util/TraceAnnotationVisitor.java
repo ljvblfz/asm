@@ -35,7 +35,7 @@ import org.objectweb.asm.Type;
 /**
  * An {@link AnnotationVisitor} that prints a disassembled view of the
  * annotations it visits.
- * 
+ *
  * @author Eric Bruneton
  */
 public class TraceAnnotationVisitor extends TraceAbstractVisitor implements
@@ -257,10 +257,6 @@ public class TraceAnnotationVisitor extends TraceAbstractVisitor implements
     // ------------------------------------------------------------------------
     // Utility methods
     // ------------------------------------------------------------------------
-
-    protected TraceAnnotationVisitor createTraceAnnotationVisitor() {
-        return new TraceAnnotationVisitor();
-    }
 
     private void appendComa(int i) {
         if (i != 0) {

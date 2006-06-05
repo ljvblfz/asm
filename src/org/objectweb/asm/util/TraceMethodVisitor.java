@@ -127,7 +127,7 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
 
     public AnnotationVisitor visitAnnotationDefault() {
         text.add(tab2 + "default=");
-        TraceAnnotationVisitor tav = new TraceAnnotationVisitor();
+        TraceAnnotationVisitor tav = createTraceAnnotationVisitor();
         text.add(tav.getText());
         text.add("\n");
         if (mv != null) {
@@ -146,7 +146,7 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
         appendDescriptor(FIELD_DESCRIPTOR, desc);
         buf.append('(');
         text.add(buf.toString());
-        TraceAnnotationVisitor tav = new TraceAnnotationVisitor();
+        TraceAnnotationVisitor tav = createTraceAnnotationVisitor();
         text.add(tav.getText());
         text.add(visible ? ") // parameter " : ") // invisible, parameter ");
         text.add(new Integer(parameter));

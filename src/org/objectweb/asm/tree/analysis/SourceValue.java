@@ -1,6 +1,6 @@
 /***
- * ASM tests
- * Copyright (c) 2002-2005 France Telecom
+ * ASM: a very small and fast Java bytecode manipulation framework
+ * Copyright (c) 2000-2005 INRIA, France Telecom
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,37 +29,64 @@
  */
 package org.objectweb.asm.tree.analysis;
 
-import java.util.List;
+import java.util.Set;
 
-import junit.framework.TestSuite;
-
-import org.objectweb.asm.AbstractTest;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.AbstractInsnNode;
 
 /**
- * DataflowInterpreter tests.
+ * A {@link Value} that is represented by its type in a two types type system.
+ * This type system distinguishes the ONEWORD and TWOWORDS types.
  * 
  * @author Eric Bruneton
  */
-public class DataflowTest extends AbstractTest {
+public class SourceValue implements Value {
 
-    public static TestSuite suite() throws Exception {
-        return new DataflowTest().getSuite();
+    /**
+     * The size of this value.
+     */
+    public final int size;
+
+    /**
+     * The instructions that can produce this value. For example, for the Java
+     * code below, the instructions that can produce the value of <tt>i</tt>
+     * at line 5 are the txo ISTORE instructions at line 1 and 3:
+     * 
+     * <pre>
+     * 1: i = 0;
+     * 2: if (...) {
+     * 3:   i = 1;
+     * 4: }
+     * 5: return i;
+     * </pre>
+     * 
+     * This field is a set of {@link AbstractInsnNode} objects.
+     */
+    public final Set insns;
+
+    public SourceValue(final int size) {
+        this(size, SmallSet.EMPTY_SET);
     }
 
-    public void test() throws Exception {
-        ClassReader cr = new ClassReader(is);
-        ClassNode cn = new ClassNode();
-        cr.accept(cn, 0);
-        List methods = cn.methods;
-        for (int i = 0; i < methods.size(); ++i) {
-            MethodNode method = (MethodNode) methods.get(i);
-            if (method.instructions.size() > 0) {
-                Analyzer a = new Analyzer(new DataflowInterpreter());
-                a.analyze(cn.name, method);
-            }
-        }
+    public SourceValue(final int size, final AbstractInsnNode insn) {
+        this.size = size;
+        this.insns = new SmallSet(insn, null);
+    }
+
+    public SourceValue(final int size, final Set insns) {
+        this.size = size;
+        this.insns = insns;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public boolean equals(final Object value) {
+        SourceValue v = (SourceValue) value;
+        return size == v.size && insns.equals(v.insns);
+    }
+
+    public int hashCode() {
+        return insns.hashCode();
     }
 }

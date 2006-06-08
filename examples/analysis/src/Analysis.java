@@ -41,8 +41,8 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.BasicVerifier;
-import org.objectweb.asm.tree.analysis.DataflowInterpreter;
-import org.objectweb.asm.tree.analysis.DataflowValue;
+import org.objectweb.asm.tree.analysis.SourceInterpreter;
+import org.objectweb.asm.tree.analysis.SourceValue;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.util.TraceMethodVisitor;
 
@@ -105,7 +105,7 @@ public class Analysis implements Opcodes {
      * (in the control flow graph).
      */
     public static boolean analyze(ClassNode c, MethodNode m) throws Exception {
-        Analyzer a = new Analyzer(new DataflowInterpreter());
+        Analyzer a = new Analyzer(new SourceInterpreter());
         Frame[] frames = a.analyze(c.name, m);
 
         // for each xLOAD instruction, we find the xSTORE instructions that can
@@ -121,7 +121,7 @@ public class Analysis implements Opcodes {
                         : ((VarInsnNode) insn).var);
                 Frame f = frames[i];
                 if (f != null) {
-                    Set s = ((DataflowValue) f.getLocal(var)).insns;
+                    Set s = ((SourceValue) f.getLocal(var)).insns;
                     Iterator j = s.iterator();
                     while (j.hasNext()) {
                         insn = j.next();

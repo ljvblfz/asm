@@ -1,6 +1,6 @@
 /***
- * ASM: a very small and fast Java bytecode manipulation framework
- * Copyright (c) 2000-2005 INRIA, France Telecom
+ * ASM tests
+ * Copyright (c) 2002-2005 France Telecom
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,64 +29,37 @@
  */
 package org.objectweb.asm.tree.analysis;
 
-import java.util.Set;
+import java.util.List;
 
-import org.objectweb.asm.tree.AbstractInsnNode;
+import junit.framework.TestSuite;
+
+import org.objectweb.asm.AbstractTest;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
 
 /**
- * A {@link Value} that is represented by its type in a two types type system.
- * This type system distinguishes the ONEWORD and TWOWORDS types.
+ * DataflowInterpreter tests.
  * 
  * @author Eric Bruneton
  */
-public class DataflowValue implements Value {
+public class SourceInterpreterTest extends AbstractTest {
 
-    /**
-     * The size of this value.
-     */
-    public final int size;
-
-    /**
-     * The instructions that can produce this value. For example, for the Java
-     * code below, the instructions that can produce the value of <tt>i</tt>
-     * at line 5 are the txo ISTORE instructions at line 1 and 3:
-     * 
-     * <pre>
-     * 1: i = 0;
-     * 2: if (...) {
-     * 3:   i = 1;
-     * 4: }
-     * 5: return i;
-     * </pre>
-     * 
-     * This field is a set of {@link AbstractInsnNode} objects.
-     */
-    public final Set insns;
-
-    public DataflowValue(final int size) {
-        this(size, SmallSet.EMPTY_SET);
+    public static TestSuite suite() throws Exception {
+        return new SourceInterpreterTest().getSuite();
     }
 
-    public DataflowValue(final int size, final AbstractInsnNode insn) {
-        this.size = size;
-        this.insns = new SmallSet(insn, null);
-    }
-
-    public DataflowValue(final int size, final Set insns) {
-        this.size = size;
-        this.insns = insns;
-    }
-
-    public int getSize() {
-        return size;
-    }
-
-    public boolean equals(final Object value) {
-        DataflowValue v = (DataflowValue) value;
-        return size == v.size && insns.equals(v.insns);
-    }
-
-    public int hashCode() {
-        return insns.hashCode();
+    public void test() throws Exception {
+        ClassReader cr = new ClassReader(is);
+        ClassNode cn = new ClassNode();
+        cr.accept(cn, 0);
+        List methods = cn.methods;
+        for (int i = 0; i < methods.size(); ++i) {
+            MethodNode method = (MethodNode) methods.get(i);
+            if (method.instructions.size() > 0) {
+                Analyzer a = new Analyzer(new SourceInterpreter());
+                a.analyze(cn.name, method);
+            }
+        }
     }
 }

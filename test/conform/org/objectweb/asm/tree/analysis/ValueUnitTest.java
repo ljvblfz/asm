@@ -47,6 +47,6 @@ public class ValueUnitTest extends TestCase {
     }
 
     public void testDataflowValue() {
-        new DataflowValue(1).hashCode();
+        new SourceValue(1).hashCode();
     }
 }

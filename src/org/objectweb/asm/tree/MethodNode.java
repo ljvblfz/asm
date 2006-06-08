@@ -458,10 +458,6 @@ public class MethodNode extends MemberNode implements MethodVisitor {
                 ((TryCatchBlockNode) tryCatchBlocks.get(i)).accept(mv);
             }
             // visits instructions
-            /*
-             * for (i = 0; i < instructions.size(); ++i) {
-             * instructions.get(i).accept(mv); }
-             */
             instructions.accept(mv);
             // visits local variables
             n = localVariables == null ? 0 : localVariables.size();

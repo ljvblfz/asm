@@ -57,9 +57,6 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
         return this.maxSize;
     }
 
-    /**
-     * u1 lrem opcode = 0x71 (113)
-     */
     public void visitInsn(final int opcode) {
         minSize += 1;
         maxSize += 1;
@@ -68,18 +65,11 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
         }
     }
 
-    /**
-     * u1 sipush opcode = 0x11 (17) s2 <n>
-     * 
-     * u1 bipush opcode = 0x10 (16) s1 <n>
-     * 
-     * u1 newarray opcode = 0xBC (188) u1 array-type (see below)
-     */
     public void visitIntInsn(final int opcode, final int operand) {
         if (opcode == SIPUSH) {
             minSize += 3;
             maxSize += 3;
-        } else { // BIPUSH and NEWARRAY:
+        } else {
             minSize += 2;
             maxSize += 2;
         }
@@ -88,49 +78,30 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
         }
     }
 
-    /**
-     * u1 iload_0 opcode = 0x1A (26) u1 iload_1 opcode = 0x1B (27) u1 iload_2
-     * opcode = 0x1C (28) u1 iload_3 opcode = 0x1D (29)
-     * 
-     * u1 iload opcode = 0x15 (21) u1 <varnum>
-     * 
-     * Wide format for this instruction, supports access to all local variables
-     * from 0 to 65535: u1 wide opcode = 0xC4 (196) u1 iload opcode = 0x15 (21)
-     * u2 <varnum>
-     */
     public void visitVarInsn(final int opcode, final int var) {
-        // TODO verify logic in MethodWriter
-        if (var >= 0 && var <= 3) {
+        if (var < 4 && opcode != Opcodes.RET) {
             minSize += 1;
             maxSize += 1;
-        } else if (var <= 255) {
-            minSize += 2;
-            maxSize += 2;
-        } else {
+        } else if (var >= 256) {
             minSize += 4;
             maxSize += 4;
+        } else {
+            minSize += 2;
+            maxSize += 2;
         }
         if (mv != null) {
             mv.visitVarInsn(opcode, var);
         }
     }
 
-    /**
-     * u1 new opcode = 0xBB (187) u2 index
-     * 
-     * ...
-     */
     public void visitTypeInsn(final int opcode, final String desc) {
-        minSize += 1 + 2;
-        maxSize += 1 + 2;
+        minSize += 3;
+        maxSize += 3;
         if (mv != null) {
             mv.visitTypeInsn(opcode, desc);
         }
     }
 
-    /**
-     * u1 getstatic opcode = 0xB2 (178) u2 index
-     */
     public void visitFieldInsn(
         final int opcode,
         final String owner,
@@ -144,16 +115,6 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
         }
     }
 
-    /**
-     * u1 invokeinterface opcode = 0xB9 (185) u2 index u1 <n> u1 0
-     * 
-     * u1 invokespecial opcode = 0xB7 (183) u2 index
-     * 
-     * u1 invokestatic opcode = 0xB8 (184) u2 index
-     * 
-     * u1 invokevirtual opcode = 0xB6 (182) u2 index
-     * 
-     */
     public void visitMethodInsn(
         final int opcode,
         final String owner,
@@ -161,120 +122,83 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
         final String desc)
     {
         if (opcode == INVOKEINTERFACE) {
-            minSize += 1 + 2 + 1 + 1;
-            maxSize += 1 + 2 + 1 + 1;
+            minSize += 5;
+            maxSize += 5;
         } else {
-            minSize += 1 + 2;
-            maxSize += 1 + 2;
+            minSize += 3;
+            maxSize += 3;
         }
         if (mv != null) {
             mv.visitMethodInsn(opcode, owner, name, desc);
         }
     }
 
-    /**
-     * u1 ifge opcode = 0x9C (156) s2 branchoffset
-     * 
-     * u1 goto opcode = 0xA7 (167) s2 branchoffset
-     * 
-     * u1 goto_w opcode = 0xC8 (200) s4 branchoffset
-     */
     public void visitJumpInsn(final int opcode, final Label label) {
-        // TODO size for regular IF* instructtion may not be accurate
         minSize += 3;
         if (opcode == GOTO || opcode == JSR) {
             maxSize += 5;
         } else {
-            maxSize += 3;
+            maxSize += 8;
         }
         if (mv != null) {
             mv.visitJumpInsn(opcode, label);
         }
     }
 
-    /**
-     * u1 ldc opcode = 0x12 (18) u1 index
-     * 
-     * u1 ldc2_w opcode = 0x14 (20) u2 index
-     * 
-     * u1 ldc_w opcode = 0x13 (19) u2 index
-     */
     public void visitLdcInsn(final Object cst) {
         if (cst instanceof Long || cst instanceof Double) {
-            // LDC2_W
             minSize += 3;
             maxSize += 3;
-
         } else {
             minSize += 2;
-            maxSize += 3; // LDC_W depends on constant pool sizes
+            maxSize += 3;
         }
         if (mv != null) {
             mv.visitLdcInsn(cst);
         }
     }
 
-    /**
-     * u1 iinc opcode = 0x84 (132) u1 <varnum> s1 <n>
-     * 
-     * Wide format for this instruction, which supports access to all local
-     * variables from 0 to 65535, and values of <n> between -32768 and 32767: u1
-     * wide opcode = 0xC4 (196) u1 iinc opcode = 0x84 (132) u2 <varnum> s2 <n>
-     */
     public void visitIincInsn(final int var, final int increment) {
-        if (var <= 255 && increment >= 0 && increment <= 255) {
+        if ((var > 255) || (increment > 127) || (increment < -128)) {
+            minSize += 6;
+            maxSize += 6;
+        } else {
             minSize += 3;
             maxSize += 3;
-        } else {
-            minSize += 5;
-            maxSize += 5;
         }
         if (mv != null) {
-            mv.visitIntInsn(var, increment);
+            mv.visitIincInsn(var, increment);
         }
     }
 
-    /**
-     * u1 tableswitch opcode = 0xAA (170) - ...0-3 bytes of padding ... s4
-     * default_offset s4 <low> s4 <low> + N - 1 s4 offset_1 s4 offset_2 ... ...
-     * s4 offset_N
-     */
     public void visitTableSwitchInsn(
         final int min,
         final int max,
         final Label dflt,
         final Label[] labels)
     {
-        minSize += 1 + 4 + 4 + 4 + (labels.length * 4);
-        maxSize += 1 + 4 + 4 + 4 + (labels.length * 4) + 3;
+        minSize += 13 + (labels.length * 4);
+        maxSize += 16 + (labels.length * 4);
         if (mv != null) {
             mv.visitTableSwitchInsn(min, max, dflt, labels);
         }
     }
 
-    /**
-     * u1 lookupswitch opcode = 0xAB (171) - ...0-3 bytes of padding ... s4
-     * default_offset s4 n s4 key_1 s4 offset_1 s4 key_2 s4 offset_2 ... ... s4
-     * key_n s4 offset_n
-     */
     public void visitLookupSwitchInsn(
         final Label dflt,
         final int[] keys,
         final Label[] labels)
     {
-        minSize += 1 + 4 + 4 + (keys.length * 8);
-        maxSize += 1 + 4 + 4 + (keys.length * 8) + 3;
+        minSize += 9 + (keys.length * 8);
+        maxSize += 12 + (keys.length * 8);
         if (mv != null) {
             mv.visitLookupSwitchInsn(dflt, keys, labels);
         }
     }
 
-    /**
-     * u1 multianewarray opcode = 0xC5 (197) u2 index u1 <n>
-     */
     public void visitMultiANewArrayInsn(final String desc, final int dims) {
-        minSize += 1 + 2 + 1;
-        maxSize += 1 + 2 + 1;
+        minSize += 4;
+        maxSize += 4;
         if (mv != null) {
             mv.visitMultiANewArrayInsn(desc, dims);
         }

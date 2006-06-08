@@ -1143,6 +1143,14 @@ class MethodWriter implements MethodVisitor {
                 .putShort(cw.newUTF8(name))
                 .putShort(cw.newUTF8(desc))
                 .putShort(index);
+        if (compute <= MAXS) {
+            // updates max locals
+            char c = desc.charAt(0);
+            int n = index + (c == 'L' || c == 'D' ? 2 : 1);
+            if (n > maxLocals) {
+                maxLocals = n;
+            }
+        }
     }
 
     public void visitLineNumber(final int line, final Label start) {

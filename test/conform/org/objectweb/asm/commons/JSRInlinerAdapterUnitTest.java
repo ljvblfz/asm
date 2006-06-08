@@ -134,7 +134,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
      * Tests a method which has the most basic <code>try{}finally</code> form
      * imaginable:
      * 
-     * <code>
+     * <pre>
      *   public void a() {
      *     int a = 0;
      *     try {
@@ -143,7 +143,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
      *       a--;
      *     }
      *   }
-     * </code>
+     * </pre>
      */
     public void testBasic() {
         {
@@ -227,12 +227,14 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             ASTORE(2);
             IINC(1, -1);
             GOTO(L3_1b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             // L3_2a: Second instantiation of subroutine:
             LABEL(L3_2a);
             ASTORE(2);
             IINC(1, -1);
             GOTO(L3_2b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             TRYCATCH(L0, L2, L2);
             TRYCATCH(L1, L4, L2);
@@ -244,7 +246,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
     }
 
     /**
-     * Tests a simple nested finally: <code>
+     * Tests a simple nested finally: <pre>
      * public void a1() {
      *   int a = 0;
      *   try {
@@ -257,7 +259,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
      *     }
      *   }
      * }
-     * </code>
+     * </pre>
      */
     public void testSimpleNestedFinally() {
         {
@@ -368,6 +370,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             GOTO(L4_2a);
             LABEL(L4_2b); // L4_2b
             ATHROW();
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             // L3_2a: Second instantiation of first subroutine:
             LABEL(L3_2a);
@@ -382,30 +385,35 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             GOTO(L4_4a);
             LABEL(L4_4b); // L4_4b
             ATHROW();
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             // L4_1a: First instantiation of second subroutine:
             LABEL(L4_1a);
             ASTORE(3);
             IINC(1, 3);
             GOTO(L4_1b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             // L4_2a: Second instantiation of second subroutine:
             LABEL(L4_2a);
             ASTORE(3);
             IINC(1, 3);
             GOTO(L4_2b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             // L4_3a: Third instantiation of second subroutine:
             LABEL(L4_3a);
             ASTORE(3);
             IINC(1, 3);
             GOTO(L4_3b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             // L4_4a: Fourth instantiation of second subroutine:
             LABEL(L4_4a);
             ASTORE(3);
             IINC(1, 3);
             GOTO(L4_4b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             TRYCATCH(L0, L2, L2);
             TRYCATCH(L3_1a, L5_1, L5_1);
@@ -425,7 +433,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
      * the while loop is infinite, it's clear from the byte code that the only
      * path which reaches the RETURN instruction is through the subroutine.
      * 
-     * <code>
+     * <pre>
      * public void a1() {
      *   int a = 0;
      *   while (true) {
@@ -437,7 +445,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
      *     }
      *   }
      * }
-     * </code>
+     * </pre>
      */
     public void testSubroutineWithNoRet() {
         {
@@ -513,6 +521,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             // L2: end of the loop... goes back to the top!
             LABEL(L2);
             GOTO(L0);
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             // L1_1a: first instantiation of subroutine ...
             LABEL(L1_1a);
@@ -521,7 +530,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             LABEL(L4_1);
             RETURN();
 
-            // L1_2a: first instantiation of subroutine ...
+            // L1_2a: second instantiation of subroutine ...
             LABEL(L1_2a);
             IINC(1, 2);
             GOTO(L4_2); // ...not that it does not return!
@@ -545,7 +554,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
      * The loop is not trivially infinite, so the RETURN statement is reachable
      * both from the JSR subroutine and from the main entry point.
      * 
-     * <code>
+     * <pre>
      * public void a1() {
      *   int a = 0;
      *   while (null == null) {
@@ -557,7 +566,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
      *     }
      *   }
      * }
-     * </code>
+     * </pre>
      */
     public void testImplicitExit() {
         {
@@ -654,11 +663,13 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             LABEL(L1_1a);
             IINC(1, 2);
             GOTO(L4); // ...note that it does not return!
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
-            // L1_2a: first instantiation of subroutine ...
+            // L1_2a: second instantiation of subroutine ...
             LABEL(L1_2a);
             IINC(1, 2);
             GOTO(L4); // ...note that it does not return!
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             TRYCATCH(L0, L3, L3);
 
@@ -672,22 +683,22 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
      * Tests a nested try/finally with implicit exit from one subroutine to the
      * other subroutine. Equivalent to the following java code:
      * 
-     * <code>
-     void m(boolean b) {
-     try {
-     return;
-     } finally {
-     while (b) {
-     try {
-     return;
-     } finally {
-     // NOTE --- this break avoids the second return above (weird)
-     if (b) break;
-     }
-     }
-     }
-     }
-     </code>
+     * <pre>
+     * void m(boolean b) {
+     *   try {
+     *     return;
+     *   } finally {
+     *     while (b) {
+     *       try {
+     *         return;
+     *       } finally {
+     *         // NOTE --- this break avoids the second return above (weird)
+     *         if (b) break;
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
      * 
      * This example is from the paper, "Subroutine Inlining and Bytecode
      * Abstraction to Simplify Static and Dynamic Analysis" by Cyrille Artho and
@@ -814,6 +825,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             LABEL(S1_2b);
             ALOAD(e1);
             ATHROW();
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             // --- First instantiation of first subroutine ---
 
@@ -847,7 +859,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             LABEL(X_1);
             GOTO(S1_1b);
 
-            // --- First instantiation of first subroutine ---
+            // --- Second instantiation of first subroutine ---
 
             // S1: first finally handler
             LABEL(S1_2a);
@@ -887,6 +899,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             ILOAD(b);
             IFNE(X_1);
             GOTO(S2_1_1b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             // S2_1_2a:
             LABEL(S2_1_2a);
@@ -894,6 +907,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             ILOAD(b);
             IFNE(X_1);
             GOTO(S2_1_2b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             // S2_2_1a:
             LABEL(S2_2_1a);
@@ -901,6 +915,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             ILOAD(b);
             IFNE(X_2);
             GOTO(S2_2_1b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             // S2_2_2a:
             LABEL(S2_2_2a);
@@ -908,6 +923,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             ILOAD(b);
             IFNE(X_2);
             GOTO(S2_2_2b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             TRYCATCH(T1, C1, C1);
             TRYCATCH(L_1, C2_1, C2_1); // duplicated try/finally for each...
@@ -993,6 +1009,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             GOTO(L2_2a);
             LABEL(L2_2b);
             RETURN();
+            LABEL(new Label()); // extra label emitted due to impl quirks
 
             // L1_1a: instantiation 1 of subroutine 1
             LABEL(L1_1a);
@@ -1021,6 +1038,410 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             GOTO(L3_4); // ...note that it does not return!
             LABEL(L3_4);
             RETURN();
+
+            END();
+        }
+
+        assertEquals(exp, jsr);
+    }
+
+    /**
+     * This tests a simple subroutine where the control flow jumps back
+     * and forth between the subroutine and the caller.
+     * 
+     * This would not normally be produced by a java compiler.
+     */
+    public void testInterleavedCode() {
+        {
+            Label L1 = new Label();
+            Label L2 = new Label();
+            Label L3 = new Label();
+            Label L4 = new Label();
+
+            setCurrent(jsr);
+            ICONST_0();
+            ASTORE(1);
+
+            // Invoke the subroutine, each twice:
+            JSR(L1);
+            GOTO(L2);
+
+            // L1: subroutine 1
+            LABEL(L1);
+            ASTORE(2);
+            IINC(1, 1);
+            GOTO(L3);
+
+            // L2: second part of main subroutine
+            LABEL(L2);
+            IINC(1, 2);
+            GOTO(L4);
+
+            // L3: second part of subroutine 1
+            LABEL(L3);
+            IINC(1,4);
+            RET(2);
+
+            // L4: third part of main subroutine
+            LABEL(L4);
+            JSR(L1);
+            RETURN();
+
+            END();
+        }
+
+        {
+            Label L1_1a = new Label();
+            Label L1_1b = new Label();
+            Label L1_2a = new Label();
+            Label L1_2b = new Label();
+            Label L2 = new Label();
+            Label L3_1 = new Label();
+            Label L3_2 = new Label();
+            Label L4 = new Label();
+
+            setCurrent(exp);
+
+            // Main routine:
+            ICONST_0();
+            ASTORE(1);
+            ACONST_NULL();
+            GOTO(L1_1a);
+            LABEL(L1_1b);
+            GOTO(L2);
+            LABEL(L2);
+            IINC(1, 2);
+            GOTO(L4);
+            LABEL(L4);
+            ACONST_NULL();
+            GOTO(L1_2a);
+            LABEL(L1_2b);
+            RETURN();
+
+            // L1_1: instantiation #1
+            LABEL(L1_1a);
+            ASTORE(2);
+            IINC(1, 1);
+            GOTO(L3_1);
+            LABEL(L3_1);
+            IINC(1,4);
+            GOTO(L1_1b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
+
+            // L1_2: instantiation #2
+            LABEL(L1_2a);
+            ASTORE(2);
+            IINC(1, 1);
+            GOTO(L3_2);
+            LABEL(L3_2);
+            IINC(1,4);
+            GOTO(L1_2b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
+
+            END();
+        }
+
+        assertEquals(exp, jsr);
+    }
+
+    /**
+     * Tests a nested try/finally with implicit exit from one
+     * subroutine to the other subroutine, and with a surrounding
+     * try/catch thrown in the mix.  Equivalent to the following java
+     * code:
+     * 
+     * <pre>
+     * void m(int b) {
+     *   try {
+     *     try {
+     *       return;
+     *     } finally {
+     *       while (b) {
+     *         try {
+     *           return;
+     *         } finally {
+     *           // NOTE --- this break avoids the second return above (weird)
+     *           if (b) break;
+     *         }
+     *       }
+     *     } 
+     *   } catch (Exception e) {
+     *     b += 3;
+     *     return;
+     *   }
+     * }
+     * </pre>
+     */
+    public void testImplicitExitInTryCatch() {
+        {
+            Label T1 = new Label();
+            Label C1 = new Label();
+            Label S1 = new Label();
+            Label L = new Label();
+            Label C2 = new Label();
+            Label S2 = new Label();
+            Label W = new Label();
+            Label X = new Label();
+            Label OT = new Label();
+            Label OC = new Label();
+
+            // variable numbers:
+            int b = 1;
+            int e1 = 2;
+            int e2 = 3;
+            int r1 = 4;
+            int r2 = 5;
+
+            setCurrent(jsr);
+
+            // OT: outermost try
+            LABEL(OT);
+
+            // T1: first try:
+            LABEL(T1);
+            JSR(S1);
+            RETURN();
+
+            // C1: exception handler for first try
+            LABEL(C1);
+            ASTORE(e1);
+            JSR(S1);
+            ALOAD(e1);
+            ATHROW();
+
+            // S1: first finally handler
+            LABEL(S1);
+            ASTORE(r1);
+            GOTO(W);
+
+            // L: body of while loop, also second try
+            LABEL(L);
+            JSR(S2);
+            RETURN();
+
+            // C2: exception handler for second try
+            LABEL(C2);
+            ASTORE(e2);
+            JSR(S2);
+            ALOAD(e2);
+            ATHROW();
+
+            // S2: second finally handler
+            LABEL(S2);
+            ASTORE(r2);
+            ILOAD(b);
+            IFNE(X);
+            RET(r2);
+
+            // W: test for the while loop
+            LABEL(W);
+            ILOAD(b);
+            IFNE(L); // falls through to X
+
+            // X: exit from finally{} block
+            LABEL(X);
+            RET(r1);
+
+            // OC: outermost catch
+            LABEL(OC);
+            IINC(b,3);
+            RETURN();
+
+            TRYCATCH(T1, C1, C1);
+            TRYCATCH(L, C2, C2);
+            TRYCATCH(OT, OC, OC);
+
+            END();
+        }
+
+        {
+            Label T1 = new Label();
+            Label C1 = new Label();
+            Label S1_1a = new Label();
+            Label S1_1b = new Label();
+            Label S1_2a = new Label();
+            Label S1_2b = new Label();
+            Label L_1 = new Label();
+            Label L_2 = new Label();
+            Label C2_1 = new Label();
+            Label C2_2 = new Label();
+            Label S2_1_1a = new Label();
+            Label S2_1_1b = new Label();
+            Label S2_1_2a = new Label();
+            Label S2_1_2b = new Label();
+            Label S2_2_1a = new Label();
+            Label S2_2_1b = new Label();
+            Label S2_2_2a = new Label();
+            Label S2_2_2b = new Label();
+            Label W_1 = new Label();
+            Label W_2 = new Label();
+            Label X_1 = new Label();
+            Label X_2 = new Label();
+            Label OT_1 = S1_1a;
+            Label OT_2 = S1_2a;
+            Label OT_1_1 = S2_1_1a;
+            Label OT_1_2 = S2_1_2a;
+            Label OT_2_1 = S2_2_1a;
+            Label OT_2_2 = S2_2_2a;
+            Label OC = new Label();
+            Label OC_1 = new Label();
+            Label OC_2 = new Label();
+            Label OC_1_1 = new Label();
+            Label OC_1_2 = new Label();
+            Label OC_2_1 = new Label();
+            Label OC_2_2 = new Label();
+
+            // variable numbers:
+            int b = 1;
+            int e1 = 2;
+            int e2 = 3;
+            int r1 = 4;
+            int r2 = 5;
+
+            setCurrent(exp);
+
+            // --- Main Subroutine ---
+
+            // T1: outermost try / first try:
+            LABEL(T1);
+            ACONST_NULL();
+            GOTO(S1_1a);
+            LABEL(S1_1b);
+            RETURN();
+
+            // C1: exception handler for first try
+            LABEL(C1);
+            ASTORE(e1);
+            ACONST_NULL();
+            GOTO(S1_2a);
+            LABEL(S1_2b);
+            ALOAD(e1);
+            ATHROW();
+
+            // OC: Outermost catch
+            LABEL(OC);
+            IINC(b,3);
+            RETURN();
+
+            // --- First instantiation of first subroutine ---
+
+            // S1: first finally handler
+            LABEL(S1_1a);
+            ASTORE(r1);
+            GOTO(W_1);
+
+            // L_1: body of while loop, also second try
+            LABEL(L_1);
+            ACONST_NULL();
+            GOTO(S2_1_1a);
+            LABEL(S2_1_1b);
+            RETURN();
+
+            // C2_1: exception handler for second try
+            LABEL(C2_1);
+            ASTORE(e2);
+            ACONST_NULL();
+            GOTO(S2_1_2a);
+            LABEL(S2_1_2b);
+            ALOAD(e2);
+            ATHROW();
+
+            // W_1: test for the while loop
+            LABEL(W_1);
+            ILOAD(b);
+            IFNE(L_1); // falls through to X_1
+
+            // X_1: exit from finally{} block
+            LABEL(X_1);
+            GOTO(S1_1b);
+
+            LABEL(OC_1);
+
+            // --- Second instantiation of first subroutine ---
+
+            // S1: first finally handler
+            LABEL(S1_2a);
+            ASTORE(r1);
+            GOTO(W_2);
+
+            // L_2: body of while loop, also second try
+            LABEL(L_2);
+            ACONST_NULL();
+            GOTO(S2_2_1a);
+            LABEL(S2_2_1b);
+            RETURN();
+
+            // C2_2: exception handler for second try
+            LABEL(C2_2);
+            ASTORE(e2);
+            ACONST_NULL();
+            GOTO(S2_2_2a);
+            LABEL(S2_2_2b);
+            ALOAD(e2);
+            ATHROW();
+
+            // W_2: test for the while loop
+            LABEL(W_2);
+            ILOAD(b);
+            IFNE(L_2); // falls through to X_2
+
+            // X_2: exit from finally{} block
+            LABEL(X_2);
+            GOTO(S1_2b);
+
+            LABEL(OC_2);
+
+            // --- Second subroutine's 4 instantiations ---
+
+            // S2_1_1a:
+            LABEL(S2_1_1a);
+            ASTORE(r2);
+            ILOAD(b);
+            IFNE(X_1);
+            GOTO(S2_1_1b);
+            LABEL(OC_1_1);
+
+            // S2_1_2a:
+            LABEL(S2_1_2a);
+            ASTORE(r2);
+            ILOAD(b);
+            IFNE(X_1);
+            GOTO(S2_1_2b);
+            LABEL(OC_1_2);
+
+            // S2_2_1a:
+            LABEL(S2_2_1a);
+            ASTORE(r2);
+            ILOAD(b);
+            IFNE(X_2);
+            GOTO(S2_2_1b);
+            LABEL(OC_2_1);
+
+            // S2_2_2a:
+            LABEL(S2_2_2a);
+            ASTORE(r2);
+            ILOAD(b);
+            IFNE(X_2);
+            GOTO(S2_2_2b);
+            LABEL(OC_2_2);
+
+            // main subroutine handlers:
+            TRYCATCH(T1, C1, C1);
+            TRYCATCH(T1, OC, OC);
+
+            // first instance of first sub try/catch handlers:
+            TRYCATCH(L_1, C2_1, C2_1);
+            TRYCATCH(OT_1, OC_1, OC); // note: reuses handler code from main sub
+
+            // second instance of first sub try/catch handlers:
+            TRYCATCH(L_2, C2_2, C2_2);
+            TRYCATCH(OT_2, OC_2, OC);
+
+            // all 4 instances of second sub:
+            TRYCATCH(OT_1_1, OC_1_1, OC);
+            TRYCATCH(OT_1_2, OC_1_2, OC);
+            TRYCATCH(OT_2_1, OC_2_1, OC);
+            TRYCATCH(OT_2_2, OC_2_2, OC);
 
             END();
         }

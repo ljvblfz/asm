@@ -384,8 +384,9 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
 
         // Fire "begin" events for all relevant rules
         Rule r = (Rule) RULES.match(match);
-        if (r != null)
+        if (r != null) {
             r.begin(name, list);
+        }
     }
 
     /**
@@ -409,8 +410,9 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
 
         // Fire "end" events for all relevant rules in reverse order
         Rule r = (Rule) RULES.match(match);
-        if (r != null)
+        if (r != null) {
             r.end(name);
+        }
 
         // Recover the previous match expression
         int slash = match.lastIndexOf('/');
@@ -645,44 +647,63 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
 
         protected final int getAccess(String s) {
             int access = 0;
-            if (s.indexOf("public") != -1)
+            if (s.indexOf("public") != -1) {
                 access |= Opcodes.ACC_PUBLIC;
-            if (s.indexOf("private") != -1)
+            }
+            if (s.indexOf("private") != -1) {
                 access |= Opcodes.ACC_PRIVATE;
-            if (s.indexOf("protected") != -1)
+            }
+            if (s.indexOf("protected") != -1) {
                 access |= Opcodes.ACC_PROTECTED;
-            if (s.indexOf("static") != -1)
+            }
+            if (s.indexOf("static") != -1) {
                 access |= Opcodes.ACC_STATIC;
-            if (s.indexOf("final") != -1)
+            }
+            if (s.indexOf("final") != -1) {
                 access |= Opcodes.ACC_FINAL;
-            if (s.indexOf("super") != -1)
+            }
+            if (s.indexOf("super") != -1) {
                 access |= Opcodes.ACC_SUPER;
-            if (s.indexOf("synchronized") != -1)
+            }
+            if (s.indexOf("synchronized") != -1) {
                 access |= Opcodes.ACC_SYNCHRONIZED;
-            if (s.indexOf("volatile") != -1)
+            }
+            if (s.indexOf("volatile") != -1) {
                 access |= Opcodes.ACC_VOLATILE;
-            if (s.indexOf("bridge") != -1)
+            }
+            if (s.indexOf("bridge") != -1) {
                 access |= Opcodes.ACC_BRIDGE;
-            if (s.indexOf("varargs") != -1)
+            }
+            if (s.indexOf("varargs") != -1) {
                 access |= Opcodes.ACC_VARARGS;
-            if (s.indexOf("transient") != -1)
+            }
+            if (s.indexOf("transient") != -1) {
                 access |= Opcodes.ACC_TRANSIENT;
-            if (s.indexOf("native") != -1)
+            }
+            if (s.indexOf("native") != -1) {
                 access |= Opcodes.ACC_NATIVE;
-            if (s.indexOf("interface") != -1)
+            }
+            if (s.indexOf("interface") != -1) {
                 access |= Opcodes.ACC_INTERFACE;
-            if (s.indexOf("abstract") != -1)
+            }
+            if (s.indexOf("abstract") != -1) {
                 access |= Opcodes.ACC_ABSTRACT;
-            if (s.indexOf("strict") != -1)
+            }
+            if (s.indexOf("strict") != -1) {
                 access |= Opcodes.ACC_STRICT;
-            if (s.indexOf("synthetic") != -1)
+            }
+            if (s.indexOf("synthetic") != -1) {
                 access |= Opcodes.ACC_SYNTHETIC;
-            if (s.indexOf("annotation") != -1)
+            }
+            if (s.indexOf("annotation") != -1) {
                 access |= Opcodes.ACC_ANNOTATION;
-            if (s.indexOf("enum") != -1)
+            }
+            if (s.indexOf("enum") != -1) {
                 access |= Opcodes.ACC_ENUM;
-            if (s.indexOf("deprecated") != -1)
+            }
+            if (s.indexOf("deprecated") != -1) {
                 access |= Opcodes.ACC_DEPRECATED;
+            }
             return access;
         }
     }

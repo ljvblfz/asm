@@ -252,8 +252,9 @@ class ClassInfo {
             ClassInfo[] tis = c.getInterfaces();
             for (int i = 0; i < tis.length; ++i) {
                 ClassInfo ti = tis[i];
-                if (ti.type.equals(that.type) || ti.implementsInterface(that))
+                if (ti.type.equals(that.type) || ti.implementsInterface(that)) {
                     return true;
+                }
             }
         }
         return false;
@@ -262,25 +263,30 @@ class ClassInfo {
     private boolean isSubclassOf(ClassInfo that) {
         for (ClassInfo c = this; c != null; c = c.getSuperclass()) {
             if (c.getSuperclass() != null
-                    && c.getSuperclass().type.equals(that.type))
+                    && c.getSuperclass().type.equals(that.type)) {
                 return true;
+            }
         }
         return false;
     }
 
     public boolean isAssignableFrom(ClassInfo that) {
-        if (this == that)
+        if (this == that) {
             return true;
+        }
 
-        if (that.isSubclassOf(this))
+        if (that.isSubclassOf(this)) {
             return true;
+        }
 
-        if (that.implementsInterface(this))
+        if (that.implementsInterface(this)) {
             return true;
+        }
 
         if (that.isInterface()
-                && this.getType().getDescriptor().equals("Ljava/lang/Object;"))
+                && this.getType().getDescriptor().equals("Ljava/lang/Object;")) {
             return true;
+        }
 
         return false;
     }

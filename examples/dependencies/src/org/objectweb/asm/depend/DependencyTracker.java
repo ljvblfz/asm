@@ -109,8 +109,9 @@ public class DependencyTracker {
         int max = 0;
         for (int i = 0; i < classNames.length; i++) {
             Map<String, Integer> map = globals.get(classNames[i]);
-            if (map == null)
+            if (map == null) {
                 continue;
+            }
             Integer maxCount = Collections.max(map.values());
             if (maxCount > max) {
                 max = maxCount;

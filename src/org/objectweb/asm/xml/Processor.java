@@ -137,8 +137,9 @@ public class Processor {
 
         TransformerFactory tf = TransformerFactory.newInstance();
         if (!tf.getFeature(SAXSource.FEATURE)
-                || !tf.getFeature(SAXResult.FEATURE))
+                || !tf.getFeature(SAXResult.FEATURE)) {
             return 0;
+        }
 
         SAXTransformerFactory saxtf = (SAXTransformerFactory) tf;
         Templates templates = null;
@@ -227,8 +228,9 @@ public class Processor {
     }
 
     private void copyEntry(InputStream is, OutputStream os) throws IOException {
-        if (outRepresentation == SINGLE_XML)
+        if (outRepresentation == SINGLE_XML) {
             return;
+        }
 
         byte[] buff = new byte[2048];
         int i;
@@ -622,8 +624,9 @@ public class Processor {
 
                 writeIdent();
                 w.write("<".concat(qName));
-                if (atts != null && atts.getLength() > 0)
+                if (atts != null && atts.getLength() > 0) {
                     writeAttributes(atts);
+                }
 
                 if (!optimizeEmptyElements) {
                     w.write(">\n");
@@ -946,8 +949,9 @@ public class Processor {
                         list);
             } else if (localName.equals(subdocumentRoot)) {
                 String name = list.getValue("name");
-                if (name == null || name.length() == 0)
+                if (name == null || name.length() == 0) {
                     throw new SAXException("Class element without name attribute.");
+                }
                 try {
                     entryElement.openEntry(isXml
                             ? name.concat(".class.xml")

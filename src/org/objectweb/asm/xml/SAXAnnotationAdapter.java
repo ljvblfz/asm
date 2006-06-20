@@ -76,20 +76,24 @@ public class SAXAnnotationAdapter extends SAXAdapter implements
         this.elementName = elementName;
 
         AttributesImpl att = new AttributesImpl();
-        if (name != null)
+        if (name != null) {
             att.addAttribute("", "name", "name", "", name);
-        if (visible != 0)
+        }
+        if (visible != 0) {
             att.addAttribute("", "visible", "visible", "", visible > 0
                     ? "true"
                     : "false");
-        if (parameter != -1)
+        }
+        if (parameter != -1) {
             att.addAttribute("",
                     "parameter",
                     "parameter",
                     "",
                     Integer.toString(parameter));
-        if (desc != null)
+        }
+        if (desc != null) {
             att.addAttribute("", "desc", "desc", "", desc);
+        }
 
         addStart(elementName, att);
     }
@@ -100,43 +104,51 @@ public class SAXAnnotationAdapter extends SAXAdapter implements
             AnnotationVisitor av = visitArray(name);
             if (value instanceof byte[]) {
                 byte[] b = (byte[]) value;
-                for (int i = 0; i < b.length; i++)
+                for (int i = 0; i < b.length; i++) {
                     av.visit(null, new Byte(b[i]));
+                }
 
             } else if (value instanceof char[]) {
                 char[] b = (char[]) value;
-                for (int i = 0; i < b.length; i++)
+                for (int i = 0; i < b.length; i++) {
                     av.visit(null, new Character(b[i]));
+                }
 
             } else if (value instanceof short[]) {
                 short[] b = (short[]) value;
-                for (int i = 0; i < b.length; i++)
+                for (int i = 0; i < b.length; i++) {
                     av.visit(null, new Short(b[i]));
+                }
 
             } else if (value instanceof boolean[]) {
                 boolean[] b = (boolean[]) value;
-                for (int i = 0; i < b.length; i++)
+                for (int i = 0; i < b.length; i++) {
                     av.visit(null, Boolean.valueOf(b[i]));
+                }
 
             } else if (value instanceof int[]) {
                 int[] b = (int[]) value;
-                for (int i = 0; i < b.length; i++)
+                for (int i = 0; i < b.length; i++) {
                     av.visit(null, new Integer(b[i]));
+                }
 
             } else if (value instanceof long[]) {
                 long[] b = (long[]) value;
-                for (int i = 0; i < b.length; i++)
+                for (int i = 0; i < b.length; i++) {
                     av.visit(null, new Long(b[i]));
+                }
 
             } else if (value instanceof float[]) {
                 float[] b = (float[]) value;
-                for (int i = 0; i < b.length; i++)
+                for (int i = 0; i < b.length; i++) {
                     av.visit(null, new Float(b[i]));
+                }
 
             } else if (value instanceof double[]) {
                 double[] b = (double[]) value;
-                for (int i = 0; i < b.length; i++)
+                for (int i = 0; i < b.length; i++) {
                     av.visit(null, new Double(b[i]));
+                }
 
             }
             av.visitEnd();
@@ -179,16 +191,19 @@ public class SAXAnnotationAdapter extends SAXAdapter implements
         String value)
     {
         AttributesImpl att = new AttributesImpl();
-        if (name != null)
+        if (name != null) {
             att.addAttribute("", "name", "name", "", name);
-        if (desc != null)
+        }
+        if (desc != null) {
             att.addAttribute("", "desc", "desc", "", desc);
-        if (value != null)
+        }
+        if (value != null) {
             att.addAttribute("",
                     "value",
                     "value",
                     "",
                     SAXClassAdapter.encode(value));
+        }
 
         addElement(element, att);
     }

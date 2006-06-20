@@ -482,8 +482,9 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
             // log(" try catch block new labels=" + start + "-" + end + "->" +
             // handler);
 
-            if (start == null || end == null || handler == null)
+            if (start == null || end == null || handler == null) {
                 throw new RuntimeException("Internal error!");
+            }
 
             newTryCatchBlocks.add(new TryCatchBlockNode(start,
                     end,

@@ -125,13 +125,9 @@ public class ASMMemTest {
                 for (int k = 0, lim = l.size(); k < lim; k++) {
                     MethodNode m = (MethodNode) l.get(k);
                     InsnList insn = m.instructions;
-                    if (insn != null)
+                    if (insn != null) {
                         insn.clear();
-                    /*
-                     * for (int ins = 0, insmax = insn.size(); ins < insmax;
-                     * ins++) { if (insn.get(ins) instanceof VarInsnNode) {
-                     * insn.set(ins, null); } }
-                     */
+                    }
                 }
             }
             memDown(runtime);

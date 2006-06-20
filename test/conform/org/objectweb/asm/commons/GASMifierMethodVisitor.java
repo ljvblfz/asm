@@ -723,12 +723,15 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         buf.setLength(0);
         declareLabel(label);
         if (opcode == GOTO || opcode == IFNULL || opcode == IFNONNULL) {
-            if (opcode == GOTO)
+            if (opcode == GOTO) {
                 buf.append("mg.goTo(");
-            if (opcode == IFNULL)
+            }
+            if (opcode == IFNULL) {
                 buf.append("mg.ifNull(");
-            if (opcode == IFNONNULL)
+            }
+            if (opcode == IFNONNULL) {
                 buf.append("mg.ifNonNull(");
+            }
             appendLabel(label);
             buf.append(");\n");
         } else if (opcode == IF_ICMPEQ) {
@@ -1010,24 +1013,33 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
     }
 
     static String getDescType(String desc) {
-        if (desc.equals("Z"))
+        if (desc.equals("Z")) {
             return "Type.BOOLEAN_TYPE";
-        if (desc.equals("B"))
+        }
+        if (desc.equals("B")) {
             return "Type.BYTE_TYPE";
-        if (desc.equals("C"))
+        }
+        if (desc.equals("C")) {
             return "Type.CHAR_TYPE";
-        if (desc.equals("D"))
+        }
+        if (desc.equals("D")) {
             return "Type.DOUBLE_TYPE";
-        if (desc.equals("F"))
+        }
+        if (desc.equals("F")) {
             return "Type.FLOAT_TYPE";
-        if (desc.equals("I"))
+        }
+        if (desc.equals("I")) {
             return "Type.INT_TYPE";
-        if (desc.equals("J"))
+        }
+        if (desc.equals("J")) {
             return "Type.LONG_TYPE";
-        if (desc.equals("S"))
+        }
+        if (desc.equals("S")) {
             return "Type.SHORT_TYPE";
-        if (desc.equals("V"))
+        }
+        if (desc.equals("V")) {
             return "Type.VOID_TYPE";
+        }
         return "Type.getType(\"" + desc + "\")";
     }
 
@@ -1039,8 +1051,9 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         buf.append(rt.getClassName()).append(" ");
         buf.append(name).append("(");
         for (int i = 0; i < argt.length; ++i) {
-            if (i > 0)
+            if (i > 0) {
                 buf.append(',');
+            }
             buf.append(argt[i].getClassName());
         }
         buf.append(")\")");

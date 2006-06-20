@@ -115,8 +115,9 @@ public class DependencyVisitor implements
         } else {
             addTypeSignature(signature);
         }
-        if (value instanceof Type)
+        if (value instanceof Type) {
             addType((Type) value);
+        }
         return this;
     }
 
@@ -166,10 +167,11 @@ public class DependencyVisitor implements
     }
 
     public void visitTypeInsn(int opcode, String desc) {
-        if (desc.charAt(0) == '[')
+        if (desc.charAt(0) == '[') {
             addDesc(desc);
-        else
+        } else {
             addName(desc);
+        }
     }
 
     public void visitFieldInsn(
@@ -193,8 +195,9 @@ public class DependencyVisitor implements
     }
 
     public void visitLdcInsn(Object cst) {
-        if (cst instanceof Type)
+        if (cst instanceof Type) {
             addType((Type) cst);
+        }
     }
 
     public void visitMultiANewArrayInsn(String desc, int dims) {
@@ -275,8 +278,9 @@ public class DependencyVisitor implements
     // AnnotationVisitor
 
     public void visit(String name, Object value) {
-        if (value instanceof Type)
+        if (value instanceof Type) {
             addType((Type) value);
+        }
     }
 
     public void visitEnum(String name, String desc, String value) {
@@ -360,15 +364,17 @@ public class DependencyVisitor implements
 
     private String getGroupKey(String name) {
         int n = name.lastIndexOf('/');
-        if (n > -1)
+        if (n > -1) {
             name = name.substring(0, n);
+        }
         packages.add(name);
         return name;
     }
 
     private void addName(String name) {
-        if (name == null)
+        if (name == null) {
             return;
+        }
         String p = getGroupKey(name);
         if (current.containsKey(p)) {
             current.put(p, current.get(p) + 1);
@@ -378,8 +384,9 @@ public class DependencyVisitor implements
     }
 
     private void addNames(String[] names) {
-        for (int i = 0; names != null && i < names.length; i++)
+        for (int i = 0; names != null && i < names.length; i++) {
             addName(names[i]);
+        }
     }
 
     private void addDesc(String desc) {
@@ -389,8 +396,9 @@ public class DependencyVisitor implements
     private void addMethodDesc(String desc) {
         addType(Type.getReturnType(desc));
         Type[] types = Type.getArgumentTypes(desc);
-        for (int i = 0; i < types.length; i++)
+        for (int i = 0; i < types.length; i++) {
             addType(types[i]);
+        }
     }
 
     private void addType(Type t) {
@@ -405,12 +413,14 @@ public class DependencyVisitor implements
     }
 
     private void addSignature(String signature) {
-        if (signature != null)
+        if (signature != null) {
             new SignatureReader(signature).accept(this);
+        }
     }
 
     private void addTypeSignature(String signature) {
-        if (signature != null)
+        if (signature != null) {
             new SignatureReader(signature).acceptType(this);
+        }
     }
 }

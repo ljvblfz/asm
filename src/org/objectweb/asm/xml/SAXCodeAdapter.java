@@ -273,8 +273,9 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
         attrs.addAttribute("", "start", "start", "", getLabel(start));
         attrs.addAttribute("", "end", "end", "", getLabel(end));
         attrs.addAttribute("", "handler", "handler", "", getLabel(handler));
-        if (type != null)
+        if (type != null) {
             attrs.addAttribute("", "type", "type", "", type);
+        }
         addElement("TryCatch", attrs);
     }
 
@@ -306,12 +307,13 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
         AttributesImpl attrs = new AttributesImpl();
         attrs.addAttribute("", "name", "name", "", name);
         attrs.addAttribute("", "desc", "desc", "", desc);
-        if (signature != null)
+        if (signature != null) {
             attrs.addAttribute("",
                     "signature",
                     "signature",
                     "",
                     SAXClassAdapter.encode(signature));
+        }
         attrs.addAttribute("", "start", "start", "", getLabel(start));
         attrs.addAttribute("", "end", "end", "", getLabel(end));
         attrs.addAttribute("", "var", "var", "", Integer.toString(index));

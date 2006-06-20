@@ -85,10 +85,12 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
 
     public void visitSource(String source, String debug) {
         AttributesImpl att = new AttributesImpl();
-        if (source != null)
+        if (source != null) {
             att.addAttribute("", "file", "file", "", encode(source));
-        if (debug != null)
+        }
+        if (debug != null) {
             att.addAttribute("", "debug", "debug", "", encode(debug));
+        }
 
         addElement("source", att);
     }
@@ -96,10 +98,12 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
     public void visitOuterClass(String owner, String name, String desc) {
         AttributesImpl att = new AttributesImpl();
         att.addAttribute("", "owner", "owner", "", owner);
-        if (name != null)
+        if (name != null) {
             att.addAttribute("", "name", "name", "", name);
-        if (desc != null)
+        }
+        if (desc != null) {
             att.addAttribute("", "desc", "desc", "", desc);
+        }
 
         addElement("outerclass", att);
     }
@@ -129,16 +133,19 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
 
         AttributesImpl att = new AttributesImpl();
         att.addAttribute("", "access", "access", "", sb.toString());
-        if (name != null)
+        if (name != null) {
             att.addAttribute("", "name", "name", "", name);
-        if (signature != null)
+        }
+        if (signature != null) {
             att.addAttribute("",
                     "signature",
                     "signature",
                     "",
                     encode(signature));
-        if (superName != null)
+        }
+        if (superName != null) {
             att.addAttribute("", "parent", "parent", "", superName);
+        }
         att.addAttribute("",
                 "major",
                 "major",
@@ -176,12 +183,13 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
         att.addAttribute("", "access", "access", "", sb.toString());
         att.addAttribute("", "name", "name", "", name);
         att.addAttribute("", "desc", "desc", "", desc);
-        if (signature != null)
+        if (signature != null) {
             att.addAttribute("",
                     "signature",
                     "signature",
                     "",
                     encode(signature));
+        }
         if (value != null) {
             att.addAttribute("", "value", "value", "", encode(value.toString()));
         }
@@ -232,12 +240,15 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
 
         AttributesImpl att = new AttributesImpl();
         att.addAttribute("", "access", "access", "", sb.toString());
-        if (name != null)
+        if (name != null) {
             att.addAttribute("", "name", "name", "", name);
-        if (outerName != null)
+        }
+        if (outerName != null) {
             att.addAttribute("", "outerName", "outerName", "", outerName);
-        if (innerName != null)
+        }
+        if (innerName != null) {
             att.addAttribute("", "innerName", "innerName", "", innerName);
+        }
         addElement("innerclass", att);
     }
 
@@ -272,46 +283,65 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
     }
 
     static void appendAccess(int access, StringBuffer sb) {
-        if ((access & Opcodes.ACC_PUBLIC) != 0)
+        if ((access & Opcodes.ACC_PUBLIC) != 0) {
             sb.append("public ");
-        if ((access & Opcodes.ACC_PRIVATE) != 0)
+        }
+        if ((access & Opcodes.ACC_PRIVATE) != 0) {
             sb.append("private ");
-        if ((access & Opcodes.ACC_PROTECTED) != 0)
+        }
+        if ((access & Opcodes.ACC_PROTECTED) != 0) {
             sb.append("protected ");
-        if ((access & Opcodes.ACC_FINAL) != 0)
+        }
+        if ((access & Opcodes.ACC_FINAL) != 0) {
             sb.append("final ");
-        if ((access & Opcodes.ACC_STATIC) != 0)
+        }
+        if ((access & Opcodes.ACC_STATIC) != 0) {
             sb.append("static ");
-        if ((access & Opcodes.ACC_SUPER) != 0)
-            if ((access & ACCESS_CLASS) != 0)
+        }
+        if ((access & Opcodes.ACC_SUPER) != 0) {
+            if ((access & ACCESS_CLASS) != 0) {
                 sb.append("super ");
-            else
+            } else {
                 sb.append("synchronized ");
-        if ((access & Opcodes.ACC_VOLATILE) != 0)
-            if ((access & ACCESS_FIELD) != 0)
+            }
+        }
+        if ((access & Opcodes.ACC_VOLATILE) != 0) {
+            if ((access & ACCESS_FIELD) != 0) {
                 sb.append("volatile ");
-            else
+            } else {
                 sb.append("bridge ");
-        if ((access & Opcodes.ACC_TRANSIENT) != 0)
-            if ((access & ACCESS_FIELD) != 0)
+            }
+        }
+        if ((access & Opcodes.ACC_TRANSIENT) != 0) {
+            if ((access & ACCESS_FIELD) != 0) {
                 sb.append("transient ");
-            else
+            } else {
                 sb.append("varargs ");
-        if ((access & Opcodes.ACC_NATIVE) != 0)
+            }
+        }
+        if ((access & Opcodes.ACC_NATIVE) != 0) {
             sb.append("native ");
-        if ((access & Opcodes.ACC_STRICT) != 0)
+        }
+        if ((access & Opcodes.ACC_STRICT) != 0) {
             sb.append("strict ");
-        if ((access & Opcodes.ACC_INTERFACE) != 0)
+        }
+        if ((access & Opcodes.ACC_INTERFACE) != 0) {
             sb.append("interface ");
-        if ((access & Opcodes.ACC_ABSTRACT) != 0)
+        }
+        if ((access & Opcodes.ACC_ABSTRACT) != 0) {
             sb.append("abstract ");
-        if ((access & Opcodes.ACC_SYNTHETIC) != 0)
+        }
+        if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
             sb.append("synthetic ");
-        if ((access & Opcodes.ACC_ANNOTATION) != 0)
+        }
+        if ((access & Opcodes.ACC_ANNOTATION) != 0) {
             sb.append("annotation ");
-        if ((access & Opcodes.ACC_ENUM) != 0)
+        }
+        if ((access & Opcodes.ACC_ENUM) != 0) {
             sb.append("enum ");
-        if ((access & Opcodes.ACC_DEPRECATED) != 0)
+        }
+        if ((access & Opcodes.ACC_DEPRECATED) != 0) {
             sb.append("deprecated ");
+        }
     }
 }

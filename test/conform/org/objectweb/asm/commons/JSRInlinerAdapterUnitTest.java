@@ -125,6 +125,22 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
         this.current.visitTryCatchBlock(start, end, handler, null);
     }
 
+    private void LINE(
+        final int line, final Label start)
+    {
+        this.current.visitLineNumber(line, start);
+    }
+
+    private void LOCALVAR(
+        final String name,
+        final String desc,
+        final int index,
+        final Label start,
+        final Label end)
+    {
+        this.current.visitLocalVariable(name, desc, null, start, end, index);
+    }
+
     private void END() {
         this.current.visitEnd();
         this.current = null;
@@ -238,6 +254,147 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
 
             TRYCATCH(L0, L2, L2);
             TRYCATCH(L1, L4, L2);
+
+            END();
+        }
+
+        assertEquals(exp, jsr);
+    }
+
+    /**
+     * Tests a method which has an if/else-if w/in the finally clause:
+     * 
+     * <pre>
+     *   public void a() {
+     *     int a = 0;
+     *     try {
+     *       a++;
+     *     } finally {
+     *       if (a == 0)
+     *         a+=2;
+     *       else
+     *         a+=3;
+     *     }
+     *   }
+     * </pre>
+     */
+    public void testIfElseInFinally() {
+        {
+            Label L0 = new Label();
+            Label L1 = new Label();
+            Label L2 = new Label();
+            Label L3 = new Label();
+            Label L4 = new Label();
+            Label L5 = new Label();
+            Label L6 = new Label();
+
+            setCurrent(jsr);
+            ICONST_0();
+            ISTORE(1);
+
+            /* L0: body of try block */
+            LABEL(L0);
+            IINC(1, 1);
+            GOTO(L1);
+
+            /* L2: exception handler */
+            LABEL(L2);
+            ASTORE(3);
+            JSR(L3);
+            ALOAD(3);
+            ATHROW();
+
+            /* L3: subroutine */
+            LABEL(L3);
+            ASTORE(2);
+            ILOAD(1);
+            IFNE(L4);
+            IINC(1, 2);
+            GOTO(L5);
+            LABEL(L4); // L4: a != 0
+            IINC(1,3); 
+            LABEL(L5); // L5: common exit
+            RET(2);
+
+            /* L1: non-exceptional exit from try block */
+            LABEL(L1);
+            JSR(L3);
+            LABEL(L6); // L6 is used in the TRYCATCH below
+            RETURN();
+
+            TRYCATCH(L0, L2, L2);
+            TRYCATCH(L1, L6, L2);
+
+            END();
+        }
+
+        {
+            Label L0 = new Label();
+            Label L1 = new Label();
+            Label L2 = new Label();
+            Label L3_1a = new Label();
+            Label L3_1b = new Label();
+            Label L3_2a = new Label();
+            Label L3_2b = new Label();
+            Label L4_1 = new Label();
+            Label L4_2 = new Label();
+            Label L5_1 = new Label();
+            Label L5_2 = new Label();
+            Label L6 = new Label();
+
+            setCurrent(exp);
+            ICONST_0();
+            ISTORE(1);
+            // L0: try/catch block
+            LABEL(L0);
+            IINC(1, 1);
+            GOTO(L1);
+
+            // L2: Exception handler:
+            LABEL(L2);
+            ASTORE(3);
+            ACONST_NULL();
+            GOTO(L3_1a);
+            LABEL(L3_1b); // L3_1b;
+            ALOAD(3);
+            ATHROW();
+
+            // L1: On non-exceptional exit, try block leads here:
+            LABEL(L1);
+            ACONST_NULL();
+            GOTO(L3_2a);
+            LABEL(L3_2b); // L3_2b
+            LABEL(L6); // L6
+            RETURN();
+
+            // L3_1a: First instantiation of subroutine:
+            LABEL(L3_1a);
+            ASTORE(2);
+            ILOAD(1);
+            IFNE(L4_1);
+            IINC(1, 2);
+            GOTO(L5_1);
+            LABEL(L4_1); // L4_1: a != 0
+            IINC(1,3); 
+            LABEL(L5_1); // L5_1: common exit
+            GOTO(L3_1b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
+
+            // L3_2a: First instantiation of subroutine:
+            LABEL(L3_2a);
+            ASTORE(2);
+            ILOAD(1);
+            IFNE(L4_2);
+            IINC(1, 2);
+            GOTO(L5_2);
+            LABEL(L4_2); // L4_2: a != 0
+            IINC(1,3); 
+            LABEL(L5_2); // L5_2: common exit
+            GOTO(L3_2b);
+            LABEL(new Label()); // extra label emitted due to impl quirks
+
+            TRYCATCH(L0, L2, L2);
+            TRYCATCH(L1, L6, L2);
 
             END();
         }
@@ -1442,6 +1599,138 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             TRYCATCH(OT_1_2, OC_1_2, OC);
             TRYCATCH(OT_2_1, OC_2_1, OC);
             TRYCATCH(OT_2_2, OC_2_2, OC);
+
+            END();
+        }
+
+        assertEquals(exp, jsr);
+    }
+
+    /**
+     * Tests a method which has line numbers and local variable declarations.
+     * 
+     * <pre>
+     *   public void a() {
+     * 1    int a = 0;
+     * 2    try {
+     * 3      a++;
+     * 4    } finally {
+     * 5      a--;
+     * 6    }
+     *   }
+     *   LV "a" from 1 to 6
+     * </pre>
+     */
+    public void testBasicLineNumberAndLocalVars() {
+        {
+            Label LM1 = new Label();
+            Label L0 = new Label();
+            Label L1 = new Label();
+            Label L2 = new Label();
+            Label L3 = new Label();
+            Label L4 = new Label();
+
+            setCurrent(jsr);
+            LABEL(LM1);
+            LINE(1,LM1);
+            ICONST_0();
+            ISTORE(1);
+
+            /* L0: body of try block */
+            LABEL(L0);
+            LINE(3,L0);
+            IINC(1, 1);
+            GOTO(L1);
+
+            /* L2: exception handler */
+            LABEL(L2);
+            ASTORE(3);
+            JSR(L3);
+            ALOAD(3);
+            ATHROW();
+
+            /* L3: subroutine */
+            LABEL(L3);
+            LINE(5,L3);
+            ASTORE(2);
+            IINC(1, -1);
+            RET(2);
+
+            /* L1: non-exceptional exit from try block */
+            LABEL(L1);
+            JSR(L3);
+            LABEL(L4); // L4
+            RETURN();
+
+            TRYCATCH(L0, L2, L2);
+            TRYCATCH(L1, L4, L2);
+            LOCALVAR("a", "I", 1, LM1, L4);
+
+            END();
+        }
+
+        {
+            Label LM1 = new Label();
+            Label L0 = new Label();
+            Label L1 = new Label();
+            Label L2 = new Label();
+            Label L3_1a = new Label();
+            Label L3_1b = new Label();
+            Label L3_1c = new Label();
+            Label L3_2a = new Label();
+            Label L3_2b = new Label();
+            Label L3_2c = new Label();
+            Label L4 = new Label();
+
+            setCurrent(exp);
+            LABEL(LM1);
+            LINE(1,LM1);
+            ICONST_0();
+            ISTORE(1);
+            // L0: try/catch block
+            LABEL(L0);
+            LINE(3, L0);
+            IINC(1, 1);
+            GOTO(L1);
+
+            // L2: Exception handler:
+            LABEL(L2);
+            ASTORE(3);
+            ACONST_NULL();
+            GOTO(L3_1a);
+            LABEL(L3_1b); // L3_1b;
+            ALOAD(3);
+            ATHROW();
+
+            // L1: On non-exceptional exit, try block leads here:
+            LABEL(L1);
+            ACONST_NULL();
+            GOTO(L3_2a);
+            LABEL(L3_2b); // L3_2b
+            LABEL(L4); // L4
+            RETURN();
+
+            // L3_1a: First instantiation of subroutine:
+            LABEL(L3_1a);
+            LINE(5, L3_1a);
+            ASTORE(2);
+            IINC(1, -1);
+            GOTO(L3_1b);
+            LABEL(L3_1c);
+
+            // L3_2a: Second instantiation of subroutine:
+            LABEL(L3_2a);
+            LINE(5, L3_2a);
+            ASTORE(2);
+            IINC(1, -1);
+            GOTO(L3_2b);
+            LABEL(L3_2c);
+
+            TRYCATCH(L0, L2, L2);
+            TRYCATCH(L1, L4, L2);
+            LOCALVAR("a", "I", 1, LM1, L4);
+            LOCALVAR("a", "I", 1, L3_1a, L3_1c);
+            LOCALVAR("a", "I", 1, L3_2a, L3_2c);
 
             END();
         }

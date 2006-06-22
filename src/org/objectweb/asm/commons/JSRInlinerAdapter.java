@@ -53,6 +53,7 @@ import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
 import org.objectweb.asm.tree.TryCatchBlockNode;
+import org.objectweb.asm.tree.LocalVariableNode;
 
 /**
  * A {@link MethodAdapter} that removes JSR instructions and inlines the
@@ -63,6 +64,8 @@ import org.objectweb.asm.tree.TryCatchBlockNode;
  * @author Niko Matsakis
  */
 public class JSRInlinerAdapter extends MethodNode implements Opcodes {
+
+    private final static boolean LOGGING = false;
 
     /**
      * The visitor to which we will emit a translation of this method without
@@ -144,12 +147,18 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
      */
     public void visitEnd() {
         if (seenJSR) {
-            // log("started w/ method:" + this.name);
+            if (LOGGING) {
+                log("started w/ method:" + this.name);
+            }
             populateSubroutineHeads();
             markSubroutines();
-            // logSource();
+            if (LOGGING) {
+                logSource();
+            }
             emitCode();
-            // log("finished w/ method:" + this.name);
+            if (LOGGING) {
+                log("finished w/ method:" + this.name);
+            }
         }
 
         // Forward the translate opcodes on if appropriate:
@@ -215,7 +224,9 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
         final int index,
         final BitSet anyvisited)
     {
-        // log("markSubroutineWalk: sub=" + sub + " index=" + index);
+        if (LOGGING) {
+            log("markSubroutineWalk: sub=" + sub + " index=" + index);
+        }
 
         // First find those instructions reachable via normal execution
         markSubroutineWalkDFS(sub, index, anyvisited);
@@ -227,7 +238,9 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
             for (Iterator it = tryCatchBlocks.iterator(); it.hasNext();) {
                 TryCatchBlockNode trycatch = (TryCatchBlockNode) it.next();
 
-                // log("Scanning try/catch " + trycatch);
+                if (LOGGING) {
+                    log("Scanning try/catch " + trycatch);
+                }
 
                 // If the handler has already been processed, skip it.
                 int handlerindex = instructions.indexOf(trycatch.handler);
@@ -239,9 +252,11 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
                 int endindex = instructions.indexOf(trycatch.end);
                 int nextbit = sub.instructions.nextSetBit(startindex);
                 if (nextbit != -1 && nextbit < endindex) {
-                    // log("Adding exception handler: " + startindex + "-"
-                    // + endindex + " due to " + nextbit + " handler "
-                    // + handlerindex);
+                    if (LOGGING) {
+                        log("Adding exception handler: " + startindex + "-"
+                                + endindex + " due to " + nextbit + " handler "
+                                + handlerindex);
+                    }
                     markSubroutineWalkDFS(sub, handlerindex, anyvisited);
                     loop = true;
                 }
@@ -275,7 +290,9 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
             // check for those nodes already visited by another subroutine
             if (anyvisited.get(index)) {
                 dualCitizens.set(index);
-                // log("Instruction #" + index + " is dual citizen.");
+                if (LOGGING) {
+                    log("Instruction #" + index + " is dual citizen.");
+                }
             }
             anyvisited.set(index);
 
@@ -350,12 +367,18 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
         // main subroutine
         InsnList newInstructions = new InsnList();
         List newTryCatchBlocks = new ArrayList();
+        List newLocalVariables = new ArrayList();
         while (!worklist.isEmpty()) {
             Instantiation inst = (Instantiation) worklist.removeFirst();
-            emitSubroutine(inst, worklist, newInstructions, newTryCatchBlocks);
+            emitSubroutine(inst,
+                    worklist,
+                    newInstructions,
+                    newTryCatchBlocks,
+                    newLocalVariables);
         }
         instructions = newInstructions;
         tryCatchBlocks = newTryCatchBlocks;
+        localVariables = newLocalVariables;
     }
 
     /**
@@ -373,12 +396,15 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
         final Instantiation instant,
         final List worklist,
         final InsnList newInstructions,
-        final List newTryCatchBlocks)
+        final List newTryCatchBlocks,
+        final List newLocalVariables)
     {
         LabelNode duplbl = null;
 
-        // log("--------------------------------------------------------");
-        // log("Emitting instantiation of subroutine " + instant.subroutine);
+        if (LOGGING) {
+            log("--------------------------------------------------------");
+            log("Emitting instantiation of subroutine " + instant.subroutine);
+        }
 
         // Emit the relevant instructions for this instantiation, translating
         // labels and jump targets as we go:
@@ -394,7 +420,9 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
                 // and the rangeTable will always agree.
                 LabelNode ilbl = (LabelNode) insn;
                 LabelNode remap = instant.rangeLabel(ilbl);
-                // log("Translating lbl #" + i + ":" + ilbl + " to " + remap);
+                if (LOGGING) {
+                    log("Translating lbl #" + i + ":" + ilbl + " to " + remap);
+                }
                 if (remap != duplbl) {
                     newInstructions.add(remap);
                     duplbl = remap;
@@ -411,7 +439,9 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
                 continue;
             }
 
-            // log("Emitting inst #" + i + ":" + log(insn));
+            if (LOGGING) {
+                log("Emitting inst #" + i + ":" + insnDesc(insn));
+            }
 
             if (insn.getOpcode() == RET) {
                 // Translate RET instruction(s) to a jump to the return label
@@ -442,7 +472,9 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
                 Instantiation newinst = new Instantiation(instant, sub);
                 LabelNode startlbl = newinst.gotoLabel(lbl);
 
-                // log(" Creating instantiation of subr " + sub);
+                if (LOGGING) {
+                    log(" Creating instantiation of subr " + sub);
+                }
 
                 // Rather than JSRing, we will jump to the inline version and
                 // push NULL for what was once the return value. This hack
@@ -465,22 +497,28 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
         for (Iterator it = tryCatchBlocks.iterator(); it.hasNext();) {
             TryCatchBlockNode trycatch = (TryCatchBlockNode) it.next();
 
-            // log("try catch block original labels=" + trycatch.start + "-"
-            // + trycatch.end + "->" + trycatch.handler);
+            if (LOGGING) {
+                log("try catch block original labels=" + trycatch.start + "-"
+                        + trycatch.end + "->" + trycatch.handler);
+            }
 
             final LabelNode start = instant.rangeLabel(trycatch.start);
             final LabelNode end = instant.rangeLabel(trycatch.end);
 
             // Ignore empty try/catch regions
             if (start == end) {
-                // log(" try catch block empty in this subroutine");
+                if (LOGGING) {
+                    log(" try catch block empty in this subroutine");
+                }
                 continue;
             }
 
             final LabelNode handler = instant.gotoLabel(trycatch.handler);
 
-            // log(" try catch block new labels=" + start + "-" + end + "->" +
-            // handler);
+            if (LOGGING) {
+                log(" try catch block new labels=" + start + "-" + end + "->"
+                        + handler);
+            }
 
             if (start == null || end == null || handler == null) {
                 throw new RuntimeException("Internal error!");
@@ -492,42 +530,70 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
                     trycatch.type));
         }
 
-        // TODO --- emit visitLocalVariable and visitLineNumbers?
-        // How to detect the most relevant one?
+        for (Iterator it = localVariables.iterator(); it.hasNext();) {
+            LocalVariableNode lvnode = (LocalVariableNode) it.next();
+            if (LOGGING) {
+                log("local var " + lvnode.name);
+            }
+            final LabelNode start = instant.rangeLabel(lvnode.start);
+            final LabelNode end = instant.rangeLabel(lvnode.end);
+            if (start == end) {
+                if (LOGGING) {
+                    log("  local variable empty in this sub");
+                }
+                continue;
+            }
+            newLocalVariables.add(new LocalVariableNode(lvnode.name,
+                    lvnode.desc,
+                    lvnode.signature,
+                    start,
+                    end,
+                    lvnode.index));
+        }
     }
 
-    // private void logSource() {
-    // log("--------------------------------------------------------");
-    // log("Input source");
-    // for (int i = 0; i < instructions.size(); i++) {
-    // String lnum = Integer.toString(i);
-    // while (lnum.length() < 3) {
-    // lnum = "0" + lnum;
-    // }
-    // AbstractInsnNode insn = instructions.get(i);
-    // String desc = log(insn);
-    // log(lnum + ": " + desc);
-    // }
-    // log(mainSubroutine + ": " + mainSubroutine.instructions);
-    // for (Iterator it = subroutineHeads.values().iterator(); it.hasNext();) {
-    // Subroutine sub = (Subroutine) it.next();
-    // log(sub + ": " + sub.instructions);
-    // }
-    // }
+    private String insnDesc(AbstractInsnNode insn) {
+        String opcode = null;
+        if (insn.getOpcode() >= 0) {
+            opcode = org.objectweb.asm.util.AbstractVisitor.OPCODES[insn.getOpcode()];
+        }
 
-    // private String log(AbstractInsnNode insn) {
-    // if (insn.getOpcode() >= 0) {
-    // return org.objectweb.asm.util.AbstractVisitor.OPCODES[insn.getOpcode()];
-    // } else if (insn.getType() == AbstractInsnNode.LABEL) {
-    // return ((LabelNode) insn).getLabel().toString();
-    // } else {
-    // return insn.toString();
-    // }
-    // }
+        if (insn.getType() == AbstractInsnNode.JUMP_INSN) {
+            LabelNode lbl = ((JumpInsnNode) insn).label;
+            int idx = instructions.indexOf(lbl);
+            if (idx != -1)
+                return opcode + " " + idx;
+            else
+                return opcode + " " + lbl;
+        } else if (opcode != null) {
+            return opcode;
+        } else {
+            return insn.toString();
+        }
+    }
 
-    // private void log(final String str) {
-    // System.err.println(str);
-    // }
+    private void logSource() {
+        log("--------------------------------------------------------");
+        log("Input source");
+        for (int i = 0; i < instructions.size(); i++) {
+            String lnum = Integer.toString(i);
+            while (lnum.length() < 3) {
+                lnum = "0" + lnum;
+            }
+            AbstractInsnNode insn = (AbstractInsnNode) instructions.get(i);
+            String desc = insnDesc(insn);
+            log(lnum + ": " + desc);
+        }
+        log(mainSubroutine + ": " + mainSubroutine.instructions);
+        for (Iterator it = subroutineHeads.values().iterator(); it.hasNext();) {
+            Subroutine sub = (Subroutine) it.next();
+            log(sub + ": " + sub.instructions);
+        }
+    }
+
+    private void log(final String str) {
+        System.err.println(str);
+    }
 
     protected static class Subroutine {
 

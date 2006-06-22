@@ -1094,7 +1094,7 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         public final void begin(final String element, final Attributes attrs)
                 throws SAXException
         {
-            Opcode o = ((Opcode) OPCODES.get(element));
+            Opcode o = (Opcode) OPCODES.get(element);
             if (o == null) {
                 throw new SAXException("Invalid element: " + element + " at "
                         + match);

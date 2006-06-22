@@ -118,9 +118,9 @@ public class Analysis implements Opcodes {
             Object insn = m.instructions.get(i);
             int opcode = ((AbstractInsnNode) insn).getOpcode();
             if ((opcode >= ILOAD && opcode <= ALOAD) || opcode == IINC) {
-                int var = (opcode == IINC
+                int var = opcode == IINC
                         ? ((IincInsnNode) insn).var
-                        : ((VarInsnNode) insn).var);
+                        : ((VarInsnNode) insn).var;
                 Frame f = frames[i];
                 if (f != null) {
                     Set s = ((SourceValue) f.getLocal(var)).insns;

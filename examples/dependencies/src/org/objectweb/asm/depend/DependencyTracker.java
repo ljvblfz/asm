@@ -163,8 +163,8 @@ public class DependencyTracker {
                     int b = (int) ((float) count * maxcolor / max);
 
                     g.setColor(colors.get(b));
-                    g.fillRect(CELL_PAD + (x * (CELLS_SIZE + CELL_PAD)),
-                            CELL_PAD + (y * (CELLS_SIZE + CELL_PAD)),
+                    g.fillRect(CELL_PAD + x * (CELLS_SIZE + CELL_PAD),
+                            CELL_PAD + y * (CELLS_SIZE + CELL_PAD),
                             CELLS_SIZE,
                             CELLS_SIZE);
                 }

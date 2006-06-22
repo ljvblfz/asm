@@ -159,7 +159,7 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
     }
 
     public void visitIincInsn(final int var, final int increment) {
-        if ((var > 255) || (increment > 127) || (increment < -128)) {
+        if (var > 255 || increment > 127 || increment < -128) {
             minSize += 6;
             maxSize += 6;
         } else {
@@ -177,8 +177,8 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
         final Label dflt,
         final Label[] labels)
     {
-        minSize += 13 + (labels.length * 4);
-        maxSize += 16 + (labels.length * 4);
+        minSize += 13 + labels.length * 4;
+        maxSize += 16 + labels.length * 4;
         if (mv != null) {
             mv.visitTableSwitchInsn(min, max, dflt, labels);
         }
@@ -189,8 +189,8 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
         final int[] keys,
         final Label[] labels)
     {
-        minSize += 9 + (keys.length * 8);
-        maxSize += 12 + (keys.length * 8);
+        minSize += 9 + keys.length * 8;
+        maxSize += 12 + keys.length * 8;
         if (mv != null) {
             mv.visitLookupSwitchInsn(dflt, keys, labels);
         }

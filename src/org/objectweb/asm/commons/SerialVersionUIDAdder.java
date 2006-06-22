@@ -267,8 +267,8 @@ public class SerialVersionUIDAdder extends ClassAdapter {
                             | Opcodes.ACC_PROTECTED | Opcodes.ACC_STATIC
                             | Opcodes.ACC_FINAL | Opcodes.ACC_VOLATILE | Opcodes.ACC_TRANSIENT);
 
-            if (((access & Opcodes.ACC_PRIVATE) == 0)
-                    || ((access & (Opcodes.ACC_STATIC | Opcodes.ACC_TRANSIENT)) == 0))
+            if ((access & Opcodes.ACC_PRIVATE) == 0
+                    || (access & (Opcodes.ACC_STATIC | Opcodes.ACC_TRANSIENT)) == 0)
             {
                 svuidFields.add(new Item(name, mods, desc));
             }

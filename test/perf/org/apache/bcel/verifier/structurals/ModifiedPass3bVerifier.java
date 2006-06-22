@@ -76,7 +76,8 @@ public final class ModifiedPass3bVerifier {
     private static final class InstructionContextQueue {
         private final Vector ics = new Vector(); // Type: InstructionContext
         private final Vector ecs = new Vector(); // Type: ArrayList (of
-                                                    // InstructionContext)
+
+        // InstructionContext)
 
         public void add(
             final InstructionContext ic,
@@ -157,11 +158,11 @@ public final class ModifiedPass3bVerifier {
         InstructionContextQueue icq = new InstructionContextQueue();
 
         start.execute(vanillaFrame, new ArrayList(), icv, ev); // new
-                                                                // ArrayList()
-                                                                // <=> no
-                                                                // Instruction
-                                                                // was executed
-                                                                // before
+        // ArrayList()
+        // <=> no
+        // Instruction
+        // was executed
+        // before
         // => Top-Level routine (no jsr call before)
         icq.add(start, new ArrayList());
 
@@ -180,15 +181,15 @@ public final class ModifiedPass3bVerifier {
                 icq.remove(0);
             }
 
-            ArrayList oldchain = (ArrayList) (ec.clone());
-            ArrayList newchain = (ArrayList) (ec.clone());
+            ArrayList oldchain = (ArrayList) ec.clone();
+            ArrayList newchain = (ArrayList) ec.clone();
             newchain.add(u);
 
-            if ((u.getInstruction().getInstruction()) instanceof RET) {
+            if (u.getInstruction().getInstruction() instanceof RET) {
                 // System.err.println(u);
                 // We can only follow _one_ successor, the one after the
                 // JSR that was recently executed.
-                RET ret = (RET) (u.getInstruction().getInstruction());
+                RET ret = (RET) u.getInstruction().getInstruction();
                 ReturnaddressType t = (ReturnaddressType) u.getOutFrame(oldchain)
                         .getLocals()
                         .get(ret.getIndex());
@@ -222,8 +223,9 @@ public final class ModifiedPass3bVerifier {
                     throw new AssertionViolatedException("RET without a JSR before in ExecutionChain?! EC: '"
                             + oldchain + "'.");
                 }
-                JsrInstruction jsr = (JsrInstruction) (lastJSR.getInstruction().getInstruction());
-                if (theSuccessor != (cfg.contextOf(jsr.physicalSuccessor()))) {
+                JsrInstruction jsr = (JsrInstruction) lastJSR.getInstruction()
+                        .getInstruction();
+                if (theSuccessor != cfg.contextOf(jsr.physicalSuccessor())) {
                     throw new AssertionViolatedException("RET '"
                             + u.getInstruction()
                             + "' info inconsistent: jump back to '"
@@ -340,7 +342,7 @@ public final class ModifiedPass3bVerifier {
         ev.setConstantPoolGen(constantPoolGen);
 
         Method[] methods = jc.getMethods(); // Method no "method_no" exists, we
-                                            // ran Pass3a before on it!
+        // ran Pass3a before on it!
 
         try {
 
@@ -352,7 +354,7 @@ public final class ModifiedPass3bVerifier {
 
             // //////////// DFA BEGINS HERE ////////////////
             if (!(mg.isAbstract() || mg.isNative())) { // IF mg HAS CODE (See
-                                                        // pass 2)
+                // pass 2)
 
                 ControlFlowGraph cfg = new ControlFlowGraph(mg);
 

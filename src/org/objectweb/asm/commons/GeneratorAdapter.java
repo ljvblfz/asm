@@ -413,7 +413,7 @@ public class GeneratorAdapter extends LocalVariablesSorter {
      *         variables array.
      */
     private int getArgIndex(final int arg) {
-        int index = ((access & Opcodes.ACC_STATIC) == 0 ? 1 : 0);
+        int index = (access & Opcodes.ACC_STATIC) == 0 ? 1 : 0;
         for (int i = 0; i < arg; i++) {
             index += argumentTypes[i].getSize();
         }

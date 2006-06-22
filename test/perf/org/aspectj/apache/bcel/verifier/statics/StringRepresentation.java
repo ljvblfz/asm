@@ -101,7 +101,7 @@ public class StringRepresentation extends
     public StringRepresentation(final Node n) {
         // this.n = n;
         n.accept(this); // assign a string representation to field 'tostring' if
-                        // we know n's class.
+        // we know n's class.
     }
 
     /**
@@ -119,8 +119,8 @@ public class StringRepresentation extends
         // want to know that this class has also to be adapted.
         if (tostring == null) {
             tostring = ""; // throw new AssertionViolatedException("Please
-                            // adapt '"+getClass()+"' to deal with objects of
-                            // class '"+n.getClass()+"'.");
+            // adapt '"+getClass()+"' to deal with objects of
+            // class '"+n.getClass()+"'.");
         }
         return tostring;
     }

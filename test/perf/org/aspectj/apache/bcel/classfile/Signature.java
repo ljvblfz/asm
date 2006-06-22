@@ -61,7 +61,7 @@ import java.io.*;
  * This class is derived from <em>Attribute</em> and represents a reference to
  * a <href="http://wwwipd.ira.uka.de/~pizza/gj/">GJ</a> attribute.
  * 
- * @version $Id: Signature.java,v 1.1.2.2 2006-06-22 13:16:09 ebruneton Exp $
+ * @version $Id: Signature.java,v 1.1.2.3 2006-06-22 13:49:03 ebruneton Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see Attribute
  */
@@ -245,8 +245,8 @@ public final class Signature extends Attribute {
             ch = in.read();
             // System.out.println("within ident:"+ (char)ch);
 
-        } while ((ch != -1)
-                && (Character.isJavaIdentifierPart((char) ch) || (ch == '/')));
+        } while (ch != -1
+                && (Character.isJavaIdentifierPart((char) ch) || ch == '/'));
 
         buf.append(buf2.toString().replace('/', '.'));
 
@@ -266,13 +266,13 @@ public final class Signature extends Attribute {
         matchIdent(in, buf);
 
         ch = in.read();
-        if ((ch == '<') || ch == '(') { // Parameterized or method
+        if (ch == '<' || ch == '(') { // Parameterized or method
             // System.out.println("Enter <");
             buf.append((char) ch);
             matchGJIdent(in, buf);
 
-            while (((ch = in.read()) != '>') && (ch != ')')) { // List of
-                                                                // parameters
+            while ((ch = in.read()) != '>' && ch != ')') { // List of
+                // parameters
                 if (ch == -1) {
                     throw new RuntimeException("Illegal signature: "
                             + in.getData() + " reaching EOF");
@@ -314,7 +314,7 @@ public final class Signature extends Attribute {
     }
 
     public static final boolean isFormalParameterList(final String s) {
-        return s.startsWith("<") && (s.indexOf(':') > 0);
+        return s.startsWith("<") && s.indexOf(':') > 0;
     }
 
     public static final boolean isActualParameterList(final String s) {

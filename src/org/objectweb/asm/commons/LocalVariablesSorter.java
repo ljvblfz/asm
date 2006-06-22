@@ -92,7 +92,7 @@ public class LocalVariablesSorter extends MethodAdapter {
     {
         super(mv);
         Type[] args = Type.getArgumentTypes(desc);
-        nextLocal = ((Opcodes.ACC_STATIC & access) != 0) ? 0 : 1;
+        nextLocal = (Opcodes.ACC_STATIC & access) != 0 ? 0 : 1;
         for (int i = 0; i < args.length; i++) {
             nextLocal += args[i].getSize();
         }
@@ -182,7 +182,7 @@ public class LocalVariablesSorter extends MethodAdapter {
         int number = 0; // old local variable number
         for (; number < nLocal; ++number) {
             Object t = local[number];
-            int size = (t == Opcodes.LONG || t == Opcodes.DOUBLE ? 2 : 1);
+            int size = t == Opcodes.LONG || t == Opcodes.DOUBLE ? 2 : 1;
             if (t != Opcodes.TOP) {
                 setFrameLocal(remap(index, size), t);
             }

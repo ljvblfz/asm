@@ -1588,7 +1588,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             // first instance of first sub try/catch handlers:
             TRYCATCH(L_1, C2_1, C2_1);
             TRYCATCH(OT_1, OC_1, OC); // note: reuses handler code from main
-                                        // sub
+            // sub
 
             // second instance of first sub try/catch handlers:
             TRYCATCH(L_2, C2_2, C2_2);

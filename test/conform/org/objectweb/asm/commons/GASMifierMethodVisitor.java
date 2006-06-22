@@ -73,7 +73,7 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         this.access = access;
         this.labelNames = new HashMap();
         this.argumentTypes = Type.getArgumentTypes(desc);
-        int nextLocal = ((Opcodes.ACC_STATIC & access) != 0) ? 0 : 1;
+        int nextLocal = (Opcodes.ACC_STATIC & access) != 0 ? 0 : 1;
         for (int i = 0; i < argumentTypes.length; i++) {
             nextLocal += argumentTypes[i].getSize();
         }
@@ -622,7 +622,7 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
     }
 
     private int getArgIndex(final int var) {
-        int nextLocal = ((Opcodes.ACC_STATIC & access) != 0) ? 0 : 1;
+        int nextLocal = (Opcodes.ACC_STATIC & access) != 0 ? 0 : 1;
         int i = 0;
         while (nextLocal != var) {
             nextLocal += argumentTypes[i++].getSize();

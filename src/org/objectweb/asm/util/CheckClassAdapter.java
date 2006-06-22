@@ -380,15 +380,15 @@ public class CheckClassAdapter extends ClassAdapter {
             throw new IllegalArgumentException("Invalid access flags: "
                     + access);
         }
-        int pub = ((access & Opcodes.ACC_PUBLIC) != 0 ? 1 : 0);
-        int pri = ((access & Opcodes.ACC_PRIVATE) != 0 ? 1 : 0);
-        int pro = ((access & Opcodes.ACC_PROTECTED) != 0 ? 1 : 0);
+        int pub = (access & Opcodes.ACC_PUBLIC) != 0 ? 1 : 0;
+        int pri = (access & Opcodes.ACC_PRIVATE) != 0 ? 1 : 0;
+        int pro = (access & Opcodes.ACC_PROTECTED) != 0 ? 1 : 0;
         if (pub + pri + pro > 1) {
             throw new IllegalArgumentException("public private and protected are mutually exclusive: "
                     + access);
         }
-        int fin = ((access & Opcodes.ACC_FINAL) != 0 ? 1 : 0);
-        int abs = ((access & Opcodes.ACC_ABSTRACT) != 0 ? 1 : 0);
+        int fin = (access & Opcodes.ACC_FINAL) != 0 ? 1 : 0;
+        int abs = (access & Opcodes.ACC_ABSTRACT) != 0 ? 1 : 0;
         if (fin + abs > 1) {
             throw new IllegalArgumentException("final and abstract are mutually exclusive: "
                     + access);

@@ -147,7 +147,7 @@ public class XMLPerfTest {
 
         System.err.println();
         System.err.println("  " + outRep + " " + name + "  " + (l2 - l1)
-                + "ms  " + (1000f * n / (l2 - l1)));
+                + "ms  " + 1000f * n / (l2 - l1));
 
         // SAXTransformerFactory saxtf = (SAXTransformerFactory)
         // TransformerFactory.newInstance();
@@ -179,9 +179,9 @@ public class XMLPerfTest {
 
         public void update(final Object arg) {
             n++;
-            if ((n % 1000) == 0) {
-                System.err.print("" + (n / 1000));
-            } else if ((n % 100) == 0) {
+            if (n % 1000 == 0) {
+                System.err.print("" + n / 1000);
+            } else if (n % 100 == 0) {
                 System.err.print(".");
             }
         }

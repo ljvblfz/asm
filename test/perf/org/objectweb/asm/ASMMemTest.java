@@ -71,7 +71,7 @@ public class ASMMemTest {
             long totalSize = 0;
             JarInputStream jar = new JarInputStream(new FileInputStream(args[0]));
             JarEntry entry = jar.getNextJarEntry();
-            while ((fileData.size() < limit) && (entry != null)) {
+            while (fileData.size() < limit && entry != null) {
                 String name = entry.getName();
                 if (name.endsWith(".class")) {
                     if (entry.getSize() != -1) {
@@ -143,18 +143,18 @@ public class ASMMemTest {
 
     public final static String timeFormat(final long time) {
         int min = (int) (time / (60 * 1000));
-        int sec = (int) ((time / (1000)) % 60);
+        int sec = (int) ((time / 1000) % 60);
         int msec = (int) (time % 1000);
         StringBuffer sbuf = new StringBuffer(30);
         if (min > 0) {
             sbuf.append(min);
             sbuf.append("min ");
         }
-        if ((sec > 0) || (min > 0)) {
+        if (sec > 0 || min > 0) {
             sbuf.append(sec);
             sbuf.append("s ");
         }
-        if ((msec > 0) || (sec > 0) || (min > 0)) {
+        if (msec > 0 || sec > 0 || min > 0) {
             sbuf.append(msec);
             sbuf.append("ms ");
         }
@@ -174,15 +174,15 @@ public class ASMMemTest {
             sbuf.append(gb);
             sbuf.append("GB ");
         }
-        if ((mb > 0) || (gb > 0)) {
+        if (mb > 0 || gb > 0) {
             sbuf.append(mb);
             sbuf.append("MB ");
         }
-        if ((kb > 0) || (mb > 0) || (gb > 0)) {
+        if (kb > 0 || mb > 0 || gb > 0) {
             sbuf.append(kb);
             sbuf.append("KB ");
         }
-        if ((bytes > 0) || (kb > 0) || (mb > 0) || (gb > 0)) {
+        if (bytes > 0 || kb > 0 || mb > 0 || gb > 0) {
             sbuf.append(bytes);
             sbuf.append("bytes ");
         }

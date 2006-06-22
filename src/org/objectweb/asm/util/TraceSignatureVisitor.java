@@ -110,9 +110,9 @@ public class TraceSignatureVisitor implements SignatureVisitor {
     }
 
     public SignatureVisitor visitInterface() {
-        separator = seenInterface ? ", " : (isInterface
+        separator = seenInterface ? ", " : isInterface
                 ? " extends "
-                : " implements ");
+                : " implements ";
         seenInterface = true;
         startType();
         return this;

@@ -640,7 +640,7 @@ public class Type {
      *         <tt>double</tt>, and 1 otherwise.
      */
     public int getSize() {
-        return (sort == LONG || sort == DOUBLE ? 2 : 1);
+        return sort == LONG || sort == DOUBLE ? 2 : 1;
     }
 
     /**

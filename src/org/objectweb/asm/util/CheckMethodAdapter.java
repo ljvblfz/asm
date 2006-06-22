@@ -86,7 +86,7 @@ public class CheckMethodAdapter extends MethodAdapter {
                 + "KLBBBBBBFFFFGGGGAECEBBEEBBAMHHAA";
         TYPE = new int[s.length()];
         for (int i = 0; i < TYPE.length; ++i) {
-            TYPE[i] = (s.charAt(i) - 'A' - 1);
+            TYPE[i] = s.charAt(i) - 'A' - 1;
         }
     }
 
@@ -786,7 +786,7 @@ public class CheckMethodAdapter extends MethodAdapter {
             throw new IllegalArgumentException("Invalid " + msg
                     + " (must be a valid Java identifier): " + name);
         }
-        int max = (end == -1 ? name.length() : end);
+        int max = end == -1 ? name.length() : end;
         for (int i = start + 1; i < max; ++i) {
             if (!Character.isJavaIdentifierPart(name.charAt(i))) {
                 throw new IllegalArgumentException("Invalid " + msg
@@ -856,7 +856,7 @@ public class CheckMethodAdapter extends MethodAdapter {
             throw new IllegalArgumentException("Invalid " + msg
                     + " (must not be null or empty)");
         }
-        int max = (end == -1 ? name.length() : end);
+        int max = end == -1 ? name.length() : end;
         try {
             int begin = start;
             int slash;

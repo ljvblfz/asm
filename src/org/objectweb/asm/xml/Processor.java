@@ -369,7 +369,7 @@ public class Processor {
         if (arg instanceof Throwable) {
             ((Throwable) arg).printStackTrace();
         } else {
-            if ((n % 100) == 0) {
+            if (n % 100 == 0) {
                 System.err.println(n + " " + arg);
             }
         }
@@ -425,7 +425,7 @@ public class Processor {
         int n = m.process();
         long l2 = System.currentTimeMillis();
         System.err.println(n);
-        System.err.println("" + (l2 - l1) + "ms  " + (1000f * n / (l2 - l1))
+        System.err.println("" + (l2 - l1) + "ms  " + 1000f * n / (l2 - l1)
                 + " resources/sec");
     }
 

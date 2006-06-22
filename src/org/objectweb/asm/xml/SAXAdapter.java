@@ -42,7 +42,7 @@ public abstract class SAXAdapter {
 
     private final ContentHandler h;
 
-    public SAXAdapter(ContentHandler h) {
+    public SAXAdapter(final ContentHandler h) {
         this.h = h;
     }
 
@@ -66,7 +66,7 @@ public abstract class SAXAdapter {
         }
     }
 
-    protected final void addStart(String name, Attributes attrs) {
+    protected final void addStart(final String name, final Attributes attrs) {
         try {
             h.startElement("", name, name, attrs);
         } catch (SAXException ex) {
@@ -74,7 +74,7 @@ public abstract class SAXAdapter {
         }
     }
 
-    protected final void addEnd(String name) {
+    protected final void addEnd(final String name) {
         try {
             h.endElement("", name, name);
         } catch (SAXException ex) {
@@ -82,7 +82,7 @@ public abstract class SAXAdapter {
         }
     }
 
-    protected final void addElement(String name, Attributes attrs) {
+    protected final void addElement(final String name, final Attributes attrs) {
         addStart(name, attrs);
         addEnd(name);
     }

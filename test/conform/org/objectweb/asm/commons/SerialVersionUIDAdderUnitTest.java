@@ -57,7 +57,9 @@ public class SerialVersionUIDAdderUnitTest extends TestCase implements
         return null;
     }
 
-    private long computeSerialVersionUID(String className) throws IOException {
+    private long computeSerialVersionUID(final String className)
+            throws IOException
+    {
         final long[] svuid = new long[1];
         ClassVisitor cv = new SerialVersionUIDAdder(new EmptyVisitor()) {
             protected long computeSVUID() throws IOException {

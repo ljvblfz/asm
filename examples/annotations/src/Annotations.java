@@ -78,7 +78,7 @@ public class Annotations {
                         exceptions);
                 return new MethodAdapter(v) {
 
-                    private List params = new ArrayList();
+                    private final List params = new ArrayList();
 
                     public AnnotationVisitor visitParameterAnnotation(
                         final int parameter,

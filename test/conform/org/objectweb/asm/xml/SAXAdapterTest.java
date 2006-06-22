@@ -69,24 +69,24 @@ public class SAXAdapterTest extends AbstractTest {
         ClassWriter cw = new ClassWriter(0);
         cr.accept(cw, new Attribute[] { new Attribute("Comment") {
             protected Attribute read(
-                ClassReader cr,
-                int off,
-                int len,
-                char[] buf,
-                int codeOff,
-                Label[] labels)
+                final ClassReader cr,
+                final int off,
+                final int len,
+                final char[] buf,
+                final int codeOff,
+                final Label[] labels)
             {
                 return null; // skip these attributes
             }
         },
             new Attribute("CodeComment") {
                 protected Attribute read(
-                    ClassReader cr,
-                    int off,
-                    int len,
-                    char[] buf,
-                    int codeOff,
-                    Label[] labels)
+                    final ClassReader cr,
+                    final int off,
+                    final int len,
+                    final char[] buf,
+                    final int codeOff,
+                    final Label[] labels)
                 {
                     return null; // skip these attributes
                 }

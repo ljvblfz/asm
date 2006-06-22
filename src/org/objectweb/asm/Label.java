@@ -81,7 +81,7 @@ public class Label {
      * Field used to associate user information to a label.
      */
     public Object info;
-    
+
     /**
      * Flags that indicate the status of this label.
      * 

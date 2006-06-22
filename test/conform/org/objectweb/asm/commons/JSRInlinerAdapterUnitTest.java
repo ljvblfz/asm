@@ -125,9 +125,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
         this.current.visitTryCatchBlock(start, end, handler, null);
     }
 
-    private void LINE(
-        final int line, final Label start)
-    {
+    private void LINE(final int line, final Label start) {
         this.current.visitLineNumber(line, start);
     }
 
@@ -312,7 +310,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             IINC(1, 2);
             GOTO(L5);
             LABEL(L4); // L4: a != 0
-            IINC(1,3); 
+            IINC(1, 3);
             LABEL(L5); // L5: common exit
             RET(2);
 
@@ -375,7 +373,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             IINC(1, 2);
             GOTO(L5_1);
             LABEL(L4_1); // L4_1: a != 0
-            IINC(1,3); 
+            IINC(1, 3);
             LABEL(L5_1); // L5_1: common exit
             GOTO(L3_1b);
             LABEL(new Label()); // extra label emitted due to impl quirks
@@ -388,7 +386,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             IINC(1, 2);
             GOTO(L5_2);
             LABEL(L4_2); // L4_2: a != 0
-            IINC(1,3); 
+            IINC(1, 3);
             LABEL(L5_2); // L5_2: common exit
             GOTO(L3_2b);
             LABEL(new Label()); // extra label emitted due to impl quirks
@@ -403,7 +401,9 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
     }
 
     /**
-     * Tests a simple nested finally: <pre>
+     * Tests a simple nested finally:
+     * 
+     * <pre>
      * public void a1() {
      *   int a = 0;
      *   try {
@@ -1203,8 +1203,8 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
     }
 
     /**
-     * This tests a simple subroutine where the control flow jumps back
-     * and forth between the subroutine and the caller.
+     * This tests a simple subroutine where the control flow jumps back and
+     * forth between the subroutine and the caller.
      * 
      * This would not normally be produced by a java compiler.
      */
@@ -1236,7 +1236,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
 
             // L3: second part of subroutine 1
             LABEL(L3);
-            IINC(1,4);
+            IINC(1, 4);
             RET(2);
 
             // L4: third part of main subroutine
@@ -1281,7 +1281,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             IINC(1, 1);
             GOTO(L3_1);
             LABEL(L3_1);
-            IINC(1,4);
+            IINC(1, 4);
             GOTO(L1_1b);
             LABEL(new Label()); // extra label emitted due to impl quirks
 
@@ -1291,7 +1291,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
             IINC(1, 1);
             GOTO(L3_2);
             LABEL(L3_2);
-            IINC(1,4);
+            IINC(1, 4);
             GOTO(L1_2b);
             LABEL(new Label()); // extra label emitted due to impl quirks
 
@@ -1302,10 +1302,9 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
     }
 
     /**
-     * Tests a nested try/finally with implicit exit from one
-     * subroutine to the other subroutine, and with a surrounding
-     * try/catch thrown in the mix.  Equivalent to the following java
-     * code:
+     * Tests a nested try/finally with implicit exit from one subroutine to the
+     * other subroutine, and with a surrounding try/catch thrown in the mix.
+     * Equivalent to the following java code:
      * 
      * <pre>
      * void m(int b) {
@@ -1401,7 +1400,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
 
             // OC: outermost catch
             LABEL(OC);
-            IINC(b,3);
+            IINC(b, 3);
             RETURN();
 
             TRYCATCH(T1, C1, C1);
@@ -1477,7 +1476,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
 
             // OC: Outermost catch
             LABEL(OC);
-            IINC(b,3);
+            IINC(b, 3);
             RETURN();
 
             // --- First instantiation of first subroutine ---
@@ -1588,7 +1587,8 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
 
             // first instance of first sub try/catch handlers:
             TRYCATCH(L_1, C2_1, C2_1);
-            TRYCATCH(OT_1, OC_1, OC); // note: reuses handler code from main sub
+            TRYCATCH(OT_1, OC_1, OC); // note: reuses handler code from main
+                                        // sub
 
             // second instance of first sub try/catch handlers:
             TRYCATCH(L_2, C2_2, C2_2);
@@ -1632,13 +1632,13 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
 
             setCurrent(jsr);
             LABEL(LM1);
-            LINE(1,LM1);
+            LINE(1, LM1);
             ICONST_0();
             ISTORE(1);
 
             /* L0: body of try block */
             LABEL(L0);
-            LINE(3,L0);
+            LINE(3, L0);
             IINC(1, 1);
             GOTO(L1);
 
@@ -1651,7 +1651,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
 
             /* L3: subroutine */
             LABEL(L3);
-            LINE(5,L3);
+            LINE(5, L3);
             ASTORE(2);
             IINC(1, -1);
             RET(2);
@@ -1684,7 +1684,7 @@ public class JSRInlinerAdapterUnitTest extends TestCase {
 
             setCurrent(exp);
             LABEL(LM1);
-            LINE(1,LM1);
+            LINE(1, LM1);
             ICONST_0();
             ISTORE(1);
             // L0: try/catch block

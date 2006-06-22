@@ -93,7 +93,7 @@ public class BasicVerifier extends BasicInterpreter {
         return value;
     }
 
-    public Value unaryOperation(final AbstractInsnNode insn, Value value)
+    public Value unaryOperation(final AbstractInsnNode insn, final Value value)
             throws AnalyzerException
     {
         Value expected;

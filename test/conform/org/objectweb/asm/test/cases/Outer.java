@@ -61,7 +61,7 @@ public class Outer extends Generator {
                 null,
                 "java/lang/Object",
                 null);
-        
+
         cw.visitInnerClass("pkg/Outer$Inner", "pkg/Outer", "C", 0);
         cw.visitInnerClass("pkg/Outer$1", null, null, 0);
 

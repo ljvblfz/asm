@@ -64,11 +64,12 @@ public class AdviceAdapterUnitTest extends AbstractTest {
     private static class AdvisingClassLoader extends ClassLoader {
         private String prefix;
 
-        public AdvisingClassLoader(String prefix) throws IOException {
+        public AdvisingClassLoader(final String prefix) throws IOException {
             this.prefix = prefix;
         }
 
-        public Class loadClass(String name) throws ClassNotFoundException {
+        public Class loadClass(final String name) throws ClassNotFoundException
+        {
             if (name.startsWith(prefix)) {
                 try {
                     ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
@@ -91,12 +92,12 @@ public class AdviceAdapterUnitTest extends AbstractTest {
     // test callback
     private static int n = 0;
 
-    public static void enter(String msg) {
+    public static void enter(final String msg) {
         System.err.println(off().append("enter ").append(msg).toString());
         n++;
     }
 
-    public static void exit(String msg) {
+    public static void exit(final String msg) {
         n--;
         System.err.println(off().append("<").toString());
     }
@@ -112,28 +113,28 @@ public class AdviceAdapterUnitTest extends AbstractTest {
     static class AdviceClassAdapter extends ClassAdapter implements Opcodes {
         private String cname;
 
-        public AdviceClassAdapter(ClassVisitor cv) {
+        public AdviceClassAdapter(final ClassVisitor cv) {
             super(cv);
         }
 
         public void visit(
-            int version,
-            int access,
-            String name,
-            String signature,
-            String superName,
-            String[] interfaces)
+            final int version,
+            final int access,
+            final String name,
+            final String signature,
+            final String superName,
+            final String[] interfaces)
         {
             this.cname = name;
             super.visit(version, access, name, signature, superName, interfaces);
         }
 
         public MethodVisitor visitMethod(
-            int access,
+            final int access,
             final String name,
             final String desc,
-            String signature,
-            String[] exceptions)
+            final String signature,
+            final String[] exceptions)
         {
             MethodVisitor mv = cv.visitMethod(access,
                     name,
@@ -156,7 +157,7 @@ public class AdviceAdapterUnitTest extends AbstractTest {
                             "(Ljava/lang/String;)V");
                 }
 
-                protected void onMethodExit(int opcode) {
+                protected void onMethodExit(final int opcode) {
                     mv.visitLdcInsn(cname + "." + name + desc);
                     mv.visitMethodInsn(INVOKESTATIC,
                             "org/objectweb/asm/commons/AdviceAdapterUnitTest",
@@ -173,11 +174,11 @@ public class AdviceAdapterUnitTest extends AbstractTest {
     public static class A {
         final String s;
 
-        public A(String s) {
+        public A(final String s) {
             this.s = s;
         }
 
-        public A(A a) {
+        public A(final A a) {
             this.s = a.s;
         }
     }
@@ -189,38 +190,38 @@ public class AdviceAdapterUnitTest extends AbstractTest {
             test(this);
         }
 
-        public B(A a) {
+        public B(final A a) {
             super(a);
             test(this);
         }
 
-        public B(String s) {
+        public B(final String s) {
             super(s == null ? new A("") : new A(s));
             test(this);
         }
 
         private static A aa;
 
-        public B(String s, A a) {
+        public B(final String s, final A a) {
             this(s == null ? aa = new A(s) : a);
             A aa = new A("");
             test(aa);
         }
 
-        public B(String s, String s1) {
+        public B(final String s, final String s1) {
             super(s != null ? new A(getA(s1).s) : new A(s));
             test(this);
         }
 
-        private void test(Object b) {
+        private void test(final Object b) {
         }
 
-        private static A getA(String s) {
+        private static A getA(final String s) {
             return new A(s);
         }
 
         // execute all
-        public static void run(int n) {
+        public static void run(final int n) {
             new B();
             new B(new A(""));
             new B(new B());

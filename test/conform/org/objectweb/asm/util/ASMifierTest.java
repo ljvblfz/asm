@@ -52,7 +52,6 @@ import org.objectweb.asm.attrs.CodeComment;
 import org.objectweb.asm.attrs.Comment;
 import org.objectweb.asm.util.ASMifierClassVisitor;
 
-
 /**
  * ASMifier tests.
  * 
@@ -114,7 +113,9 @@ public class ASMifierTest extends AbstractTest {
 
         final static IClassLoader CL = new ClassLoaderIClassLoader(new URLClassLoader(new URL[0]));
 
-        public byte[] compile(String name, String source) throws Exception {
+        public byte[] compile(final String name, final String source)
+                throws Exception
+        {
             Parser p = new Parser(new Scanner(name, new StringReader(source)));
             UnitCompiler uc = new UnitCompiler(p.parseCompilationUnit(), CL);
             return uc.compileUnit(DebuggingInformation.ALL)[0].toByteArray();

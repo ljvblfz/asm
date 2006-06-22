@@ -46,7 +46,7 @@ public class ClassWriterComputeMaxsTest extends AbstractTest {
         ClassReader cr = new ClassReader(is);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         cr.accept(cw, 0);
-        //computed maxStack and maxLocals may differ from original class
-        //assertEquals(cr, new ClassReader(cw.toByteArray()));
+        // computed maxStack and maxLocals may differ from original class
+        // assertEquals(cr, new ClassReader(cw.toByteArray()));
     }
 }

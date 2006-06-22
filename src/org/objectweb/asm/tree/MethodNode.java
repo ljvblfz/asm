@@ -183,7 +183,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
 
     public AnnotationVisitor visitAnnotationDefault() {
         return new AnnotationNode(new ArrayList(0) {
-            public boolean add(Object o) {
+            public boolean add(final Object o) {
                 annotationDefault = o;
                 return super.add(o);
             }

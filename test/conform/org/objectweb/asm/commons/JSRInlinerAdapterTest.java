@@ -55,11 +55,11 @@ public class JSRInlinerAdapterTest extends AbstractTest {
         ClassWriter cw = new ClassWriter(0);
         cr.accept(new ClassAdapter(cw) {
             public MethodVisitor visitMethod(
-                int access,
-                String name,
-                String desc,
-                String signature,
-                String[] exceptions)
+                final int access,
+                final String name,
+                final String desc,
+                final String signature,
+                final String[] exceptions)
             {
                 MethodVisitor mv = super.visitMethod(access,
                         name,

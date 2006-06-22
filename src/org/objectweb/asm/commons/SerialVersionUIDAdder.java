@@ -417,14 +417,13 @@ public class SerialVersionUIDAdder extends ClassAdapter {
         return svuid;
     }
 
-
     /**
      * Returns the SHA-1 message digest of the given value.
      * 
      * @param value the value whose SHA message digest must be computed.
      * @return the SHA-1 message digest of the given value.
      */
-    protected byte[] computeSHAdigest(byte[] value) {
+    protected byte[] computeSHAdigest(final byte[] value) {
         try {
             return MessageDigest.getInstance("SHA").digest(value);
         } catch (Exception e) {

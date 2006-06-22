@@ -55,7 +55,7 @@ public class ASMContentHandlerUnitTest extends TestCase implements Opcodes {
 
     protected void setUp() throws Exception {
         h = new ASMContentHandler(new ByteArrayOutputStream() {
-            public void write(byte[] b) throws IOException {
+            public void write(final byte[] b) throws IOException {
                 throw new IOException();
             }
         }, false);

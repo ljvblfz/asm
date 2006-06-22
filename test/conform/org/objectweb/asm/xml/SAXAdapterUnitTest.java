@@ -56,16 +56,18 @@ public class SAXAdapterUnitTest extends TestCase {
             }
 
             public void startElement(
-                String arg0,
-                String arg1,
-                String arg2,
-                Attributes arg3) throws SAXException
+                final String arg0,
+                final String arg1,
+                final String arg2,
+                final Attributes arg3) throws SAXException
             {
                 throw new SAXException();
             }
 
-            public void endElement(String arg0, String arg1, String arg2)
-                    throws SAXException
+            public void endElement(
+                final String arg0,
+                final String arg1,
+                final String arg2) throws SAXException
             {
                 throw new SAXException();
             }

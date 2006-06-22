@@ -85,7 +85,7 @@ public class GASMifierClassVisitor extends ASMifierClassVisitor {
                 ClassReader.EXPAND_FRAMES | flags);
     }
 
-    public GASMifierClassVisitor(PrintWriter pw) {
+    public GASMifierClassVisitor(final PrintWriter pw) {
         super(pw);
     }
 

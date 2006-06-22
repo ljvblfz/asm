@@ -48,7 +48,7 @@ public class Interface extends Generator {
 
     public byte[] dump() {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        
+
         cw.visit(1 << 16 | V1_5,
                 ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
                 "Interface",

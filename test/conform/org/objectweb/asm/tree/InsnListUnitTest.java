@@ -92,7 +92,7 @@ public class InsnListUnitTest extends TestCase {
     public void testContains() {
         assertEquals(false, l1.contains(new InsnNode(0)));
     }
-    
+
     public void testIterator() {
         InsnNode insn = new InsnNode(0);
         l2.add(insn);
@@ -105,7 +105,7 @@ public class InsnListUnitTest extends TestCase {
         it.remove();
         assertEquals(true, it.hasNext());
         assertEquals(insn, it.next());
-        assertEquals(false, it.hasNext());        
+        assertEquals(false, it.hasNext());
         it = l2.iterator();
         assertEquals(true, it.hasNext());
         assertEquals(in1, it.next());
@@ -136,7 +136,7 @@ public class InsnListUnitTest extends TestCase {
 
     public void testSet() {
         l1.add(new InsnNode(0));
-        AbstractInsnNode insn = new InsnNode(0);        
+        AbstractInsnNode insn = new InsnNode(0);
         l1.set(l1.get(0), insn);
         assertEquals(1, l1.size());
         assertEquals(insn, l1.getFirst());
@@ -251,7 +251,7 @@ public class InsnListUnitTest extends TestCase {
         assertEquals(true, l1.contains(insn));
         assertEquals(0, l1.indexOf(insn));
     }
-    
+
     public void testInvalidInsertAll() {
         try {
             l1.insert(l1);
@@ -305,7 +305,7 @@ public class InsnListUnitTest extends TestCase {
         } catch (IllegalArgumentException e) {
         }
     }
-    
+
     public void testInsert2NotLast() {
         InsnNode insn = new InsnNode(0);
         l2.insert(in1, insn);
@@ -335,9 +335,9 @@ public class InsnListUnitTest extends TestCase {
             l1.insert(new InsnNode(0), new InsnList());
             fail();
         } catch (IllegalArgumentException e) {
-        }        
+        }
     }
-    
+
     public void testInsertAll2EmptyList() {
         InsnNode insn = new InsnNode(0);
         l1.add(insn);
@@ -378,7 +378,7 @@ public class InsnListUnitTest extends TestCase {
         assertEquals(0, l1.indexOf(insn));
         assertEquals(1, l1.indexOf(in1));
         assertEquals(2, l1.indexOf(in2));
-        assertEquals(new AbstractInsnNode[] { insn, in1, in2 }, l1.toArray());        
+        assertEquals(new AbstractInsnNode[] { insn, in1, in2 }, l1.toArray());
     }
 
     public void testInvalidRemove() {

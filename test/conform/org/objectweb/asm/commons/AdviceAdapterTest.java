@@ -47,7 +47,7 @@ import org.objectweb.asm.Opcodes;
  */
 public class AdviceAdapterTest extends AbstractTest {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         TestRunner.run(AdviceAdapterTest.suite());
     }
 
@@ -126,7 +126,7 @@ public class AdviceAdapterTest extends AbstractTest {
                     // mv.visitInsn(NOP);
                 }
 
-                protected void onMethodExit(int opcode) {
+                protected void onMethodExit(final int opcode) {
                     // mv.visitInsn(NOP);
                     // mv.visitInsn(NOP);
                     // mv.visitInsn(NOP);

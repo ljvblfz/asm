@@ -75,7 +75,7 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
      *        {@link ContentHandler#startDocument() startDocument()} and
      *        {@link ContentHandler#endDocument() endDocument()} events.
      */
-    public SAXClassAdapter(ContentHandler h, boolean singleDocument) {
+    public SAXClassAdapter(final ContentHandler h, boolean singleDocument) {
         super(h);
         this.singleDocument = singleDocument;
         if (!singleDocument) {
@@ -83,7 +83,7 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
         }
     }
 
-    public void visitSource(String source, String debug) {
+    public void visitSource(final String source, final String debug) {
         AttributesImpl att = new AttributesImpl();
         if (source != null) {
             att.addAttribute("", "file", "file", "", encode(source));
@@ -95,7 +95,11 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
         addElement("source", att);
     }
 
-    public void visitOuterClass(String owner, String name, String desc) {
+    public void visitOuterClass(
+        final String owner,
+        final String name,
+        final String desc)
+    {
         AttributesImpl att = new AttributesImpl();
         att.addAttribute("", "owner", "owner", "", owner);
         if (name != null) {
@@ -108,11 +112,14 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
         addElement("outerclass", att);
     }
 
-    public final void visitAttribute(Attribute attr) {
+    public final void visitAttribute(final Attribute attr) {
         // TODO Auto-generated SAXClassAdapter.visitAttribute
     }
 
-    public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+    public AnnotationVisitor visitAnnotation(
+        final String desc,
+        final boolean visible)
+    {
         return new SAXAnnotationAdapter(getContentHandler(),
                 "annotation",
                 visible ? 1 : -1,
@@ -121,12 +128,12 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
     }
 
     public void visit(
-        int version,
-        int access,
-        String name,
-        String signature,
-        String superName,
-        String[] interfaces)
+        final int version,
+        final int access,
+        final String name,
+        final String signature,
+        final String superName,
+        final String[] interfaces)
     {
         StringBuffer sb = new StringBuffer();
         appendAccess(access | ACCESS_CLASS, sb);
@@ -170,11 +177,11 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
     }
 
     public FieldVisitor visitField(
-        int access,
-        String name,
-        String desc,
-        String signature,
-        Object value)
+        final int access,
+        final String name,
+        final String desc,
+        final String signature,
+        final Object value)
     {
         StringBuffer sb = new StringBuffer();
         appendAccess(access | ACCESS_FIELD, sb);
@@ -198,11 +205,11 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
     }
 
     public MethodVisitor visitMethod(
-        int access,
-        String name,
-        String desc,
-        String signature,
-        String[] exceptions)
+        final int access,
+        final String name,
+        final String desc,
+        final String signature,
+        final String[] exceptions)
     {
         StringBuffer sb = new StringBuffer();
         appendAccess(access, sb);
@@ -230,10 +237,10 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
     }
 
     public final void visitInnerClass(
-        String name,
-        String outerName,
-        String innerName,
-        int access)
+        final String name,
+        final String outerName,
+        final String innerName,
+        final int access)
     {
         StringBuffer sb = new StringBuffer();
         appendAccess(access | ACCESS_INNER, sb);
@@ -259,7 +266,7 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
         }
     }
 
-    static final String encode(String s) {
+    static final String encode(final String s) {
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
@@ -282,7 +289,7 @@ public final class SAXClassAdapter extends SAXAdapter implements ClassVisitor {
         return sb.toString();
     }
 
-    static void appendAccess(int access, StringBuffer sb) {
+    static void appendAccess(final int access, final StringBuffer sb) {
         if ((access & Opcodes.ACC_PUBLIC) != 0) {
             sb.append("public ");
         }

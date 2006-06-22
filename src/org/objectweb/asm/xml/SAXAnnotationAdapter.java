@@ -45,32 +45,32 @@ public class SAXAnnotationAdapter extends SAXAdapter implements
     private final String elementName;
 
     public SAXAnnotationAdapter(
-        ContentHandler h,
-        String elementName,
-        int visible,
-        String name,
-        String desc)
+        final ContentHandler h,
+        final String elementName,
+        final int visible,
+        final String name,
+        final String desc)
     {
         this(h, elementName, visible, desc, name, -1);
     }
 
     public SAXAnnotationAdapter(
-        ContentHandler h,
-        String elementName,
-        int visible,
-        int parameter,
-        String desc)
+        final ContentHandler h,
+        final String elementName,
+        final int visible,
+        final int parameter,
+        final String desc)
     {
         this(h, elementName, visible, desc, null, parameter);
     }
 
     private SAXAnnotationAdapter(
-        ContentHandler h,
-        String elementName,
-        int visible,
-        String desc,
-        String name,
-        int parameter)
+        final ContentHandler h,
+        final String elementName,
+        final int visible,
+        final String desc,
+        final String name,
+        final int parameter)
     {
         super(h);
         this.elementName = elementName;
@@ -98,7 +98,7 @@ public class SAXAnnotationAdapter extends SAXAdapter implements
         addStart(elementName, att);
     }
 
-    public void visit(String name, Object value) {
+    public void visit(final String name, final Object value) {
         Class c = value.getClass();
         if (c.isArray()) {
             AnnotationVisitor av = visitArray(name);
@@ -160,11 +160,18 @@ public class SAXAnnotationAdapter extends SAXAdapter implements
         }
     }
 
-    public void visitEnum(String name, String desc, String value) {
+    public void visitEnum(
+        final String name,
+        final String desc,
+        final String value)
+    {
         addValueElement("annotationValueEnum", name, desc, value);
     }
 
-    public AnnotationVisitor visitAnnotation(String name, String desc) {
+    public AnnotationVisitor visitAnnotation(
+        final String name,
+        final String desc)
+    {
         return new SAXAnnotationAdapter(getContentHandler(),
                 "annotationValueAnnotation",
                 0,
@@ -172,7 +179,7 @@ public class SAXAnnotationAdapter extends SAXAdapter implements
                 desc);
     }
 
-    public AnnotationVisitor visitArray(String name) {
+    public AnnotationVisitor visitArray(final String name) {
         return new SAXAnnotationAdapter(getContentHandler(),
                 "annotationValueArray",
                 0,
@@ -185,10 +192,10 @@ public class SAXAnnotationAdapter extends SAXAdapter implements
     }
 
     private void addValueElement(
-        String element,
-        String name,
-        String desc,
-        String value)
+        final String element,
+        final String name,
+        final String desc,
+        final String value)
     {
         AttributesImpl att = new AttributesImpl();
         if (name != null) {

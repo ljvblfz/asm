@@ -161,7 +161,7 @@ public class FrameNode extends AbstractInsnNode {
         }
     }
 
-    public AbstractInsnNode clone(Map labels) {
+    public AbstractInsnNode clone(final Map labels) {
         FrameNode clone = new FrameNode();
         clone.type = type;
         if (local != null) {

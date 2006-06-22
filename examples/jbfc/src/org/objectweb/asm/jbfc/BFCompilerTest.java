@@ -101,8 +101,10 @@ public class BFCompilerTest extends TestCase {
                 ""));
     }
 
-    private String execute(String name, String code, String input)
-            throws Throwable
+    private String execute(
+        final String name,
+        final String code,
+        final String input) throws Throwable
     {
         bc.compile(new StringReader(code), name, name, cw);
 
@@ -150,7 +152,10 @@ public class BFCompilerTest extends TestCase {
 
         private final byte[] bytecode;
 
-        public TestClassLoader(ClassLoader cl, String className, byte[] bytecode)
+        public TestClassLoader(
+            final ClassLoader cl,
+            final String className,
+            final byte[] bytecode)
         {
             super();
             this.cl = cl;
@@ -158,7 +163,8 @@ public class BFCompilerTest extends TestCase {
             this.bytecode = bytecode;
         }
 
-        public Class loadClass(String name) throws ClassNotFoundException {
+        public Class loadClass(final String name) throws ClassNotFoundException
+        {
             if (className.equals(name)) {
                 return super.defineClass(className,
                         bytecode,

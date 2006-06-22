@@ -138,7 +138,7 @@ public class Shrinker {
             return d;
         }
 
-        private int getSort(Constant c) {
+        private int getSort(final Constant c) {
             switch (c.type) {
                 case 'I':
                     return 0;

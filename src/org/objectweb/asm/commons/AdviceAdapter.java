@@ -76,7 +76,11 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
      * @param name the method's name.
      * @param desc the method's descriptor (see {@link Type Type}).
      */
-    public AdviceAdapter(MethodVisitor mv, int access, String name, String desc)
+    public AdviceAdapter(
+        final MethodVisitor mv,
+        final int access,
+        final String name,
+        final String desc)
     {
         super(mv, access, name, desc);
         methodAccess = access;
@@ -84,7 +88,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
 
         constructor = "<init>".equals(name);
     }
-    
+
     public void visitCode() {
         mv.visitCode();
         if (!constructor) {
@@ -96,7 +100,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         }
     }
 
-    public void visitLabel(Label label) {
+    public void visitLabel(final Label label) {
         mv.visitLabel(label);
 
         if (constructor && branches != null) {
@@ -108,7 +112,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         }
     }
 
-    public void visitInsn(int opcode) {
+    public void visitInsn(final int opcode) {
         if (constructor) {
             switch (opcode) {
                 case RETURN: // empty stack
@@ -345,7 +349,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         mv.visitInsn(opcode);
     }
 
-    public void visitVarInsn(int opcode, int var) {
+    public void visitVarInsn(final int opcode, final int var) {
         super.visitVarInsn(opcode, var);
 
         if (constructor) {
@@ -377,10 +381,10 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
     }
 
     public void visitFieldInsn(
-        int opcode,
-        String owner,
-        String name,
-        String desc)
+        final int opcode,
+        final String owner,
+        final String name,
+        final String desc)
     {
         mv.visitFieldInsn(opcode, owner, name, desc);
 
@@ -416,7 +420,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         }
     }
 
-    public void visitIntInsn(int opcode, int operand) {
+    public void visitIntInsn(final int opcode, final int operand) {
         mv.visitIntInsn(opcode, operand);
 
         if (constructor) {
@@ -428,7 +432,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         }
     }
 
-    public void visitLdcInsn(Object cst) {
+    public void visitLdcInsn(final Object cst) {
         mv.visitLdcInsn(cst);
 
         if (constructor) {
@@ -439,7 +443,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         }
     }
 
-    public void visitMultiANewArrayInsn(String desc, int dims) {
+    public void visitMultiANewArrayInsn(final String desc, final int dims) {
         mv.visitMultiANewArrayInsn(desc, dims);
 
         if (constructor) {
@@ -450,7 +454,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         }
     }
 
-    public void visitTypeInsn(int opcode, String name) {
+    public void visitTypeInsn(final int opcode, final String name) {
         mv.visitTypeInsn(opcode, name);
 
         // ANEWARRAY, CHECKCAST or INSTANCEOF don't change stack
@@ -460,10 +464,10 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
     }
 
     public void visitMethodInsn(
-        int opcode,
-        String owner,
-        String name,
-        String desc)
+        final int opcode,
+        final String owner,
+        final String name,
+        final String desc)
     {
         mv.visitMethodInsn(opcode, owner, name, desc);
 
@@ -506,7 +510,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         }
     }
 
-    public void visitJumpInsn(int opcode, Label label) {
+    public void visitJumpInsn(final int opcode, final Label label) {
         mv.visitJumpInsn(opcode, label);
 
         if (constructor) {
@@ -542,7 +546,11 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         }
     }
 
-    public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
+    public void visitLookupSwitchInsn(
+        final Label dflt,
+        final int[] keys,
+        final Label[] labels)
+    {
         mv.visitLookupSwitchInsn(dflt, keys, labels);
 
         if (constructor) {
@@ -552,10 +560,10 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
     }
 
     public void visitTableSwitchInsn(
-        int min,
-        int max,
-        Label dflt,
-        Label[] labels)
+        final int min,
+        final int max,
+        final Label dflt,
+        final Label[] labels)
     {
         mv.visitTableSwitchInsn(min, max, dflt, labels);
 
@@ -565,14 +573,14 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         }
     }
 
-    private void addBranches(Label dflt, Label[] labels) {
+    private void addBranches(final Label dflt, final Label[] labels) {
         addBranch(dflt);
         for (int i = 0; i < labels.length; i++) {
             addBranch(labels[i]);
         }
     }
 
-    private void addBranch(Label label) {
+    private void addBranch(final Label label) {
         if (branches.containsKey(label)) {
             return;
         }
@@ -589,7 +597,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         return stackFrame.get(stackFrame.size() - 1);
     }
 
-    private void pushValue(Object o) {
+    private void pushValue(final Object o) {
         stackFrame.add(o);
     }
 

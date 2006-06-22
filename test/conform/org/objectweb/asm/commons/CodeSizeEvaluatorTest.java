@@ -48,11 +48,11 @@ public class CodeSizeEvaluatorTest extends AbstractTest {
         ClassReader cr = new ClassReader(is);
         cr.accept(new ClassAdapter(new ClassWriter(0)) {
             public MethodVisitor visitMethod(
-                int access,
-                String name,
-                String desc,
-                String signature,
-                String[] exceptions)
+                final int access,
+                final String name,
+                final String desc,
+                final String signature,
+                final String[] exceptions)
             {
                 MethodVisitor mv = cv.visitMethod(access,
                         name,
@@ -60,7 +60,10 @@ public class CodeSizeEvaluatorTest extends AbstractTest {
                         signature,
                         exceptions);
                 return new CodeSizeEvaluator(mv) {
-                    public void visitMaxs(int maxStack, int maxLocals) {
+                    public void visitMaxs(
+                        final int maxStack,
+                        final int maxLocals)
+                    {
                         Label end = new Label();
                         mv.visitLabel(end);
                         mv.visitMaxs(maxStack, maxLocals);

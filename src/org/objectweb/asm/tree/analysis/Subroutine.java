@@ -71,7 +71,7 @@ class Subroutine {
         return result;
     }
 
-    public boolean merge(final Subroutine subroutine, boolean checkOverlap)
+    public boolean merge(final Subroutine subroutine, final boolean checkOverlap)
             throws AnalyzerException
     {
         if (checkOverlap && subroutine.start != start) {

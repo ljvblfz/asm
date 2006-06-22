@@ -40,11 +40,11 @@ import junit.framework.TestCase;
  */
 public class SmallSetUnitTest extends TestCase {
 
-    private Object A = new Object();
-    private Object B = new Object();
-    private Object C = new Object();
-    private Object D = new Object();
-    
+    private final Object A = new Object();
+    private final Object B = new Object();
+    private final Object C = new Object();
+    private final Object D = new Object();
+
     public void testSubsetUnion() {
         SmallSet s1 = new SmallSet(A, B);
         SmallSet s2 = new SmallSet(A, null);

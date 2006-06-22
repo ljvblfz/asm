@@ -70,7 +70,7 @@ public class DependencyTracker {
 
     private static final String LABEL_FONT = "Tahoma-9";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(final String[] args) throws IOException {
         DependencyVisitor v = new DependencyVisitor();
 
         ZipFile f = new ZipFile(args[0]);
@@ -101,9 +101,9 @@ public class DependencyTracker {
     }
 
     public static void buildDiagram(
-        String[] jarNames,
-        String[] classNames,
-        Map<String, Map<String, Integer>> globals) throws IOException
+        final String[] jarNames,
+        final String[] classNames,
+        final Map<String, Map<String, Integer>> globals) throws IOException
     {
         // normalize
         int max = 0;

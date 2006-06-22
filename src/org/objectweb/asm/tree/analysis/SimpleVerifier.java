@@ -72,9 +72,7 @@ public class SimpleVerifier extends BasicVerifier {
      * @param currentClass the class that is verified.
      * @param currentSuperClass the super class of the class that is verified.
      */
-    public SimpleVerifier(
-        final Type currentClass,
-        final Type currentSuperClass)
+    public SimpleVerifier(final Type currentClass, final Type currentSuperClass)
     {
         this(currentClass, currentSuperClass, null);
     }

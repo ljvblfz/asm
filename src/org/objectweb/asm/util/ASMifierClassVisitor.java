@@ -48,7 +48,7 @@ import org.objectweb.asm.Opcodes;
  * {@link #main main} method);</li> <li>edit the generated source code, if
  * necessary.</li> </ul> The source code printed when visiting the
  * <tt>Hello</tt> class is the following: <p> <blockquote>
- *
+ * 
  * <pre>
  * import org.objectweb.asm.*;
  *
@@ -107,9 +107,9 @@ import org.objectweb.asm.Opcodes;
  * }
  *
  * </pre>
- *
+ * 
  * </blockquote> where <tt>Hello</tt> is defined by: <p> <blockquote>
- *
+ * 
  * <pre>
  * public class Hello {
  *
@@ -118,9 +118,9 @@ import org.objectweb.asm.Opcodes;
  *     }
  * }
  * </pre>
- *
+ * 
  * </blockquote>
- *
+ * 
  * @author Eric Bruneton
  * @author Eugene Kuleshov
  */
@@ -152,9 +152,9 @@ public class ASMifierClassVisitor extends ASMifierAbstractVisitor implements
      * Prints the ASM source code to generate the given class to the standard
      * output. <p> Usage: ASMifierClassVisitor [-debug] &lt;fully qualified
      * class name or class file name&gt;
-     *
+     * 
      * @param args the command line arguments.
-     *
+     * 
      * @throws Exception if the class cannot be found, or if an IO exception
      *         occurs.
      */
@@ -181,7 +181,8 @@ public class ASMifierClassVisitor extends ASMifierAbstractVisitor implements
         }
         ClassReader cr;
         if (args[i].endsWith(".class") || args[i].indexOf('\\') > -1
-                || args[i].indexOf('/') > -1) {
+                || args[i].indexOf('/') > -1)
+        {
             cr = new ClassReader(new FileInputStream(args[i]));
         } else {
             cr = new ClassReader(args[i]);
@@ -193,7 +194,7 @@ public class ASMifierClassVisitor extends ASMifierAbstractVisitor implements
 
     /**
      * Constructs a new {@link ASMifierClassVisitor} object.
-     *
+     * 
      * @param pw the print writer to be used to print the class.
      */
     public ASMifierClassVisitor(final PrintWriter pw) {
@@ -426,7 +427,7 @@ public class ASMifierClassVisitor extends ASMifierAbstractVisitor implements
     /**
      * Appends a string representation of the given access modifiers to {@link
      * #buf buf}.
-     *
+     * 
      * @param access some access modifiers.
      */
     void appendAccess(final int access) {

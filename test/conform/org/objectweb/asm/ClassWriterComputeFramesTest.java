@@ -111,12 +111,12 @@ public class ClassWriterComputeFramesTest extends AbstractTest {
         cr.accept(new ClassAdapter(cw) {
 
             public void visit(
-                int version,
-                int access,
-                String name,
-                String signature,
-                String superName,
-                String[] interfaces)
+                final int version,
+                final int access,
+                final String name,
+                final String signature,
+                final String superName,
+                final String[] interfaces)
             {
                 super.visit(Opcodes.V1_6,
                         access,
@@ -170,7 +170,7 @@ class ClassInfo {
     private Type type;
 
     private ClassLoader loader;
-    
+
     int access;
 
     String superClass;
@@ -189,7 +189,7 @@ class ClassInfo {
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            if(is!=null) {
+            if (is != null) {
                 try {
                     is.close();
                 } catch (Exception e) {
@@ -247,7 +247,7 @@ class ClassInfo {
         return (getModifiers() & Opcodes.ACC_INTERFACE) > 0;
     }
 
-    private boolean implementsInterface(ClassInfo that) {
+    private boolean implementsInterface(final ClassInfo that) {
         for (ClassInfo c = this; c != null; c = c.getSuperclass()) {
             ClassInfo[] tis = c.getInterfaces();
             for (int i = 0; i < tis.length; ++i) {
@@ -260,17 +260,18 @@ class ClassInfo {
         return false;
     }
 
-    private boolean isSubclassOf(ClassInfo that) {
+    private boolean isSubclassOf(final ClassInfo that) {
         for (ClassInfo c = this; c != null; c = c.getSuperclass()) {
             if (c.getSuperclass() != null
-                    && c.getSuperclass().type.equals(that.type)) {
+                    && c.getSuperclass().type.equals(that.type))
+            {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean isAssignableFrom(ClassInfo that) {
+    public boolean isAssignableFrom(final ClassInfo that) {
         if (this == that) {
             return true;
         }
@@ -284,7 +285,8 @@ class ClassInfo {
         }
 
         if (that.isInterface()
-                && this.getType().getDescriptor().equals("Ljava/lang/Object;")) {
+                && getType().getDescriptor().equals("Ljava/lang/Object;"))
+        {
             return true;
         }
 

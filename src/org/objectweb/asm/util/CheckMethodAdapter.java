@@ -352,11 +352,11 @@ public class CheckMethodAdapter extends MethodAdapter {
     }
 
     public void visitFrame(
-        int type,
-        int nLocal,
-        Object[] local,
-        int nStack,
-        Object[] stack)
+        final int type,
+        final int nLocal,
+        final Object[] local,
+        final int nStack,
+        final Object[] stack)
     {
         int mLocal;
         int mStack;
@@ -570,7 +570,7 @@ public class CheckMethodAdapter extends MethodAdapter {
         checkLabel(dflt, false, "default label");
         if (keys == null || labels == null || keys.length != labels.length) {
             throw new IllegalArgumentException("There must be the same number of keys and labels");
-       }
+        }
         for (int i = 0; i < labels.length; ++i) {
             checkLabel(labels[i], false, "label at index " + i);
         }

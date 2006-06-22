@@ -45,8 +45,8 @@ public class ClassReader {
 
     /**
      * Flag to skip method code. If this class is set <code>CODE</code>
-     * atribute won't be visited. This can be used, for example, to
-     * retrieve annotations for methods and method parameters.
+     * atribute won't be visited. This can be used, for example, to retrieve
+     * annotations for methods and method parameters.
      */
     public final static int SKIP_CODE = 1;
 
@@ -623,7 +623,7 @@ public class ClassReader {
                 // tests are sorted in decreasing frequency order
                 // (based on frequencies observed on typical classes)
                 if (attrName.equals("Code")) {
-                    if(!skipCode) {
+                    if (!skipCode) {
                         v = u;
                     }
                 } else if (attrName.equals("Exceptions")) {
@@ -1067,7 +1067,7 @@ public class ClassReader {
                 Label l;
                 while (v < codeEnd) {
                     w = v - codeStart;
-                    
+
                     l = labels[w];
                     if (l != null) {
                         mv.visitLabel(l);
@@ -1075,7 +1075,7 @@ public class ClassReader {
                             mv.visitLineNumber(l.line, l);
                         }
                     }
-                    
+
                     while (frameLocal != null
                             && (frameOffset == w || frameOffset == -1))
                     {
@@ -1800,7 +1800,7 @@ public class ClassReader {
      *        sufficiently large. It is not automatically resized.
      * @return the String corresponding to the specified UTF8 string.
      */
-    private String readUTF(int index, int utfLen, char[] buf) {
+    private String readUTF(int index, final int utfLen, final char[] buf) {
         int endIndex = index + utfLen;
         byte[] b = this.b;
         int strLen = 0;
@@ -1881,7 +1881,7 @@ public class ClassReader {
             case ClassWriter.CLASS:
                 String s = readUTF8(index, buf);
                 return Type.getType(s.charAt(0) == '[' ? s : "L" + s + ";");
-            // case ClassWriter.STR:
+                // case ClassWriter.STR:
             default:
                 return readUTF8(index, buf);
         }

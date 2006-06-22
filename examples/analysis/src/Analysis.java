@@ -51,7 +51,7 @@ import org.objectweb.asm.util.TraceMethodVisitor;
  */
 public class Analysis implements Opcodes {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         ClassReader cr = new ClassReader("Analysis");
         ClassNode cn = new ClassNode();
         cr.accept(cn, ClassReader.SKIP_DEBUG);
@@ -104,7 +104,9 @@ public class Analysis implements Opcodes {
      * least one xLOAD corresponding instruction in their successor instructions
      * (in the control flow graph).
      */
-    public static boolean analyze(ClassNode c, MethodNode m) throws Exception {
+    public static boolean analyze(final ClassNode c, final MethodNode m)
+            throws Exception
+    {
         Analyzer a = new Analyzer(new SourceInterpreter());
         Frame[] frames = a.analyze(c.name, m);
 

@@ -818,12 +818,12 @@ public class Frames extends Generator {
         }
 
         public void visit(
-            int version,
-            int access,
-            String name,
-            String signature,
-            String superName,
-            String[] interfaces)
+            final int version,
+            final int access,
+            final String name,
+            final String signature,
+            final String superName,
+            final String[] interfaces)
         {
             super.visit(V1_5,
                     access,
@@ -834,11 +834,11 @@ public class Frames extends Generator {
         }
 
         public MethodVisitor visitMethod(
-            int access,
-            String name,
-            String desc,
-            String signature,
-            String[] exceptions)
+            final int access,
+            final String name,
+            final String desc,
+            final String signature,
+            final String[] exceptions)
         {
             return new MethodAdapter(super.visitMethod(access,
                     name,
@@ -847,11 +847,11 @@ public class Frames extends Generator {
                     exceptions))
             {
                 public void visitFrame(
-                    int type,
-                    int nLocal,
-                    Object[] local,
-                    int nStack,
-                    Object[] stack)
+                    final int type,
+                    final int nLocal,
+                    final Object[] local,
+                    final int nStack,
+                    final Object[] stack)
                 {
                     Object[] clocal = new Object[local.length];
                     for (int i = 0; i < clocal.length; ++i) {
@@ -870,7 +870,7 @@ public class Frames extends Generator {
                     super.visitFrame(type, nLocal, clocal, nStack, cstack);
                 }
 
-                public void visitTypeInsn(int opcode, String desc) {
+                public void visitTypeInsn(final int opcode, final String desc) {
                     if (desc.equals("pkg/FrameTable")) {
                         super.visitTypeInsn(opcode, "pkg/FrameMap");
                     } else {
@@ -879,10 +879,10 @@ public class Frames extends Generator {
                 }
 
                 public void visitMethodInsn(
-                    int opcode,
-                    String owner,
-                    String name,
-                    String desc)
+                    final int opcode,
+                    final String owner,
+                    final String name,
+                    final String desc)
                 {
                     if (owner.equals("pkg/FrameTable")) {
                         super.visitMethodInsn(opcode,

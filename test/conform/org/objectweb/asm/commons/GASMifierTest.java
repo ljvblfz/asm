@@ -97,11 +97,11 @@ public class GASMifierTest extends AbstractTest {
         ClassWriter cw = new ClassWriter(0);
         cr.accept(new ClassAdapter(cw) {
             public MethodVisitor visitMethod(
-                int access,
-                String name,
-                String desc,
-                String signature,
-                String[] exceptions)
+                final int access,
+                final String name,
+                final String desc,
+                final String signature,
+                final String[] exceptions)
             {
                 return new LocalVariablesSorter(access,
                         desc,
@@ -139,7 +139,7 @@ public class GASMifierTest extends AbstractTest {
         }
     }
 
-    private void trace(String generated) {
+    private void trace(final String generated) {
         if (System.getProperty("asm.test.class") != null) {
             System.err.println(generated);
         }
@@ -156,7 +156,9 @@ public class GASMifierTest extends AbstractTest {
 
         final static IClassLoader CL = new ClassLoaderIClassLoader(new URLClassLoader(new URL[0]));
 
-        public byte[] compile(String name, String source) throws Exception {
+        public byte[] compile(final String name, final String source)
+                throws Exception
+        {
             Parser p = new Parser(new Scanner(name, new StringReader(source)));
             UnitCompiler uc = new UnitCompiler(p.parseCompilationUnit(), CL);
             return uc.compileUnit(DebuggingInformation.ALL)[0].toByteArray();

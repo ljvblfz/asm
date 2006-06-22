@@ -110,11 +110,17 @@ public class CheckClassAdapter extends ClassAdapter {
     /**
      * Checks a given class
      * 
-     * @param cr a <code>ClassReader</code> that contains bytecode for the analysis. 
-     * @param dump true if bytecode should be printed out not only when errors are found.
+     * @param cr a <code>ClassReader</code> that contains bytecode for the
+     *        analysis.
+     * @param dump true if bytecode should be printed out not only when errors
+     *        are found.
      * @param pw write where results going to be printed
      */
-    public static void verify(ClassReader cr, boolean dump, PrintWriter pw) {
+    public static void verify(
+        final ClassReader cr,
+        boolean dump,
+        final PrintWriter pw)
+    {
         ClassNode cn = new ClassNode();
         cr.accept(new CheckClassAdapter(cn), ClassReader.SKIP_DEBUG);
 
@@ -137,13 +143,14 @@ public class CheckClassAdapter extends ClassAdapter {
 
                 TraceMethodVisitor mv = new TraceMethodVisitor();
                 method.accept(mv);
-                
+
                 pw.println(method.name + method.desc);
                 for (int j = 0; j < method.instructions.size(); ++j) {
                     String s = frames[j] == null
                             ? "null"
                             : frames[j].toString();
-                    while (s.length() < method.maxStack + method.maxLocals + 1) {
+                    while (s.length() < method.maxStack + method.maxLocals + 1)
+                    {
                         s += " ";
                     }
                     pw.print(Integer.toString(j + 100000).substring(1));

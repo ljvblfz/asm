@@ -98,17 +98,17 @@ public class AnalyzerAdapter extends MethodAdapter {
      * the final, initialized type value.
      */
     private Map uninitializedTypes;
-    
+
     /**
      * The maximum stack size of this method.
      */
     private int maxStack;
-    
+
     /**
      * The maximum number of local variables of this method.
      */
     private int maxLocals;
-    
+
     /**
      * Creates a new {@link AnalyzerAdapter}.
      * 
@@ -390,7 +390,7 @@ public class AnalyzerAdapter extends MethodAdapter {
         }
         execute(Opcodes.MULTIANEWARRAY, dims, desc);
     }
-    
+
     public void visitMaxs(final int maxStack, final int maxLocals) {
         if (mv != null) {
             this.maxStack = Math.max(this.maxStack, maxStack);

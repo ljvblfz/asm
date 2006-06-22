@@ -622,7 +622,10 @@ public class ClassWriter implements ClassVisitor {
         }
     }
 
-    public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+    public AnnotationVisitor visitAnnotation(
+        final String desc,
+        final boolean visible)
+    {
         ByteVector bv = new ByteVector();
         // write type, and reserve space for values count
         bv.putShort(newUTF8(desc)).putShort(0);

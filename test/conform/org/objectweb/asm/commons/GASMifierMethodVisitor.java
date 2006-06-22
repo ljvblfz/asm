@@ -68,7 +68,7 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
 
     HashMap labelNames;
 
-    public GASMifierMethodVisitor(int access, String desc) {
+    public GASMifierMethodVisitor(final int access, final String desc) {
         super("mg");
         this.access = access;
         this.labelNames = new HashMap();
@@ -513,7 +513,7 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         lastOpcode = opcode;
     }
 
-    public void visitVarInsn(final int opcode, int var) {
+    public void visitVarInsn(final int opcode, final int var) {
         buf.setLength(0);
         try {
             switch (opcode) {
@@ -571,7 +571,7 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         lastOpcode = opcode;
     }
 
-    private void generateLoadLocal(int var, String type) {
+    private void generateLoadLocal(final int var, final String type) {
         if (var < firstLocal) {
             if (var == 0 && (access & ACC_STATIC) == 0) {
                 buf.append("mg.loadThis();\n");
@@ -590,7 +590,7 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         }
     }
 
-    private void generateStoreLocal(int var, String type) {
+    private void generateStoreLocal(final int var, final String type) {
         if (var < firstLocal) {
             if (var == 0 && (access & ACC_STATIC) == 0) {
                 buf.append("mg.visitVarInsn(ASTORE, " + var + ");\n");
@@ -609,7 +609,7 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         }
     }
 
-    private int generateNewLocal(int var, String type) {
+    private int generateNewLocal(final int var, final String type) {
         Integer i = (Integer) locals.get(new Integer(var));
         if (i == null) {
             int local = locals.size();
@@ -621,7 +621,7 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         return i.intValue();
     }
 
-    private int getArgIndex(int var) {
+    private int getArgIndex(final int var) {
         int nextLocal = ((Opcodes.ACC_STATIC & access) != 0) ? 0 : 1;
         int i = 0;
         while (nextLocal != var) {
@@ -1008,11 +1008,11 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         // does nothing
     }
 
-    static String getType(String internalName) {
+    static String getType(final String internalName) {
         return "Type.getType(\"L" + internalName + ";\")";
     }
 
-    static String getDescType(String desc) {
+    static String getDescType(final String desc) {
         if (desc.equals("Z")) {
             return "Type.BOOLEAN_TYPE";
         }
@@ -1043,7 +1043,7 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         return "Type.getType(\"" + desc + "\")";
     }
 
-    static String getMethod(String name, String desc) {
+    static String getMethod(final String name, final String desc) {
         Type rt = Type.getReturnType(desc);
         Type[] argt = Type.getArgumentTypes(desc);
         StringBuffer buf = new StringBuffer();

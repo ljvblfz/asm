@@ -232,10 +232,10 @@ public class GeneratorAdapter extends LocalVariablesSorter {
      * @param desc the method's descriptor (see {@link Type Type}).
      */
     public GeneratorAdapter(
-        MethodVisitor mv,
-        int access,
-        String name,
-        String desc)
+        final MethodVisitor mv,
+        final int access,
+        final String name,
+        final String desc)
     {
         super(access, desc, mv);
         this.access = access;

@@ -42,12 +42,15 @@ import org.xml.sax.helpers.AttributesImpl;
  */
 public class SAXFieldAdapter extends SAXAdapter implements FieldVisitor {
 
-    public SAXFieldAdapter(ContentHandler h, AttributesImpl att) {
+    public SAXFieldAdapter(final ContentHandler h, final AttributesImpl att) {
         super(h);
         addStart("field", att);
     }
 
-    public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+    public AnnotationVisitor visitAnnotation(
+        final String desc,
+        final boolean visible)
+    {
         return new SAXAnnotationAdapter(getContentHandler(),
                 "annotation",
                 visible ? 1 : -1,
@@ -55,7 +58,7 @@ public class SAXFieldAdapter extends SAXAdapter implements FieldVisitor {
                 desc);
     }
 
-    public void visitAttribute(Attribute attr) {
+    public void visitAttribute(final Attribute attr) {
         // TODO Auto-generated method stub
     }
 

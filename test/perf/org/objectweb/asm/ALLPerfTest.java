@@ -80,7 +80,7 @@ public abstract class ALLPerfTest extends ClassLoader {
 
     static BCClass c;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         String clazz = System.getProperty("asm.test.class");
         ZipFile zip = new ZipFile(System.getProperty("java.home")
                 + "/lib/rt.jar");
@@ -164,11 +164,11 @@ public abstract class ALLPerfTest extends ClassLoader {
                 new ClassReader(b).accept(new ClassAdapter(cw) {
 
                     public MethodVisitor visitMethod(
-                        int access,
-                        String name,
-                        String desc,
-                        String signature,
-                        String[] exceptions)
+                        final int access,
+                        final String name,
+                        final String desc,
+                        final String signature,
+                        final String[] exceptions)
                     {
                         return new LocalVariablesSorter(access,
                                 desc,
@@ -220,7 +220,7 @@ public abstract class ALLPerfTest extends ClassLoader {
         for (int i = 0; i < 10; ++i) {
             int errors = 0;
             long t = System.currentTimeMillis();
-            for (int j = 0; j < classes.size()/10; ++j) {
+            for (int j = 0; j < classes.size() / 10; ++j) {
                 byte[] b = (byte[]) classes.get(j);
                 ClassReader cr = new ClassReader(b);
                 ClassNode cn = new ClassNode();
@@ -239,8 +239,9 @@ public abstract class ALLPerfTest extends ClassLoader {
                 }
             }
             t = System.currentTimeMillis() - t;
-            System.out.println("Time to analyze " + classes.size()/10
-                    + " classes with SimpleVerifier = " + t + " ms (" + errors + " errors)");
+            System.out.println("Time to analyze " + classes.size() / 10
+                    + " classes with SimpleVerifier = " + t + " ms (" + errors
+                    + " errors)");
         }
         System.out.println();
 
@@ -371,7 +372,7 @@ public abstract class ALLPerfTest extends ClassLoader {
 
     }
 
-    private static void nullBCELAdapt(byte[] b) throws IOException {
+    private static void nullBCELAdapt(final byte[] b) throws IOException {
         JavaClass jc = new ClassParser(new ByteArrayInputStream(b),
                 "class-name").parse();
         ClassGen cg = new ClassGen(jc);
@@ -409,7 +410,8 @@ public abstract class ALLPerfTest extends ClassLoader {
         cg.getJavaClass().getBytes();
     }
 
-    private static void nullAspectjBCELAdapt(byte[] b) throws IOException {
+    private static void nullAspectjBCELAdapt(final byte[] b) throws IOException
+    {
         org.aspectj.apache.bcel.classfile.JavaClass jc = new org.aspectj.apache.bcel.classfile.ClassParser(new ByteArrayInputStream(b),
                 "class-name").parse();
         org.aspectj.apache.bcel.generic.ClassGen cg = new org.aspectj.apache.bcel.generic.ClassGen(jc);
@@ -449,7 +451,7 @@ public abstract class ALLPerfTest extends ClassLoader {
         cg.getJavaClass().getBytes();
     }
 
-    private static void nullJavassistAdapt(byte[] b) throws Exception {
+    private static void nullJavassistAdapt(final byte[] b) throws Exception {
         CtClass cc = pool.makeClass(new ByteArrayInputStream(b));
         CtMethod[] ms = cc.getDeclaredMethods();
         for (int j = 0; j < ms.length; ++j) {
@@ -463,7 +465,7 @@ public abstract class ALLPerfTest extends ClassLoader {
         cc.toBytecode();
     }
 
-    private static void nullSERPAdapt(byte[] b) throws Exception {
+    private static void nullSERPAdapt(final byte[] b) throws Exception {
         if (c != null) {
             p.removeClass(c);
         }

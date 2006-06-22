@@ -122,7 +122,7 @@ final class Item {
      * 
      * @param index index of the item to be constructed.
      */
-    Item(int index) {
+    Item(final int index) {
         this.index = index;
     }
 
@@ -218,9 +218,9 @@ final class Item {
                 hashCode = 0x7FFFFFFF & (type + strVal1.hashCode()
                         * strVal2.hashCode());
                 return;
-            // ClassWriter.FIELD:
-            // ClassWriter.METH:
-            // ClassWriter.IMETH:
+                // ClassWriter.FIELD:
+                // ClassWriter.METH:
+                // ClassWriter.IMETH:
             default:
                 hashCode = 0x7FFFFFFF & (type + strVal1.hashCode()
                         * strVal2.hashCode() * strVal3.hashCode());
@@ -256,9 +256,9 @@ final class Item {
                 case ClassWriter.NAME_TYPE:
                     return i.strVal1.equals(strVal1)
                             && i.strVal2.equals(strVal2);
-                // ClassWriter.FIELD:
-                // ClassWriter.METH:
-                // ClassWriter.IMETH:
+                    // ClassWriter.FIELD:
+                    // ClassWriter.METH:
+                    // ClassWriter.IMETH:
                 default:
                     return i.strVal1.equals(strVal1)
                             && i.strVal2.equals(strVal2)

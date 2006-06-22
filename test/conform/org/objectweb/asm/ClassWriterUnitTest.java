@@ -56,7 +56,7 @@ public class ClassWriterUnitTest extends TestCase {
         } catch (RuntimeException e) {
         }
     }
-    
+
     public void testIllegalGetCommonSuperClassArguments() {
         ClassWriter cw = new ClassWriter(0);
         try {

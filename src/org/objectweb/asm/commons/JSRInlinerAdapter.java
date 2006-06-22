@@ -88,7 +88,7 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
      * For each label that is jumped to by a JSR, we create a Subroutine
      * instance. Map<Label,Subroutine> is the generic type.
      */
-    private Map subroutineHeads = new Hashtable();
+    private final Map subroutineHeads = new Hashtable();
 
     /**
      * This subroutine instance denotes the line of execution that is not
@@ -101,7 +101,7 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
      * This BitSet contains the index of every instruction that belongs to more
      * than one subroutine. This should not happen often.
      */
-    private BitSet dualCitizens = new BitSet();
+    private final BitSet dualCitizens = new BitSet();
 
     /**
      * Creates a new JSRInliner.
@@ -552,7 +552,7 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
         }
     }
 
-    private String insnDesc(AbstractInsnNode insn) {
+    private String insnDesc(final AbstractInsnNode insn) {
         String opcode = null;
         if (insn.getOpcode() >= 0) {
             opcode = org.objectweb.asm.util.AbstractVisitor.OPCODES[insn.getOpcode()];
@@ -561,10 +561,11 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
         if (insn.getType() == AbstractInsnNode.JUMP_INSN) {
             LabelNode lbl = ((JumpInsnNode) insn).label;
             int idx = instructions.indexOf(lbl);
-            if (idx != -1)
+            if (idx != -1) {
                 return opcode + " " + idx;
-            else
+            } else {
                 return opcode + " " + lbl;
+            }
         } else if (opcode != null) {
             return opcode;
         } else {
@@ -785,7 +786,7 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
             return null;
         }
 
-        public Object get(Object o) {
+        public Object get(final Object o) {
             return gotoLabel((LabelNode) o);
         }
     }

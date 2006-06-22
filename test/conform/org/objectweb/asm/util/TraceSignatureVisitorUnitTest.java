@@ -113,7 +113,7 @@ public class TraceSignatureVisitorUnitTest extends TestCase {
 
     private TestData data;
 
-    private TraceSignatureVisitorUnitTest(TestData data) {
+    private TraceSignatureVisitorUnitTest(final TestData data) {
         super("testSignature");
         this.data = data;
     }

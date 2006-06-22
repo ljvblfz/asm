@@ -55,7 +55,8 @@ public class SignatureUnitTest extends TestCase {
 
     private TestData data;
 
-    private SignatureUnitTest(TraceSignatureVisitorUnitTest.TestData data) {
+    private SignatureUnitTest(final TraceSignatureVisitorUnitTest.TestData data)
+    {
         super("testSignature");
         this.data = data;
     }

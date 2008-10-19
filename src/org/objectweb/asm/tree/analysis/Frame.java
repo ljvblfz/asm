@@ -577,12 +577,14 @@ public class Frame {
             case Opcodes.INVOKESPECIAL:
             case Opcodes.INVOKESTATIC:
             case Opcodes.INVOKEINTERFACE:
+            case Opcodes.INVOKEDYNAMIC:
                 values = new ArrayList();
                 String desc = ((MethodInsnNode) insn).desc;
                 for (int i = Type.getArgumentTypes(desc).length; i > 0; --i) {
                     values.add(0, pop());
                 }
-                if (insn.getOpcode() != Opcodes.INVOKESTATIC) {
+                if (insn.getOpcode() != Opcodes.INVOKESTATIC &&
+                    insn.getOpcode() != Opcodes.INVOKEDYNAMIC) {
                     values.add(0, pop());
                 }
                 if (Type.getReturnType(desc) == Type.VOID_TYPE) {

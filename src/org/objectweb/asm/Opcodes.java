@@ -51,6 +51,7 @@ public interface Opcodes {
     int V1_4 = 0 << 16 | 48;
     int V1_5 = 0 << 16 | 49;
     int V1_6 = 0 << 16 | 50;
+    int V1_7 = 0 << 16 | 51;
 
     // access flags
 
@@ -322,7 +323,7 @@ public interface Opcodes {
     int INVOKESPECIAL = 183; // -
     int INVOKESTATIC = 184; // -
     int INVOKEINTERFACE = 185; // -
-    // int UNUSED = 186; // NOT VISITED
+    int INVOKEDYNAMIC = 186; // -
     int NEW = 187; // visitTypeInsn
     int NEWARRAY = 188; // visitIntInsn
     int ANEWARRAY = 189; // visitTypeInsn

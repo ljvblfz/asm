@@ -101,9 +101,9 @@ public class ClassWriter implements ClassVisitor {
     static final int FIELDORMETH_INSN = 6;
 
     /**
-     * The type of the INVOKEINTERFACE instruction.
+     * The type of the INVOKEINTERFACE/INVOKEDYNAMIC instruction.
      */
-    static final int ITFMETH_INSN = 7;
+    static final int ITFDYNMETH_INSN = 7;
 
     /**
      * The type of instructions with a 2 bytes bytecode offset label.
@@ -447,7 +447,7 @@ public class ClassWriter implements ClassVisitor {
         String s = "AAAAAAAAAAAAAAAABCKLLDDDDDEEEEEEEEEEEEEEEEEEEEAAAAAAAADD"
                 + "DDDEEEEEEEEEEEEEEEEEEEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 + "AAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAIIIIIIIIIIIIIIIIDNOAA"
-                + "AAAAGGGGGGGHAFBFAAFFAAQPIIJJIIIIIIIIIIIIIIIIII";
+                + "AAAAGGGGGGGHHFBFAAFFAAQPIIJJIIIIIIIIIIIIIIIIII";
         for (i = 0; i < b.length; ++i) {
             b[i] = (byte) (s.charAt(i) - 'A');
         }
@@ -487,7 +487,8 @@ public class ClassWriter implements ClassVisitor {
         // for (i = Constants.GETSTATIC; i <= Constants.INVOKESTATIC; ++i) {
         // b[i] = FIELDORMETH_INSN;
         // }
-        // b[Constants.INVOKEINTERFACE] = ITFMETH_INSN;
+        // b[Constants.INVOKEINTERFACE] = ITFDYNMETH_INSN;
+        // b[Constants.INVOKEDYNAMIC] = ITFDYNMETH_INSN;
         //
         // // LABEL(W)_INSN instructions
         // for (i = Constants.IFEQ; i <= Constants.JSR; ++i) {

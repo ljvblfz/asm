@@ -699,6 +699,9 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
             case INVOKEINTERFACE:
                 buf.append("mg.invokeInterface(");
                 break;
+            case INVOKEDYNAMIC:
+                buf.append("mg.invokeDynamic(");
+                break;
             default:
                 throw new RuntimeException("unexpected case");
         }

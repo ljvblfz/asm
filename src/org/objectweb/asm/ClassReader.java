@@ -936,7 +936,7 @@ public class ClassReader {
                         case ClassWriter.IINC_INSN:
                             v += 3;
                             break;
-                        case ClassWriter.ITFMETH_INSN:
+                        case ClassWriter.ITFDYNMETH_INSN:
                             v += 5;
                             break;
                         // case MANA_INSN:
@@ -1359,7 +1359,7 @@ public class ClassReader {
                             v += 3;
                             break;
                         case ClassWriter.FIELDORMETH_INSN:
-                        case ClassWriter.ITFMETH_INSN:
+                        case ClassWriter.ITFDYNMETH_INSN:
                             int cpIndex = items[readUnsignedShort(v + 1)];
                             String iowner = readClass(cpIndex, c);
                             cpIndex = items[readUnsignedShort(cpIndex + 2)];
@@ -1370,7 +1370,7 @@ public class ClassReader {
                             } else {
                                 mv.visitMethodInsn(opcode, iowner, iname, idesc);
                             }
-                            if (opcode == Opcodes.INVOKEINTERFACE) {
+                            if (opcode == Opcodes.INVOKEINTERFACE || opcode == Opcodes.INVOKEDYNAMIC) {
                                 v += 5;
                             } else {
                                 v += 3;

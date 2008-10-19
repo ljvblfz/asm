@@ -1162,8 +1162,9 @@ final class Frame {
             case Opcodes.INVOKESPECIAL:
             case Opcodes.INVOKESTATIC:
             case Opcodes.INVOKEINTERFACE:
+            case Opcodes.INVOKEDYNAMIC:
                 pop(item.strVal3);
-                if (opcode != Opcodes.INVOKESTATIC) {
+                if (opcode != Opcodes.INVOKESTATIC && opcode != Opcodes.INVOKEDYNAMIC) {
                     t1 = pop();
                     if (opcode == Opcodes.INVOKESPECIAL
                             && item.strVal2.charAt(0) == '<')

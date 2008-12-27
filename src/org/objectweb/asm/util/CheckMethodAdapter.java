@@ -556,6 +556,9 @@ public class CheckMethodAdapter extends MethodAdapter {
         checkMethodIdentifier(name, "name");
         checkInternalName(owner, "owner");
         checkMethodDesc(desc);
+        if (opcode == Opcodes.INVOKEDYNAMIC && owner != Opcodes.INVOKEDYNAMIC_OWNER) {
+            throw new IllegalArgumentException("INVOKEDYNAMIC cannot be used with another owner than INVOKEDYNAMIC_OWNER");
+        }
         mv.visitMethodInsn(opcode, owner, name, desc);
     }
 

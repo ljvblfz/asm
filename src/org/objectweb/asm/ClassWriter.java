@@ -1152,6 +1152,18 @@ public class ClassWriter implements ClassVisitor {
      * @return the index of a new or already existing name and type item.
      */
     public int newNameType(final String name, final String desc) {
+        return newNameTypeItem(name, desc).index;
+    }
+    
+    /**
+     * Adds a name and type to the constant pool of the class being build. Does
+     * nothing if the constant pool already contains a similar item.
+     *
+     * @param name a name.
+     * @param desc a type descriptor.
+     * @return a new or already existing name and type item.
+     */
+    Item newNameTypeItem(final String name, final String desc) {
         key2.set(NAME_TYPE, name, desc, null);
         Item result = get(key2);
         if (result == null) {
@@ -1159,7 +1171,7 @@ public class ClassWriter implements ClassVisitor {
             result = new Item(index++, key2);
             put(result);
         }
-        return result.index;
+        return result;
     }
 
     /**

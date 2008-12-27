@@ -805,7 +805,9 @@ class MethodWriter implements MethodVisitor {
         final String desc)
     {
         boolean itf = opcode == Opcodes.INVOKEINTERFACE;
-        Item i = cw.newMethodItem(owner, name, desc, itf);
+        Item i = (opcode == Opcodes.INVOKEDYNAMIC) ?
+                cw.newNameTypeItem(name, desc):
+                cw.newMethodItem(owner, name, desc, itf);
         int argSize = i.intVal;
         // Label currentBlock = this.currentBlock;
         if (currentBlock != null) {

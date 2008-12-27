@@ -1093,7 +1093,9 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
 
                 case OpcodeGroup.INSN_METHOD:
                     getCodeVisitor().visitMethodInsn(o.opcode,
-                            attrs.getValue("owner"),
+                            (o.opcode != Opcodes.INVOKEDYNAMIC)?
+                                    attrs.getValue("owner"):
+                                    Opcodes.INVOKEDYNAMIC_OWNER,
                             attrs.getValue("name"),
                             attrs.getValue("desc"));
                     break;

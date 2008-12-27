@@ -1361,8 +1361,14 @@ public class ClassReader {
                         case ClassWriter.FIELDORMETH_INSN:
                         case ClassWriter.ITFDYNMETH_INSN:
                             int cpIndex = items[readUnsignedShort(v + 1)];
-                            String iowner = readClass(cpIndex, c);
-                            cpIndex = items[readUnsignedShort(cpIndex + 2)];
+                            String iowner;
+                            // INVOKEDYNAMIC is receiverless
+                            if (opcode == Opcodes.INVOKEDYNAMIC) {
+                              iowner = Opcodes.INVOKEDYNAMIC_OWNER;
+                            } else {
+                              iowner = readClass(cpIndex, c);
+                              cpIndex = items[readUnsignedShort(cpIndex + 2)];
+                            }
                             String iname = readUTF8(cpIndex, c);
                             String idesc = readUTF8(cpIndex + 2, c);
                             if (opcode < Opcodes.INVOKEVIRTUAL) {

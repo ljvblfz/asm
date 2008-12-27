@@ -149,7 +149,7 @@ public class Frame {
             throws IndexOutOfBoundsException
     {
         if (i >= locals) {
-            throw new IndexOutOfBoundsException("Trying to access an inexistant local variable");
+            throw new IndexOutOfBoundsException("Trying to access an inexistant local variable "+i);
         }
         values[i] = value;
     }
@@ -624,7 +624,7 @@ public class Frame {
                 interpreter.unaryOperation(insn, pop());
                 break;
             default:
-                throw new RuntimeException("Illegal opcode");
+                throw new RuntimeException("Illegal opcode "+insn.getOpcode());
         }
     }
 

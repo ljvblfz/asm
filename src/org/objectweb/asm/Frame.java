@@ -42,7 +42,7 @@ final class Frame {
      * updated by simulating the action of the instruction on the previous state
      * of this so called "output frame". In visitMaxs, a fix point algorithm is
      * used to compute the "input frame" of each basic block, i.e. the stack map
-     * frame at the begining of the basic block, starting from the input frame
+     * frame at the beginning of the basic block, starting from the input frame
      * of the first basic block (which is computed from the method descriptor),
      * and by using the previously computed output frames to compute the input
      * state of the other blocks.
@@ -428,7 +428,7 @@ final class Frame {
         // NA, //INVOKESPECIAL, // -
         // NA, //INVOKESTATIC, // -
         // NA, //INVOKEINTERFACE, // -
-        // NA, //UNUSED, // NOT VISITED
+        // NA, //INVOKEDYNAMIC, // -
         // 1, //NEW, // visitTypeInsn
         // 0, //NEWARRAY, // visitIntInsn
         // 0, //ANEWARRAY, // visitTypeInsn

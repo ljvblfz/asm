@@ -705,12 +705,14 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
             default:
                 throw new RuntimeException("unexpected case");
         }
-        if (owner.charAt(0) == '[') {
-            buf.append(getDescType(owner));
-        } else {
-            buf.append(getType(owner));
+        if (opcode != INVOKEDYNAMIC) {
+            if (owner.charAt(0) == '[') {
+                buf.append(getDescType(owner));
+            } else {
+                buf.append(getType(owner));
+            }
+            buf.append(", ");
         }
-        buf.append(", ");
         buf.append(getMethod(name, desc));
         buf.append(");\n");
         text.add(buf.toString());

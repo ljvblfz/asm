@@ -1162,9 +1162,8 @@ final class Frame {
             case Opcodes.INVOKESPECIAL:
             case Opcodes.INVOKESTATIC:
             case Opcodes.INVOKEINTERFACE:
-            case Opcodes.INVOKEDYNAMIC:
                 pop(item.strVal3);
-                if (opcode != Opcodes.INVOKESTATIC && opcode != Opcodes.INVOKEDYNAMIC) {
+                if (opcode != Opcodes.INVOKESTATIC) {
                     t1 = pop();
                     if (opcode == Opcodes.INVOKESPECIAL
                             && item.strVal2.charAt(0) == '<')
@@ -1173,6 +1172,10 @@ final class Frame {
                     }
                 }
                 push(cw, item.strVal3);
+                break;
+            case Opcodes.INVOKEDYNAMIC:
+                pop(item.strVal2);
+                push(cw, item.strVal2);
                 break;
             case Opcodes.NEW:
                 push(UNINITIALIZED | cw.addUninitializedType(item.strVal1, arg));

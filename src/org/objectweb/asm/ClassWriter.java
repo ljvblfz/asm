@@ -922,7 +922,7 @@ public class ClassWriter implements ClassVisitor {
     public int newConst(final Object cst) {
         return newConstItem(cst).index;
     }
-
+    
     /**
      * Adds an UTF8 string to the constant pool of the class being build. Does
      * nothing if the constant pool already contains a similar item. <i>This

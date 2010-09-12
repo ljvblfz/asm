@@ -227,10 +227,18 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         text.add(buf.toString());
     }
 
-    public void visitLdcInsn(final Object cst) {
+    public void visitCstPrimInsn(final Object cst) {
         buf.setLength(0);
-        buf.append("mv.visitLdcInsn(");
+        buf.append("mv.visitCstPrimInsn(");
         appendConstant(cst);
+        buf.append(");\n");
+        text.add(buf.toString());
+    }
+    
+    public void visitCstClassInsn(final String internalName) {
+        buf.setLength(0);
+        buf.append("mv.visitCstClassInsn(");
+        appendConstant(internalName);
         buf.append(");\n");
         text.add(buf.toString());
     }

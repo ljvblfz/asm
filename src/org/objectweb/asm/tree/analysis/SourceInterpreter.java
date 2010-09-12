@@ -37,7 +37,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.CstPrimInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
 /**
@@ -64,8 +64,12 @@ public class SourceInterpreter implements Opcodes, Interpreter {
                 size = 2;
                 break;
             case LDC:
-                Object cst = ((LdcInsnNode) insn).cst;
-                size = cst instanceof Long || cst instanceof Double ? 2 : 1;
+                if (insn.getType() == AbstractInsnNode.CST_PRIM_INSN) {
+                    Object cst = ((CstPrimInsnNode) insn).cst;
+                    size = cst instanceof Long || cst instanceof Double ? 2 : 1;    
+                } else {  // CST_CLASS_INSN, CST_MTYPE_INSN or CST_MHANDLE_INSN
+                    size = 1;
+                }
                 break;
             case GETSTATIC:
                 size = Type.getType(((FieldInsnNode) insn).desc).getSize();

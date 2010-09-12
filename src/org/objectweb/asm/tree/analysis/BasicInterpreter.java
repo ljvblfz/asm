@@ -36,7 +36,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
-import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.CstPrimInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
@@ -104,19 +104,21 @@ public class BasicInterpreter implements Opcodes, Interpreter {
             case SIPUSH:
                 return BasicValue.INT_VALUE;
             case LDC:
-                Object cst = ((LdcInsnNode) insn).cst;
-                if (cst instanceof Integer) {
-                    return BasicValue.INT_VALUE;
-                } else if (cst instanceof Float) {
-                    return BasicValue.FLOAT_VALUE;
-                } else if (cst instanceof Long) {
-                    return BasicValue.LONG_VALUE;
-                } else if (cst instanceof Double) {
-                    return BasicValue.DOUBLE_VALUE;
-                } else if (cst instanceof Type) {
+                if (insn.getType() == AbstractInsnNode.CST_PRIM_INSN) {
+                    Object cst = ((CstPrimInsnNode) insn).cst;
+                    if (cst instanceof Integer) {
+                        return BasicValue.INT_VALUE;
+                    } else if (cst instanceof Float) {
+                        return BasicValue.FLOAT_VALUE;
+                    } else if (cst instanceof Long) {
+                        return BasicValue.LONG_VALUE;
+                    } else if (cst instanceof Double) {
+                        return BasicValue.DOUBLE_VALUE;
+                    } else {
+                        return newValue(Type.getType(cst.getClass()));
+                    }
+                } else {  // CST_CLASS_INSN
                     return newValue(Type.getObjectType("java/lang/Class"));
-                } else {
-                    return newValue(Type.getType(cst.getClass()));
                 }
             case JSR:
                 return BasicValue.RETURNADDRESS_VALUE;

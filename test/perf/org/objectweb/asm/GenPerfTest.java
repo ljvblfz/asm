@@ -263,7 +263,7 @@ public class GenPerfTest {
                 "java/lang/System",
                 "out",
                 "Ljava/io/PrintStream;");
-        mw.visitLdcInsn("Hello world!");
+        mw.visitCstPrimInsn("Hello world!");
         mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                 "java/io/PrintStream",
                 "println",

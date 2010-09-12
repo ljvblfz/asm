@@ -473,7 +473,7 @@ public class JasminifierClassAdapter extends ClassAdapter {
                             pw.println(':');
                         }
 
-                        public void visitLdcInsn(Object cst) {
+                        public void visitCstPrimInsn(Object cst) {
                             pw.print("ldc ");
                             if (cst instanceof Type) {
                                 pw.print(((Type) cst).getInternalName());

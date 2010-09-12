@@ -35,6 +35,7 @@ import java.util.HashMap;
 
 import junit.framework.TestCase;
 
+import org.aspectj.apache.bcel.generic.Type;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
@@ -778,7 +779,27 @@ public class CheckClassAdapterUnitTest extends TestCase implements Opcodes {
         MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
         mv.visitCode();
         try {
-            mv.visitLdcInsn(new Object());
+            mv.visitCstPrimInsn(new Object());
+            fail();
+        } catch (Exception e) {
+        }
+    }
+    
+    public void testIllegalLdcInsnOperand2() {
+        MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
+        mv.visitCode();
+        try {
+            mv.visitCstPrimInsn(Type.getType(Object.class));
+            fail();
+        } catch (Exception e) {
+        }
+    }
+    
+    public void testIllegalLdcInsnOperand3() {
+        MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
+        mv.visitCode();
+        try {
+            mv.visitCstClassInsn("Ljava/lang/Object;");
             fail();
         } catch (Exception e) {
         }

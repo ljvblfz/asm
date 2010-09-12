@@ -278,16 +278,23 @@ public interface MethodVisitor {
     // -------------------------------------------------------------------------
 
     /**
-     * Visits a LDC instruction.
+     * Visits a LDC instruction with a primitive or a string value.
      * 
      * @param cst the constant to be loaded on the stack. This parameter must be
      *        a non null {@link Integer}, a {@link Float}, a {@link Long}, a
-     *        {@link Double} a {@link String} (or a {@link Type} for
-     *        <tt>.class</tt> constants, for classes whose version is 49.0 or
-     *        more).
+     *        {@link Double} a {@link String}.
      */
-    void visitLdcInsn(Object cst);
+    void visitCstPrimInsn(Object cst);
 
+    
+    /**
+     * Visits a LDC instruction with a constant class value ({@code .class}).
+     * This instruction is available if enclosing class version is 49.0 or upper.
+     * 
+     * @param internalName constant class internal name
+     */
+    void visitCstClassInsn(String internalName);
+    
     /**
      * Visits an IINC instruction.
      * 

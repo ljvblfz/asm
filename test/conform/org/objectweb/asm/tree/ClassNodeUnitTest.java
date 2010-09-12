@@ -108,8 +108,8 @@ public class ClassNodeUnitTest extends TestCase implements Opcodes {
     }
 
     public void testLdcInsnNode() {
-        LdcInsnNode ldcn = new LdcInsnNode("s");
-        assertEquals(AbstractInsnNode.LDC_INSN, ldcn.getType());
+        CstPrimInsnNode ldcn = new CstPrimInsnNode("s");
+        assertEquals(AbstractInsnNode.CST_PRIM_INSN, ldcn.getType());
     }
 
     public void testLookupSwitchInsnNode() {

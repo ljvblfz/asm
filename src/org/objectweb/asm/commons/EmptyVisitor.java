@@ -167,7 +167,10 @@ public class EmptyVisitor implements
     public void visitLabel(final Label label) {
     }
 
-    public void visitLdcInsn(final Object cst) {
+    public void visitCstPrimInsn(final Object cst) {
+    }
+    
+    public void visitCstClassInsn(final String internalName) {
     }
 
     public void visitIincInsn(final int var, final int increment) {

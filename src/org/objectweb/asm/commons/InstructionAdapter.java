@@ -568,7 +568,7 @@ public class InstructionAdapter extends MethodAdapter {
         mark(label);
     }
 
-    public void visitLdcInsn(final Object cst) {
+    public void visitCstPrimInsn(final Object cst) {
         if (cst instanceof Integer) {
             int val = ((Integer) cst).intValue();
             iconst(val);
@@ -595,11 +595,13 @@ public class InstructionAdapter extends MethodAdapter {
             dconst(val);
         } else if (cst instanceof String) {
             aconst(cst);
-        } else if (cst instanceof Type) {
-            tconst((Type) cst);
         } else {
             throw new IllegalArgumentException();
         }
+    }
+    
+    public void visitCstClassInsn(final String internalName) {
+        tconst(internalName);
     }
 
     public void visitIincInsn(final int var, final int increment) {
@@ -637,7 +639,7 @@ public class InstructionAdapter extends MethodAdapter {
         if (cst == null) {
             mv.visitInsn(Opcodes.ACONST_NULL);
         } else {
-            mv.visitLdcInsn(cst);
+            mv.visitCstPrimInsn(cst);
         }
     }
 
@@ -649,7 +651,7 @@ public class InstructionAdapter extends MethodAdapter {
         } else if (cst >= Short.MIN_VALUE && cst <= Short.MAX_VALUE) {
             mv.visitIntInsn(Opcodes.SIPUSH, cst);
         } else {
-            mv.visitLdcInsn(new Integer(cst));
+            mv.visitCstPrimInsn(new Integer(cst));
         }
     }
 
@@ -657,7 +659,7 @@ public class InstructionAdapter extends MethodAdapter {
         if (cst == 0L || cst == 1L) {
             mv.visitInsn(Opcodes.LCONST_0 + (int) cst);
         } else {
-            mv.visitLdcInsn(new Long(cst));
+            mv.visitCstPrimInsn(new Long(cst));
         }
     }
 
@@ -666,7 +668,7 @@ public class InstructionAdapter extends MethodAdapter {
         if (bits == 0L || bits == 0x3f800000 || bits == 0x40000000) { // 0..2
             mv.visitInsn(Opcodes.FCONST_0 + (int) cst);
         } else {
-            mv.visitLdcInsn(new Float(cst));
+            mv.visitCstPrimInsn(new Float(cst));
         }
     }
 
@@ -675,12 +677,12 @@ public class InstructionAdapter extends MethodAdapter {
         if (bits == 0L || bits == 0x3ff0000000000000L) { // +0.0d and 1.0d
             mv.visitInsn(Opcodes.DCONST_0 + (int) cst);
         } else {
-            mv.visitLdcInsn(new Double(cst));
+            mv.visitCstPrimInsn(new Double(cst));
         }
     }
 
-    public void tconst(final Type type) {
-        mv.visitLdcInsn(type);
+    public void tconst(final String internalNameOrDesc) {
+        mv.visitCstClassInsn(internalNameOrDesc);
     }
 
     public void load(final int var, final Type type) {

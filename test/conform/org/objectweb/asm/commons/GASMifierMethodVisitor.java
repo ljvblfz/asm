@@ -819,7 +819,7 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         lastOpcode = -1;
     }
 
-    public void visitLdcInsn(final Object cst) {
+    public void visitCstPrimInsn(final Object cst) {
         buf.setLength(0);
         buf.append("mg.push(");
         if (cst == null) {
@@ -850,12 +850,18 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
             }
         } else if (cst instanceof String) {
             appendString(buf, (String) cst);
-        } else if (cst instanceof Type) {
-            buf.append("Type.getType(\"").append(cst).append("\")");
         } else {
             buf.append(cst);
         }
         buf.append(");\n");
+        text.add(buf.toString());
+        lastOpcode = LDC;
+    }
+    
+    public void visitCstClassInsn(final String internalName) {
+        buf.setLength(0);
+        buf.append("mg.push(Type.getObjectType(\""); 
+        buf.append(internalName).append("\"));\n");
         text.add(buf.toString());
         lastOpcode = LDC;
     }

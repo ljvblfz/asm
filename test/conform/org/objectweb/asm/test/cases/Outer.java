@@ -153,7 +153,7 @@ public class Outer extends Generator {
                 "java/lang/StringBuilder",
                 "append",
                 "(Ljava/lang/Object;)Ljava/lang/StringBuilder;");
-        mv.visitLdcInsn(" ");
+        mv.visitCstPrimInsn(" ");
         mv.visitMethodInsn(INVOKEVIRTUAL,
                 "java/lang/StringBuilder",
                 "append",

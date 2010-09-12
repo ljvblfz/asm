@@ -145,7 +145,7 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
         }
     }
 
-    public void visitLdcInsn(final Object cst) {
+    public void visitCstPrimInsn(final Object cst) {
         if (cst instanceof Long || cst instanceof Double) {
             minSize += 3;
             maxSize += 3;
@@ -154,7 +154,15 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
             maxSize += 3;
         }
         if (mv != null) {
-            mv.visitLdcInsn(cst);
+            mv.visitCstPrimInsn(cst);
+        }
+    }
+    
+    public void visitCstClassInsn(final String internalName) {
+        minSize += 2;
+        maxSize += 3;
+        if (mv != null) {
+            mv.visitCstClassInsn(internalName);
         }
     }
 

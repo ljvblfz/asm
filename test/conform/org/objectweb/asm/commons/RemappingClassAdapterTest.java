@@ -44,11 +44,12 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.CstClassInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.FrameNode;
 import org.objectweb.asm.tree.InnerClassNode;
-import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.CstPrimInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
@@ -88,10 +89,10 @@ public class RemappingClassAdapterTest extends TestCase implements Opcodes {
         assertEquals("D1", n0.owner);
         assertEquals("LB1;", n0.desc);
         
-        assertEquals(Type.getType("LB1;"), ((LdcInsnNode) it.next()).cst);
-        assertEquals(Type.getType("[LD1;"), ((LdcInsnNode) it.next()).cst);
-        assertEquals(Type.getType("[I"), ((LdcInsnNode) it.next()).cst);
-        assertEquals(Type.getType("J"), ((LdcInsnNode) it.next()).cst);
+        assertEquals("B1", ((CstClassInsnNode) it.next()).internalName);
+        assertEquals("[LD1;", ((CstClassInsnNode) it.next()).internalName);
+        assertEquals("[I", ((CstClassInsnNode) it.next()).internalName);
+        assertEquals("J", ((CstClassInsnNode) it.next()).internalName);
         
         assertEquals("B1", ((TypeInsnNode) it.next()).desc);
         assertEquals("[LD1;", ((TypeInsnNode) it.next()).desc);
@@ -149,10 +150,10 @@ public class RemappingClassAdapterTest extends TestCase implements Opcodes {
         mv.visitCode();
         mv.visitFieldInsn(GETFIELD, "Doo", "boo", "LBoo;");
 
-        mv.visitLdcInsn(Type.getType("LBoo;"));
-        mv.visitLdcInsn(Type.getType("[LDoo;"));
-        mv.visitLdcInsn(Type.getType("[I"));
-        mv.visitLdcInsn(Type.getType("J"));
+        mv.visitCstClassInsn("Boo");
+        mv.visitCstClassInsn("[LDoo;");
+        mv.visitCstClassInsn("[I");
+        mv.visitCstClassInsn("J");
         
         mv.visitTypeInsn(ANEWARRAY, "Boo");
         mv.visitTypeInsn(ANEWARRAY, "[LDoo;");

@@ -83,39 +83,48 @@ public abstract class AbstractInsnNode {
     public static final int LABEL = 7;
 
     /**
-     * The type of {@link LdcInsnNode} instructions.
+     * The type of {@link CstPrimInsnNode} instructions.
      */
-    public static final int LDC_INSN = 8;
+    public static final int CST_PRIM_INSN = 8;
+    
+    /**
+     * The type of {@link CstClassInsnNode} instructions.
+     */
+    public static final int CST_CLASS_INSN = 9;
+    
+    public static final int CST_MTYPE_INSN = 10;
+    
+    public static final int CST_MHANDLE_INSN = 11;
 
     /**
      * The type of {@link IincInsnNode} instructions.
      */
-    public static final int IINC_INSN = 9;
+    public static final int IINC_INSN = 12;
 
     /**
      * The type of {@link TableSwitchInsnNode} instructions.
      */
-    public static final int TABLESWITCH_INSN = 10;
+    public static final int TABLESWITCH_INSN = 13;
 
     /**
      * The type of {@link LookupSwitchInsnNode} instructions.
      */
-    public static final int LOOKUPSWITCH_INSN = 11;
+    public static final int LOOKUPSWITCH_INSN = 14;
 
     /**
      * The type of {@link MultiANewArrayInsnNode} instructions.
      */
-    public static final int MULTIANEWARRAY_INSN = 12;
+    public static final int MULTIANEWARRAY_INSN = 15;
 
     /**
      * The type of {@link FrameNode} "instructions".
      */
-    public static final int FRAME = 13;
+    public static final int FRAME = 16;
 
     /**
      * The type of {@link LineNumberNode} "instructions".
      */
-    public static final int LINE = 14;
+    public static final int LINE = 17;
 
     /**
      * The opcode of this instruction.

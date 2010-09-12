@@ -668,7 +668,7 @@ public class ClassReader {
                     name,
                     desc,
                     signature,
-                    fieldValueItem == 0 ? null : readConst(fieldValueItem, c));
+                    fieldValueItem == 0 ? null : readPrimitiveConst(fieldValueItem, c));
             // visits the field annotations and attributes
             if (fv != null) {
                 if (ANNOTATIONS) {
@@ -1383,12 +1383,11 @@ public class ClassReader {
                             v += 3;
                             break;
                         case ClassWriter.LDC_INSN:
-                            mv.visitLdcInsn(readConst(b[v + 1] & 0xFF, c));
+                            readLDC(b[v + 1] & 0xFF, c, mv);
                             v += 2;
                             break;
                         case ClassWriter.LDCW_INSN:
-                            mv.visitLdcInsn(readConst(readUnsignedShort(v + 1),
-                                    c));
+                            readLDC(readUnsignedShort(v + 1), c, mv);
                             v += 3;
                             break;
                         case ClassWriter.FIELDORMETH_INSN:
@@ -1495,6 +1494,36 @@ public class ClassReader {
         classVisitor.visitEnd();
     }
 
+    /**
+     * Reads LDC constants
+     * @param item index of the constant pool item
+     * @param buf buffer for string decoding.
+     */
+    private void readLDC(final int item, final char[] buf, final MethodVisitor mv) {
+        int index = items[item];
+        switch (b[index - 1]) {
+            case ClassWriter.INT:
+                mv.visitCstPrimInsn(new Integer(readInt(index)));
+                return;
+            case ClassWriter.FLOAT:
+                mv.visitCstPrimInsn(new Float(Float.intBitsToFloat(readInt(index))));
+                return;
+            case ClassWriter.LONG:
+                mv.visitCstPrimInsn(new Long(readLong(index)));
+                return;
+            case ClassWriter.DOUBLE:
+                mv.visitCstPrimInsn(new Double(Double.longBitsToDouble(readLong(index))));
+                return;
+            case ClassWriter.CLASS:
+                mv.visitCstClassInsn(readUTF8(index, buf));
+                return;
+                // case ClassWriter.STR:
+            default:
+                mv.visitCstPrimInsn(readUTF8(index, buf));
+                return;
+        }
+    }
+    
     /**
      * Reads parameter annotations and makes the given visitor visit them.
      * 
@@ -1612,7 +1641,7 @@ public class ClassReader {
             case 'J': // pointer to CONSTANT_Long
             case 'F': // pointer to CONSTANT_Float
             case 'D': // pointer to CONSTANT_Double
-                av.visit(name, readConst(readUnsignedShort(v), buf));
+                av.visit(name, readPrimitiveConst(readUnsignedShort(v), buf));
                 v += 2;
                 break;
             case 'B': // pointer to CONSTANT_Byte
@@ -2027,7 +2056,7 @@ public class ClassReader {
      *         {@link Double}, {@link String} or {@link Type} corresponding to
      *         the given constant pool item.
      */
-    public Object readConst(final int item, final char[] buf) {
+    public Object readPrimitiveConst(final int item, final char[] buf) {
         int index = items[item];
         switch (b[index - 1]) {
             case ClassWriter.INT:
@@ -2038,11 +2067,23 @@ public class ClassReader {
                 return new Long(readLong(index));
             case ClassWriter.DOUBLE:
                 return new Double(Double.longBitsToDouble(readLong(index)));
-            case ClassWriter.CLASS:
-                return Type.getObjectType(readUTF8(index, buf));
-                // case ClassWriter.STR:
+            // case ClassWriter.STR:
             default:
                 return readUTF8(index, buf);
         }
+    }
+    
+    /**
+     * Reads a class constant pool item in {@link #b b}. <i>This
+     * method is intended for {@link Attribute} sub classes, and is normally not
+     * needed by class generators or adapters.</i>
+     * 
+     * @param item the index of a constant pool item.
+     * @param buf buffer to be used to read the item. This buffer must be
+     *        sufficiently large. It is not automatically resized.
+     * @return the descriptor of the constant class.
+     */
+    public String readClassConst(final int item, final char[] buf) {
+        return readUTF8(items[item], buf);
     }
 }

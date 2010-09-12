@@ -284,8 +284,12 @@ public class MethodNode extends MemberNode implements MethodVisitor {
         instructions.add(getLabelNode(label));
     }
 
-    public void visitLdcInsn(final Object cst) {
-        instructions.add(new LdcInsnNode(cst));
+    public void visitCstPrimInsn(final Object cst) {
+        instructions.add(new CstPrimInsnNode(cst));
+    }
+    
+    public void visitCstClassInsn(final String internalName) {
+        instructions.add(new CstClassInsnNode(internalName));
     }
 
     public void visitIincInsn(final int var, final int increment) {

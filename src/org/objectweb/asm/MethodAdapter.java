@@ -132,8 +132,12 @@ public class MethodAdapter implements MethodVisitor {
         mv.visitLabel(label);
     }
 
-    public void visitLdcInsn(final Object cst) {
-        mv.visitLdcInsn(cst);
+    public void visitCstPrimInsn(final Object cst) {
+        mv.visitCstPrimInsn(cst);
+    }
+    
+    public void visitCstClassInsn(final String internalName) {
+        mv.visitCstClassInsn(internalName);
     }
 
     public void visitIincInsn(final int var, final int increment) {

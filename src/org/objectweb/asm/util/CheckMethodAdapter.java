@@ -587,13 +587,18 @@ public class CheckMethodAdapter extends MethodAdapter {
         mv.visitLabel(label);
     }
 
-    public void visitLdcInsn(final Object cst) {
+    public void visitCstPrimInsn(final Object cst) {
         checkStartCode();
         checkEndCode();
-        if (!(cst instanceof Type)) {
-            checkConstant(cst);
-        }
-        mv.visitLdcInsn(cst);
+        checkConstant(cst);
+        mv.visitCstPrimInsn(cst);
+    }
+    
+    public void visitCstClassInsn(String internalName) {
+        checkStartCode();
+        checkEndCode();
+        checkInternalName(internalName, "class constant");
+        mv.visitCstClassInsn(internalName);
     }
 
     public void visitIincInsn(final int var, final int increment) {

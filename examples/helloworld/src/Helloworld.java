@@ -84,7 +84,7 @@ public class Helloworld extends ClassLoader implements Opcodes {
                 "out",
                 "Ljava/io/PrintStream;");
         // pushes the "Hello World!" String constant
-        mw.visitLdcInsn("Hello world!");
+        mw.visitCstPrimInsn("Hello world!");
         // invokes the 'println' method (defined in the PrintStream class)
         mw.visitMethodInsn(INVOKEVIRTUAL,
                 "java/io/PrintStream",

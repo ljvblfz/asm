@@ -390,14 +390,22 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         }
     }
 
-    public void visitLdcInsn(final Object cst) {
-        mv.visitLdcInsn(cst);
+    public void visitCstPrimInsn(final Object cst) {
+        mv.visitCstPrimInsn(cst);
 
         if (constructor) {
             pushValue(OTHER);
             if (cst instanceof Double || cst instanceof Long) {
                 pushValue(OTHER);
             }
+        }
+    }
+    
+    public void visitCstClassInsn(final String internalName) {
+        mv.visitCstClassInsn(internalName);
+
+        if (constructor) {
+            pushValue(OTHER);
         }
     }
 

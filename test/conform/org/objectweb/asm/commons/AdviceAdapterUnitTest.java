@@ -150,7 +150,7 @@ public class AdviceAdapterUnitTest extends AbstractTest {
 
             return new AdviceAdapter(mv, access, name, desc) {
                 protected void onMethodEnter() {
-                    mv.visitLdcInsn(cname + "." + name + desc);
+                    mv.visitCstPrimInsn(cname + "." + name + desc);
                     mv.visitMethodInsn(INVOKESTATIC,
                             "org/objectweb/asm/commons/AdviceAdapterUnitTest",
                             "enter",
@@ -158,7 +158,7 @@ public class AdviceAdapterUnitTest extends AbstractTest {
                 }
 
                 protected void onMethodExit(final int opcode) {
-                    mv.visitLdcInsn(cname + "." + name + desc);
+                    mv.visitCstPrimInsn(cname + "." + name + desc);
                     mv.visitMethodInsn(INVOKESTATIC,
                             "org/objectweb/asm/commons/AdviceAdapterUnitTest",
                             "exit",

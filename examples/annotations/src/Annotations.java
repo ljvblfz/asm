@@ -109,7 +109,7 @@ public class Annotations {
                             mv.visitJumpInsn(Opcodes.IFNONNULL, end);
                             mv.visitTypeInsn(Opcodes.NEW, c);
                             mv.visitInsn(Opcodes.DUP);
-                            mv.visitLdcInsn("Argument " + param
+                            mv.visitCstPrimInsn("Argument " + param
                                     + " must not be null");
                             mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
                                     c,

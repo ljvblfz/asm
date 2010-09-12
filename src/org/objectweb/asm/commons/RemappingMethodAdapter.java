@@ -81,8 +81,12 @@ public class RemappingMethodAdapter extends LocalVariablesSorter {
         super.visitTypeInsn(opcode, remapper.mapType(type));
     }
 
-    public void visitLdcInsn(Object cst) {
-        super.visitLdcInsn(remapper.mapValue(cst));
+    public void visitCstPrimInsn(Object cst) {
+        super.visitCstPrimInsn(remapper.mapValue(cst));
+    }
+    
+    public void visitCstClassInsn(String internalName) {
+        super.visitCstClassInsn(remapper.mapType(internalName));
     }
 
     public void visitMultiANewArrayInsn(String desc, int dims) {

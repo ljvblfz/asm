@@ -34,7 +34,6 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.signature.SignatureReader;
 
 import java.util.HashMap;
@@ -321,13 +320,11 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
         }
     }
 
-    public void visitLdcInsn(final Object cst) {
+    public void visitCstPrimInsn(final Object cst) {
         buf.setLength(0);
         buf.append(tab2).append("LDC ");
         if (cst instanceof String) {
             AbstractVisitor.appendString(buf, (String) cst);
-        } else if (cst instanceof Type) {
-            buf.append(((Type) cst).getDescriptor()).append(".class");
         } else {
             buf.append(cst);
         }
@@ -335,7 +332,19 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
         text.add(buf.toString());
 
         if (mv != null) {
-            mv.visitLdcInsn(cst);
+            mv.visitCstPrimInsn(cst);
+        }
+    }
+    
+    public void visitCstClassInsn(String internalName) {
+        buf.setLength(0);
+        buf.append(tab2).append("LDC ");
+        AbstractVisitor.appendString(buf, internalName);
+        buf.append('\n');
+        text.add(buf.toString());
+
+        if (mv != null) {
+            mv.visitCstClassInsn(internalName);
         }
     }
 

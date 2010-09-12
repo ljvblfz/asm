@@ -1116,8 +1116,15 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
                     break;
 
                 case OpcodeGroup.INSN_LDC:
-                    getCodeVisitor().visitLdcInsn(getValue(attrs.getValue("desc"),
-                            attrs.getValue("cst")));
+                    Object value = getValue(attrs.getValue("desc"),
+                            attrs.getValue("cst"));
+                    if (value instanceof Type) {
+                        Type type = (Type)value;
+                        String nameorDesc = (type.getSort() == Type.OBJECT)?type.getInternalName(): type.getDescriptor();
+                        getCodeVisitor().visitCstClassInsn(nameorDesc);
+                    } else {
+                        getCodeVisitor().visitCstPrimInsn(value);
+                    }
                     break;
 
                 case OpcodeGroup.INSN_MULTIANEWARRAY:

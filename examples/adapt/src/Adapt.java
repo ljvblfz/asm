@@ -143,7 +143,7 @@ class TraceFieldClassAdapter extends ClassAdapter implements Opcodes {
                     "java/lang/System",
                     "err",
                     "Ljava/io/PrintStream;");
-            gv.visitLdcInsn("_get" + name + " called");
+            gv.visitCstPrimInsn("_get" + name + " called");
             gv.visitMethodInsn(INVOKEVIRTUAL,
                     "java/io/PrintStream",
                     "println",
@@ -165,7 +165,7 @@ class TraceFieldClassAdapter extends ClassAdapter implements Opcodes {
                     "java/lang/System",
                     "err",
                     "Ljava/io/PrintStream;");
-            sv.visitLdcInsn("_set" + name + " called");
+            sv.visitCstPrimInsn("_set" + name + " called");
             sv.visitMethodInsn(INVOKEVIRTUAL,
                     "java/io/PrintStream",
                     "println",

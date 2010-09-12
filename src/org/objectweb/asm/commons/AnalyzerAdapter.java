@@ -341,9 +341,9 @@ public class AnalyzerAdapter extends MethodAdapter {
         labels.add(label);
     }
 
-    public void visitLdcInsn(final Object cst) {
+    public void visitCstPrimInsn(final Object cst) {
         if (mv != null) {
-            mv.visitLdcInsn(cst);
+            mv.visitCstPrimInsn(cst);
         }
         if (this.locals == null) {
             labels = null;
@@ -361,11 +361,21 @@ public class AnalyzerAdapter extends MethodAdapter {
             push(Opcodes.TOP);
         } else if (cst instanceof String) {
             push("java/lang/String");
-        } else if (cst instanceof Type) {
-            push("java/lang/Class");
         } else {
             throw new IllegalArgumentException();
         }
+        labels = null;
+    }
+    
+    public void visitCstClassInsn(final String internalName) {
+        if (mv != null) {
+            mv.visitCstClassInsn(internalName);
+        }
+        if (this.locals == null) {
+            labels = null;
+            return;
+        }
+        push("java/lang/Class");
         labels = null;
     }
 

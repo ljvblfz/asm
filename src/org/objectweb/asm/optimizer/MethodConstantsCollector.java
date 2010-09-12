@@ -115,9 +115,14 @@ public class MethodConstantsCollector extends MethodAdapter {
         mv.visitMethodInsn(opcode, owner, name, desc);
     }
 
-    public void visitLdcInsn(final Object cst) {
+    public void visitCstPrimInsn(final Object cst) {
         cp.newConst(cst);
-        mv.visitLdcInsn(cst);
+        mv.visitCstPrimInsn(cst);
+    }
+    
+    public void visitCstClassInsn(final String internalName) {
+        cp.newClass(internalName);
+        mv.visitCstClassInsn(internalName);
     }
 
     public void visitMultiANewArrayInsn(final String desc, final int dims) {

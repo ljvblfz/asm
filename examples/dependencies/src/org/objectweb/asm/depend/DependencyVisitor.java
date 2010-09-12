@@ -197,10 +197,11 @@ public class DependencyVisitor implements
         addMethodDesc(desc);
     }
 
-    public void visitLdcInsn(final Object cst) {
-        if (cst instanceof Type) {
-            addType((Type) cst);
-        }
+    public void visitCstPrimInsn(final Object cst) {
+    }
+    
+    public void visitCstClassInsn(final String internalNameOrDesc) {
+        addInternalName(internalNameOrDesc);
     }
 
     public void visitMultiANewArrayInsn(final String desc, final int dims) {

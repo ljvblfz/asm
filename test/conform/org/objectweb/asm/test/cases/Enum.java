@@ -109,7 +109,7 @@ public class Enum extends Generator {
                 null,
                 null);
         mv.visitCode();
-        mv.visitLdcInsn(Type.getType("Lpkg/Enum;"));
+        mv.visitCstClassInsn("pkg/Enum");
         mv.visitVarInsn(ALOAD, 0);
         mv.visitMethodInsn(INVOKESTATIC,
                 "java/lang/Enum",
@@ -141,7 +141,7 @@ public class Enum extends Generator {
         mv.visitCode();
         mv.visitTypeInsn(NEW, "pkg/Enum");
         mv.visitInsn(DUP);
-        mv.visitLdcInsn("V0");
+        mv.visitCstPrimInsn("V0");
         mv.visitInsn(ICONST_0);
         mv.visitMethodInsn(INVOKESPECIAL,
                 "pkg/Enum",
@@ -150,7 +150,7 @@ public class Enum extends Generator {
         mv.visitFieldInsn(PUTSTATIC, "pkg/Enum", "V0", "Lpkg/Enum;");
         mv.visitTypeInsn(NEW, "pkg/Enum");
         mv.visitInsn(DUP);
-        mv.visitLdcInsn("V1");
+        mv.visitCstPrimInsn("V1");
         mv.visitInsn(ICONST_1);
         mv.visitMethodInsn(INVOKESPECIAL,
                 "pkg/Enum",
@@ -159,7 +159,7 @@ public class Enum extends Generator {
         mv.visitFieldInsn(PUTSTATIC, "pkg/Enum", "V1", "Lpkg/Enum;");
         mv.visitTypeInsn(NEW, "pkg/Enum");
         mv.visitInsn(DUP);
-        mv.visitLdcInsn("V2");
+        mv.visitCstPrimInsn("V2");
         mv.visitInsn(ICONST_2);
         mv.visitMethodInsn(INVOKESPECIAL,
                 "pkg/Enum",

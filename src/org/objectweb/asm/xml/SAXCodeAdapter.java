@@ -218,7 +218,7 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
         addElement("Label", attrs);
     }
 
-    public final void visitLdcInsn(final Object cst) {
+    public final void visitCstPrimInsn(final Object cst) {
         AttributesImpl attrs = new AttributesImpl();
         attrs.addAttribute("",
                 "cst",
@@ -230,6 +230,21 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
                 "desc",
                 "",
                 Type.getDescriptor(cst.getClass()));
+        addElement(AbstractVisitor.OPCODES[Opcodes.LDC], attrs);
+    }
+    
+    public void visitCstClassInsn(String internalName) {
+        AttributesImpl attrs = new AttributesImpl();
+        attrs.addAttribute("",
+                "cst",
+                "cst",
+                "",
+                SAXClassAdapter.encode(internalName));
+        attrs.addAttribute("",
+                "desc",
+                "desc",
+                "",
+                Type.getDescriptor(Type.class));
         addElement(AbstractVisitor.OPCODES[Opcodes.LDC], attrs);
     }
 

@@ -50,7 +50,8 @@ final class Item {
      * {@link ClassWriter#DOUBLE}, {@link ClassWriter#UTF8},
      * {@link ClassWriter#STR}, {@link ClassWriter#CLASS},
      * {@link ClassWriter#NAME_TYPE}, {@link ClassWriter#FIELD},
-     * {@link ClassWriter#METH}, {@link ClassWriter#IMETH}.
+     * {@link ClassWriter#METH}, {@link ClassWriter#IMETH},
+     * {@link ClassWriter#MTYPE}, {@link ClassWriter#MHANDLE}.
      * 
      * Special Item types are used for Items that are stored in the ClassWriter
      * {@link ClassWriter#typeTable}, instead of the constant pool, in order to
@@ -199,6 +200,7 @@ final class Item {
             case ClassWriter.UTF8:
             case ClassWriter.STR:
             case ClassWriter.CLASS:
+            case ClassWriter.MTYPE:
             case ClassWriter.TYPE_NORMAL:
                 hashCode = 0x7FFFFFFF & (type + strVal1.hashCode());
                 return;
@@ -229,6 +231,7 @@ final class Item {
             case ClassWriter.UTF8:
             case ClassWriter.STR:
             case ClassWriter.CLASS:
+            case ClassWriter.MTYPE:
             case ClassWriter.TYPE_NORMAL:
                 return i.strVal1.equals(strVal1);
             case ClassWriter.TYPE_MERGED:

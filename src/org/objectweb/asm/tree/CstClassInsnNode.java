@@ -43,7 +43,7 @@ import org.objectweb.asm.Opcodes;
 public class CstClassInsnNode extends AbstractInsnNode {
 
     /**
-     * Internal name or descriptor of the class constant.
+     * Internal name of the class constant.
      */
     public String internalName;
 

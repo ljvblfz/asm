@@ -899,6 +899,9 @@ final class Frame {
                     case ClassWriter.CLASS:
                         push(OBJECT | cw.addType("java/lang/Class"));
                         break;
+                    case ClassWriter.MTYPE:
+                        push(OBJECT | cw.addType("java/dyn/MethodType"));
+                        break;
                     // case ClassWriter.STR:
                     default:
                         push(OBJECT | cw.addType("java/lang/String"));

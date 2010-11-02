@@ -775,7 +775,7 @@ public class CheckClassAdapterUnitTest extends TestCase implements Opcodes {
         }
     }
 
-    public void testIllegalLdcInsnOperand() {
+    public void testIllegalCstPrimInsnOperand() {
         MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
         mv.visitCode();
         try {
@@ -785,7 +785,7 @@ public class CheckClassAdapterUnitTest extends TestCase implements Opcodes {
         }
     }
     
-    public void testIllegalLdcInsnOperand2() {
+    public void testIllegalCstPrimInsnOperand2() {
         MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
         mv.visitCode();
         try {
@@ -795,7 +795,7 @@ public class CheckClassAdapterUnitTest extends TestCase implements Opcodes {
         }
     }
     
-    public void testIllegalLdcInsnOperand3() {
+    public void testIllegalCstClassInsnOperand() {
         MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
         mv.visitCode();
         try {
@@ -805,6 +805,26 @@ public class CheckClassAdapterUnitTest extends TestCase implements Opcodes {
         }
     }
 
+    public void testIllegalCstMTypeInsnOperand() {
+        MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
+        mv.visitCode();
+        try {
+            mv.visitCstMTypeInsn("(V)I");
+            fail();
+        } catch (Exception e) {
+        }
+    }
+    
+    public void testIllegalCstMTypeInsnOperand2() {
+        MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
+        mv.visitCode();
+        try {
+            mv.visitCstMTypeInsn("I");
+            fail();
+        } catch (Exception e) {
+        }
+    }
+    
     public void testIllegalMultiANewArrayDesc() {
         MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
         mv.visitCode();

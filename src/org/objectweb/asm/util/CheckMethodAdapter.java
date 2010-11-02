@@ -600,6 +600,13 @@ public class CheckMethodAdapter extends MethodAdapter {
         checkInternalName(internalName, "class constant");
         mv.visitCstClassInsn(internalName);
     }
+    
+    public void visitCstMTypeInsn(String methodDesc) {
+        checkStartCode();
+        checkEndCode();
+        checkMethodDesc(methodDesc);
+        mv.visitCstMTypeInsn(methodDesc);
+    }
 
     public void visitIincInsn(final int var, final int increment) {
         checkStartCode();

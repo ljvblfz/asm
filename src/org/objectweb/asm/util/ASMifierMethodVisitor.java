@@ -242,6 +242,14 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         buf.append(");\n");
         text.add(buf.toString());
     }
+    
+    public void visitCstMTypeInsn(final String methodDesc) {
+        buf.setLength(0);
+        buf.append("mv.visitCstMTypeInsn(");
+        appendConstant(methodDesc);
+        buf.append(");\n");
+        text.add(buf.toString());
+    }
 
     public void visitIincInsn(final int var, final int increment) {
         buf.setLength(0);

@@ -378,6 +378,18 @@ public class AnalyzerAdapter extends MethodAdapter {
         push("java/lang/Class");
         labels = null;
     }
+    
+    public void visitCstMTypeInsn(final String methodDesc) {
+        if (mv != null) {
+            mv.visitCstMTypeInsn(methodDesc);
+        }
+        if (this.locals == null) {
+            labels = null;
+            return;
+        }
+        push("java/dyn/MethodType");
+        labels = null;
+    }
 
     public void visitIincInsn(final int var, final int increment) {
         if (mv != null) {

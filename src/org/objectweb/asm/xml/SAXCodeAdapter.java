@@ -233,7 +233,7 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
         addElement(AbstractVisitor.OPCODES[Opcodes.LDC], attrs);
     }
     
-    public void visitCstClassInsn(String internalName) {
+    public void visitCstClassInsn(final String internalName) {
         AttributesImpl attrs = new AttributesImpl();
         attrs.addAttribute("",
                 "cst",
@@ -245,6 +245,21 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
                 "desc",
                 "",
                 Type.getDescriptor(Type.class));
+        addElement(AbstractVisitor.OPCODES[Opcodes.LDC], attrs);
+    }
+    
+    public void visitCstMTypeInsn(final String methodDesc) {
+        AttributesImpl attrs = new AttributesImpl();
+        attrs.addAttribute("",
+                "cst",
+                "cst",
+                "",
+                SAXClassAdapter.encode(methodDesc));
+        attrs.addAttribute("",
+                "desc",
+                "desc",
+                "",
+                "Ljava/dyn/MethodType;");
         addElement(AbstractVisitor.OPCODES[Opcodes.LDC], attrs);
     }
 

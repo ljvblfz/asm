@@ -124,6 +124,11 @@ public class MethodConstantsCollector extends MethodAdapter {
         cp.newClass(internalName);
         mv.visitCstClassInsn(internalName);
     }
+    
+    public void visitCstMTypeInsn(final String methodDesc) {
+        cp.newMType(methodDesc);
+        mv.visitCstMTypeInsn(methodDesc);
+    }
 
     public void visitMultiANewArrayInsn(final String desc, final int dims) {
         cp.newClass(desc);

@@ -88,6 +88,10 @@ public class RemappingMethodAdapter extends LocalVariablesSorter {
     public void visitCstClassInsn(String internalName) {
         super.visitCstClassInsn(remapper.mapType(internalName));
     }
+    
+    public void visitCstMTypeInsn(String methodDesc) {
+        super.visitCstMTypeInsn(remapper.mapMethodDesc(methodDesc));
+    }
 
     public void visitMultiANewArrayInsn(String desc, int dims) {
         super.visitMultiANewArrayInsn(remapper.mapDesc(desc), dims);

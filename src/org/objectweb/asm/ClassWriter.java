@@ -215,13 +215,23 @@ public class ClassWriter implements ClassVisitor {
      * The type of CONSTANT_Utf8 constant pool items.
      */
     static final int UTF8 = 1;
+    
+    /**
+     * The type of CONSTANT_MethodType constant pool items.
+     */
+    static final int MTYPE = 16;
+    
+    /**
+     * The type of CONSTANT_MethodHandle constant pool items.
+     */
+    static final int MHANDLE = 15;
 
     /**
      * Normal type Item stored in the ClassWriter {@link ClassWriter#typeTable},
      * instead of the constant pool, in order to avoid clashes with normal
      * constant pool items in the ClassWriter constant pool's hash table.
      */
-    static final int TYPE_NORMAL = 13;
+    static final int TYPE_NORMAL = 20;
 
     /**
      * Uninitialized type Item stored in the ClassWriter
@@ -229,14 +239,14 @@ public class ClassWriter implements ClassVisitor {
      * avoid clashes with normal constant pool items in the ClassWriter constant
      * pool's hash table.
      */
-    static final int TYPE_UNINIT = 14;
+    static final int TYPE_UNINIT = 21;
 
     /**
      * Merged type Item stored in the ClassWriter {@link ClassWriter#typeTable},
      * instead of the constant pool, in order to avoid clashes with normal
      * constant pool items in the ClassWriter constant pool's hash table.
      */
-    static final int TYPE_MERGED = 15;
+    static final int TYPE_MERGED = 22;
 
     /**
      * The class reader from which this class writer was constructed, if any.
@@ -976,6 +986,39 @@ public class ClassWriter implements ClassVisitor {
         return newClassItem(value).index;
     }
 
+    /**
+     * Adds a method type reference to the constant pool of the class being build.
+     * Does nothing if the constant pool already contains a similar item.
+     * <i>This method is intended for {@link Attribute} sub classes, and is
+     * normally not needed by class generators or adapters.</i>
+     *
+     * @param methodDesc method descriptor of the method type.
+     * @return a new or already existing method type reference item.
+     */
+    Item newMTypeItem(final String methodDesc) {
+        key2.set(MTYPE, methodDesc, null, null);
+        Item result = get(key2);
+        if (result == null) {
+            pool.put12(MTYPE, newUTF8(methodDesc));
+            result = new Item(index++, key2);
+            put(result);
+        }
+        return result;
+    }
+
+    /**
+     * Adds a method type reference to the constant pool of the class being build.
+     * Does nothing if the constant pool already contains a similar item.
+     * <i>This method is intended for {@link Attribute} sub classes, and is
+     * normally not needed by class generators or adapters.</i>
+     *
+     * @param methodDesc method descriptor of the method type.
+     * @return the index of a new or already existing method type reference item.
+     */
+    public int newMType(final String methodDesc) {
+        return newMTypeItem(methodDesc).index;
+    }
+    
     /**
      * Adds a field reference to the constant pool of the class being build.
      * Does nothing if the constant pool already contains a similar item.

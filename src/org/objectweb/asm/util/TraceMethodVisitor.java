@@ -336,7 +336,7 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
         }
     }
     
-    public void visitCstClassInsn(String internalName) {
+    public void visitCstClassInsn(final String internalName) {
         buf.setLength(0);
         buf.append(tab2).append("LDC ");
         AbstractVisitor.appendString(buf, internalName);
@@ -345,6 +345,18 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
 
         if (mv != null) {
             mv.visitCstClassInsn(internalName);
+        }
+    }
+    
+    public void visitCstMTypeInsn(final String methodDesc) {
+        buf.setLength(0);
+        buf.append(tab2).append("LDC ");
+        AbstractVisitor.appendString(buf, methodDesc);
+        buf.append('\n');
+        text.add(buf.toString());
+
+        if (mv != null) {
+            mv.visitCstMTypeInsn(methodDesc);
         }
     }
 

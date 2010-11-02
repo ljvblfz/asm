@@ -29,50 +29,51 @@
  */
 package org.objectweb.asm.test.cases;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
 
 /**
- * Generates classes designed so that the "conform" test suite, applied to these
- * classes, covers all the ASM code base.
+ * Generates a class that contains new JSR 292 constant pool constants 
  * 
- * @author Eric Bruneton
+ * @author Remi Forax
  */
-public class Generator implements Opcodes {
+public class JSR292 extends Generator {
 
-    public static void main(final String[] args) throws IOException {
-        Generator generators[] = {
-            new Annotation(),
-            new Attribute(),
-            new Debug(),
-            new Enum(),
-            new Frames(),
-            new Insns(),
-            new Interface(),
-            new JSR(),
-            new JSR292(),
-            new Outer(),
-            new Wide() };
-        for (int i = 0; i < generators.length; ++i) {
-            generators[i].generate(args[0]);
-        }
+    public void generate(final String dir) throws IOException {
+        generate(dir, "pkg/JSR292.class", dump());
     }
 
-    protected void generate(final String dir) throws IOException {
+    public byte[] dump() {
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        cw.visit(V1_7,
+                ACC_PUBLIC + ACC_SUPER,
+                "pkg/JSR292",
+                null,
+                null,
+                null);
+
+        // JSR 292 constants
+        constInsns(cw);
+        
+        cw.visitEnd();
+
+        return cw.toByteArray();
     }
 
-    protected void generate(
-        final String dir,
-        final String path,
-        final byte[] clazz) throws IOException
-    {
-        File f = new File(new File(dir), path);
-        f.getParentFile().mkdirs();
-        FileOutputStream o = new FileOutputStream(f);
-        o.write(clazz);
-        o.close();
+    private void constInsns(final ClassWriter cw) {
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC,
+                "constInsns",
+                "()V",
+                null,
+                null);
+        mv.visitCstClassInsn("java/lang/Object");
+        mv.visitCstMTypeInsn("()V");
+        mv.visitCstMTypeInsn("(IJ)[Ljava/lang/Object;");
+        
+        mv.visitInsn(RETURN);
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
     }
 }

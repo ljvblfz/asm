@@ -117,6 +117,17 @@ public class ConstantPool extends HashMap {
         }
         return result;
     }
+    
+    public Constant newMType(final String methodDescriptor) {
+        key2.set('t', methodDescriptor, null, null);
+        Constant result = get(key2);
+        if (result == null) {
+            newUTF8(methodDescriptor);
+            result = new Constant(key2);
+            put(result);
+        }
+        return result;
+    }
 
     public Constant newConst(final Object cst) {
         if (cst instanceof Integer) {

@@ -681,10 +681,14 @@ public class InstructionAdapter extends MethodAdapter {
         }
     }
 
-    public void tconst(final String internalNameOrDesc) {
-        mv.visitCstClassInsn(internalNameOrDesc);
+    public void tconst(final String internalName) {
+        mv.visitCstClassInsn(internalName);
     }
 
+    public void mtconst(final String methodDesc) {
+        mv.visitCstMTypeInsn(methodDesc);
+    }
+    
     public void load(final int var, final Type type) {
         mv.visitVarInsn(type.getOpcode(Opcodes.ILOAD), var);
     }

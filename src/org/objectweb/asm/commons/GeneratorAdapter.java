@@ -455,6 +455,15 @@ public class GeneratorAdapter extends LocalVariablesSorter {
             }
         }
     }
+    
+    /**
+    * Generates the instruction to push a method type on the stack.
+    * 
+    * @param methodDesc method descriptor of the method type to be pushed on the stack.
+    */
+    public void pushMethodType(final String methodDesc) {
+        mv.visitCstMTypeInsn(methodDesc);
+    }
 
     // ------------------------------------------------------------------------
     // Instructions to load and store method arguments

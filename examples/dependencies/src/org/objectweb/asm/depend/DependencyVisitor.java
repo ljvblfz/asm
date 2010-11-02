@@ -203,6 +203,10 @@ public class DependencyVisitor implements
     public void visitCstClassInsn(final String internalNameOrDesc) {
         addInternalName(internalNameOrDesc);
     }
+    
+    public void visitCstMTypeInsn(String methodDesc) {
+        addMethodDesc(methodDesc);
+    }
 
     public void visitMultiANewArrayInsn(final String desc, final int dims) {
         addDesc(desc);

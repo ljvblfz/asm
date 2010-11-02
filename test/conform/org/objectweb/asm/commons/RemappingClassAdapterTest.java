@@ -45,6 +45,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.CstClassInsnNode;
+import org.objectweb.asm.tree.CstMTypeInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.FrameNode;
@@ -93,6 +94,9 @@ public class RemappingClassAdapterTest extends TestCase implements Opcodes {
         assertEquals("[LD1;", ((CstClassInsnNode) it.next()).internalName);
         assertEquals("[I", ((CstClassInsnNode) it.next()).internalName);
         assertEquals("J", ((CstClassInsnNode) it.next()).internalName);
+        
+        assertEquals("(LB1;)V", ((CstMTypeInsnNode)it.next()).methodDesc);
+        assertEquals("(JI)[LD1;", ((CstMTypeInsnNode)it.next()).methodDesc);
         
         assertEquals("B1", ((TypeInsnNode) it.next()).desc);
         assertEquals("[LD1;", ((TypeInsnNode) it.next()).desc);
@@ -154,6 +158,9 @@ public class RemappingClassAdapterTest extends TestCase implements Opcodes {
         mv.visitCstClassInsn("[LDoo;");
         mv.visitCstClassInsn("[I");
         mv.visitCstClassInsn("J");
+        
+        mv.visitCstMTypeInsn("(LBoo;)V");
+        mv.visitCstMTypeInsn("(JI)[LDoo;");
         
         mv.visitTypeInsn(ANEWARRAY, "Boo");
         mv.visitTypeInsn(ANEWARRAY, "[LDoo;");

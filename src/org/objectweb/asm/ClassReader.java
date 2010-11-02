@@ -1517,6 +1517,9 @@ public class ClassReader {
             case ClassWriter.CLASS:
                 mv.visitCstClassInsn(readUTF8(index, buf));
                 return;
+            case ClassWriter.MTYPE:
+                mv.visitCstMTypeInsn(readUTF8(index, buf));
+                return;
                 // case ClassWriter.STR:
             default:
                 mv.visitCstPrimInsn(readUTF8(index, buf));

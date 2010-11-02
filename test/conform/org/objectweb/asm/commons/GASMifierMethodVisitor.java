@@ -865,6 +865,14 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         text.add(buf.toString());
         lastOpcode = LDC;
     }
+    
+    public void visitCstMTypeInsn(String methodDesc) {
+        buf.setLength(0);
+        buf.append("mg.pushMethodType(\""); 
+        buf.append(methodDesc).append("\");\n");
+        text.add(buf.toString());
+        lastOpcode = LDC;
+    }
 
     public void visitIincInsn(final int var, final int increment) {
         buf.setLength(0);

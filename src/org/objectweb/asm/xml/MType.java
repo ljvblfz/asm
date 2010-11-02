@@ -1,6 +1,6 @@
 /***
- * ASM tests
- * Copyright (c) 2002-2005 France Telecom
+ * ASM: a very small and fast Java bytecode manipulation framework
+ * Copyright (c) 2000-2005 INRIA, France Telecom
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,52 +27,25 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.objectweb.asm.test.cases;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-import org.objectweb.asm.Opcodes;
+package org.objectweb.asm.xml;
 
 /**
- * Generates classes designed so that the "conform" test suite, applied to these
- * classes, covers all the ASM code base.
+ * Wrapper type of a constant method type encoded as a method descriptor.
  * 
- * @author Eric Bruneton
+ * @see org.objectweb.asm.MethodVisitor#visitCstMTypeInsn(String)
  */
-public class Generator implements Opcodes {
+public class MType {
+    /**
+     * method descriptor of the method type constant.
+     */
+    public final String methodDesc;
 
-    public static void main(final String[] args) throws IOException {
-        Generator generators[] = {
-            new Annotation(),
-            new Attribute(),
-            new Debug(),
-            new Enum(),
-            new Frames(),
-            new Insns(),
-            new Interface(),
-            new JSR(),
-            new JSR292(),
-            new Outer(),
-            new Wide() };
-        for (int i = 0; i < generators.length; ++i) {
-            generators[i].generate(args[0]);
-        }
-    }
-
-    protected void generate(final String dir) throws IOException {
-    }
-
-    protected void generate(
-        final String dir,
-        final String path,
-        final byte[] clazz) throws IOException
-    {
-        File f = new File(new File(dir), path);
-        f.getParentFile().mkdirs();
-        FileOutputStream o = new FileOutputStream(f);
-        o.write(clazz);
-        o.close();
+    /**
+     * Creates a MType object from a method descriptor.
+     * @param methodDesc a method descriptor
+     */
+    public MType(String methodDesc) {
+        this.methodDesc = methodDesc;
     }
 }

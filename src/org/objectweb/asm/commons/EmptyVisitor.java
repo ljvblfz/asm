@@ -172,6 +172,9 @@ public class EmptyVisitor implements
     
     public void visitCstClassInsn(final String internalName) {
     }
+    
+    public void visitCstMTypeInsn(final String methodDesc) {
+    }
 
     public void visitIincInsn(final int var, final int increment) {
     }

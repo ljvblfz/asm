@@ -139,6 +139,10 @@ public class MethodAdapter implements MethodVisitor {
     public void visitCstClassInsn(final String internalName) {
         mv.visitCstClassInsn(internalName);
     }
+    
+    public void visitCstMTypeInsn(String methodDesc) {
+        mv.visitCstMTypeInsn(methodDesc);
+    }
 
     public void visitIincInsn(final int var, final int increment) {
         mv.visitIincInsn(var, increment);

@@ -565,7 +565,10 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
                     value = new Double(val);
                 } else if (Type.getDescriptor(Type.class).equals(desc)) {
                     value = Type.getType(val);
-
+                    
+                } else if ("Ljava/dyn/MethodType;".equals(desc)) {
+                    value = new MType(val);
+                        
                 } else {
                     // TODO use of default toString().
                     throw new SAXException("Invalid value:" + val + " desc:"
@@ -1122,6 +1125,8 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
                         Type type = (Type)value;
                         String nameorDesc = (type.getSort() == Type.OBJECT)?type.getInternalName(): type.getDescriptor();
                         getCodeVisitor().visitCstClassInsn(nameorDesc);
+                    } else if (value instanceof MType) {
+                        getCodeVisitor().visitCstMTypeInsn(((MType)value).methodDesc);
                     } else {
                         getCodeVisitor().visitCstPrimInsn(value);
                     }

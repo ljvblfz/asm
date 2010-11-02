@@ -1065,6 +1065,29 @@ class MethodWriter implements MethodVisitor {
             code.put11(Opcodes.LDC, index);
         }
     }
+    
+    public void visitCstMTypeInsn(final String methodDesc) {
+        Item i = cw.newMTypeItem(methodDesc);
+        if (currentBlock != null) {
+            if (compute == FRAMES) {
+                currentBlock.frame.execute(Opcodes.LDC, 0, cw, i);
+            } else {
+                int size = stackSize + 1;
+                // updates current and max stack sizes
+                if (size > maxStackSize) {
+                    maxStackSize = size;
+                }
+                stackSize = size;
+            }
+        }
+        // adds the instruction to the bytecode of the method
+        int index = i.index;
+        if (index >= 256) {
+            code.put12(19 /* LDC_W */, index);
+        } else {
+            code.put11(Opcodes.LDC, index);
+        }
+    }
 
     public void visitIincInsn(final int var, final int increment) {
         if (currentBlock != null) {

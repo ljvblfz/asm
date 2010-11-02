@@ -296,6 +296,26 @@ public interface MethodVisitor {
     void visitCstClassInsn(String internalName);
     
     /**
+     * Visits a LDC instruction with a constant method type value.
+     * This instruction is available if enclosing class version is 51.0 or upper.
+     * 
+     * @param methodDesc method descriptor of the method type
+     */
+    void visitCstMTypeInsn(String methodDesc);
+    
+    /**
+     * Visits a LDC instruction with a constant method handle value.
+     * This instruction is available if enclosing class version is 51.0 or upper.
+     * 
+     * @param tag 
+     *        one among MH_
+     * @param owner
+     * @param name
+     * @param desc
+     */
+    //void visitCstMHandleInsn(int tag, String owner, String name, String desc); 
+    
+    /**
      * Visits an IINC instruction.
      * 
      * @param var index of the local variable to be incremented.

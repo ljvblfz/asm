@@ -40,6 +40,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
@@ -206,6 +207,20 @@ public class DependencyVisitor implements
     
     public void visitCstMTypeInsn(String methodDesc) {
         addMethodDesc(methodDesc);
+    }
+    
+    public void visitCstMHandleInsn(
+        int tag,
+        String owner,
+        String name,
+        String desc)
+    {
+        addInternalName(owner);
+        if (tag <= Opcodes.REF_putStatic) {
+            addDesc(desc);
+        } else {
+            addMethodDesc(desc);
+        }
     }
 
     public void visitMultiANewArrayInsn(final String desc, final int dims) {

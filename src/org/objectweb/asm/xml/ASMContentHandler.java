@@ -45,6 +45,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.util.AbstractVisitor;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -326,6 +327,14 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
             TYPES.put(types[i], new Integer(i));
         }
     }
+    
+    static final Map METHOD_HANDLE_REF = new HashMap();
+    static {
+        String[] tags = AbstractVisitor.METHOD_HANDLE_TAG;
+        for (int i = 0; i < tags.length; i++) {
+            METHOD_HANDLE_REF.put(tags[i], new Integer(i));
+        }
+    }
 
     /**
      * Constructs a new {@link ASMContentHandler ASMContentHandler} object.
@@ -527,52 +536,49 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         public void end(final String name) {
         }
 
-        protected final Object getValue(final String desc, final String val)
+        protected final Object getValue(final String type, final String val)
                 throws SAXException
         {
             Object value = null;
             if (val != null) {
-                if ("Ljava/lang/String;".equals(desc)) {
+                if ("Ljava/lang/String;".equals(type)) {
                     value = decode(val);
-                } else if ("Ljava/lang/Integer;".equals(desc)
-                        || "I".equals(desc) || "S".equals(desc)
-                        || "B".equals(desc) || "C".equals(desc)
-                        || "Z".equals(desc))
+                } else if ("Ljava/lang/Integer;".equals(type)
+                        || "I".equals(type) || "S".equals(type)
+                        || "B".equals(type) || "C".equals(type)
+                        || "Z".equals(type))
                 {
                     value = new Integer(val);
 
-                } else if ("Ljava/lang/Short;".equals(desc)) {
+                } else if ("Ljava/lang/Short;".equals(type)) {
                     value = new Short(val);
 
-                } else if ("Ljava/lang/Byte;".equals(desc)) {
+                } else if ("Ljava/lang/Byte;".equals(type)) {
                     value = new Byte(val);
 
-                } else if ("Ljava/lang/Character;".equals(desc)) {
+                } else if ("Ljava/lang/Character;".equals(type)) {
                     value = new Character(decode(val).charAt(0));
 
-                } else if ("Ljava/lang/Boolean;".equals(desc)) {
+                } else if ("Ljava/lang/Boolean;".equals(type)) {
                     value = Boolean.valueOf(val);
 
-                } else if ("Ljava/lang/Long;".equals(desc) || "J".equals(desc))
+                } else if ("Ljava/lang/Long;".equals(type) || "J".equals(type))
                 {
                     value = new Long(val);
-                } else if ("Ljava/lang/Float;".equals(desc) || "F".equals(desc))
+                } else if ("Ljava/lang/Float;".equals(type) || "F".equals(type))
                 {
                     value = new Float(val);
-                } else if ("Ljava/lang/Double;".equals(desc)
-                        || "D".equals(desc))
+                } else if ("Ljava/lang/Double;".equals(type)
+                        || "D".equals(type))
                 {
                     value = new Double(val);
-                } else if (Type.getDescriptor(Type.class).equals(desc)) {
+                } else if (Type.getDescriptor(Type.class).equals(type)) {
                     value = Type.getType(val);
                     
-                } else if ("Ljava/dyn/MethodType;".equals(desc)) {
-                    value = new MType(val);
-                        
                 } else {
                     // TODO use of default toString().
                     throw new SAXException("Invalid value:" + val + " desc:"
-                            + desc + " ctx:" + this);
+                            + type + " ctx:" + this);
                 }
             }
             return value;
@@ -1072,30 +1078,31 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
                         + match);
             }
 
+            MethodVisitor codeVisitor = getCodeVisitor();
             switch (o.type) {
                 case OpcodeGroup.INSN:
-                    getCodeVisitor().visitInsn(o.opcode);
+                    codeVisitor.visitInsn(o.opcode);
                     break;
 
                 case OpcodeGroup.INSN_FIELD:
-                    getCodeVisitor().visitFieldInsn(o.opcode,
+                    codeVisitor.visitFieldInsn(o.opcode,
                             attrs.getValue("owner"),
                             attrs.getValue("name"),
                             attrs.getValue("desc"));
                     break;
 
                 case OpcodeGroup.INSN_INT:
-                    getCodeVisitor().visitIntInsn(o.opcode,
+                    codeVisitor.visitIntInsn(o.opcode,
                             Integer.parseInt(attrs.getValue("value")));
                     break;
 
                 case OpcodeGroup.INSN_JUMP:
-                    getCodeVisitor().visitJumpInsn(o.opcode,
+                    codeVisitor.visitJumpInsn(o.opcode,
                             getLabel(attrs.getValue("label")));
                     break;
 
                 case OpcodeGroup.INSN_METHOD:
-                    getCodeVisitor().visitMethodInsn(o.opcode,
+                    codeVisitor.visitMethodInsn(o.opcode,
                             (o.opcode != Opcodes.INVOKEDYNAMIC)?
                                     attrs.getValue("owner"):
                                     Opcodes.INVOKEDYNAMIC_OWNER,
@@ -1104,36 +1111,44 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
                     break;
 
                 case OpcodeGroup.INSN_TYPE:
-                    getCodeVisitor().visitTypeInsn(o.opcode,
+                    codeVisitor.visitTypeInsn(o.opcode,
                             attrs.getValue("desc"));
                     break;
 
                 case OpcodeGroup.INSN_VAR:
-                    getCodeVisitor().visitVarInsn(o.opcode,
+                    codeVisitor.visitVarInsn(o.opcode,
                             Integer.parseInt(attrs.getValue("var")));
                     break;
 
                 case OpcodeGroup.INSN_IINC:
-                    getCodeVisitor().visitIincInsn(Integer.parseInt(attrs.getValue("var")),
+                    codeVisitor.visitIincInsn(Integer.parseInt(attrs.getValue("var")),
                             Integer.parseInt(attrs.getValue("inc")));
                     break;
 
-                case OpcodeGroup.INSN_LDC:
-                    Object value = getValue(attrs.getValue("desc"),
-                            attrs.getValue("cst"));
-                    if (value instanceof Type) {
-                        Type type = (Type)value;
-                        String nameorDesc = (type.getSort() == Type.OBJECT)?type.getInternalName(): type.getDescriptor();
-                        getCodeVisitor().visitCstClassInsn(nameorDesc);
-                    } else if (value instanceof MType) {
-                        getCodeVisitor().visitCstMTypeInsn(((MType)value).methodDesc);
-                    } else {
-                        getCodeVisitor().visitCstPrimInsn(value);
+                case OpcodeGroup.INSN_LDC: {
+                    String type = attrs.getValue("type");
+                    if ("Ljava/dyn/MethodType;".equals(type)) {
+                        codeVisitor.visitCstMTypeInsn(attrs.getValue("desc"));
+                        break;
                     }
+                    if ("Ljava/dyn/MethodHandle;".equals(type)) {
+                        codeVisitor.visitCstMHandleInsn(
+                                ((Integer)METHOD_HANDLE_REF.get(attrs.getValue("tag"))).intValue(),
+                                attrs.getValue("owner"), attrs.getValue("name"),
+                                attrs.getValue("desc"));
+                        break;
+                    } 
+                    if ("Ljava/lang/Class;".equals(type)) {
+                        codeVisitor.visitCstClassInsn(attrs.getValue("desc"));
+                        break;
+                    }
+                    Object cst = getValue(type, attrs.getValue("cst"));
+                    codeVisitor.visitCstPrimInsn(cst);
                     break;
+                }
 
                 case OpcodeGroup.INSN_MULTIANEWARRAY:
-                    getCodeVisitor().visitMultiANewArrayInsn(attrs.getValue("desc"),
+                    codeVisitor.visitMultiANewArrayInsn(attrs.getValue("desc"),
                             Integer.parseInt(attrs.getValue("dims")));
                     break;
 

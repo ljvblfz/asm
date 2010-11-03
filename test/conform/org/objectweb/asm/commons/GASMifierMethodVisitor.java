@@ -860,8 +860,8 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
     
     public void visitCstClassInsn(final String internalName) {
         buf.setLength(0);
-        buf.append("mg.push(Type.getObjectType(\""); 
-        buf.append(internalName).append("\"));\n");
+        buf.append("mg.push("); 
+        buf.append(getType(internalName)).append("\"));\n");
         text.add(buf.toString());
         lastOpcode = LDC;
     }
@@ -869,7 +869,58 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
     public void visitCstMTypeInsn(String methodDesc) {
         buf.setLength(0);
         buf.append("mg.pushMethodType(\""); 
-        buf.append(methodDesc).append("\");\n");
+        buf.append(getDescType(methodDesc)).append("\");\n");
+        text.add(buf.toString());
+        lastOpcode = LDC;
+    }
+    
+    public void visitCstMHandleInsn(
+        int tag,
+        String owner,
+        String name,
+        String desc)
+    {
+        buf.setLength(0);
+        switch(tag) {
+            case REF_getField:
+                buf.append("mg.pushGetFieldMethodHandle(\""); 
+                break;
+            case REF_getStatic:
+                buf.append("mg.pushGetStaticdMethodHandle(\""); 
+                break;
+            case REF_putField:
+                buf.append("mg.pushPutFieldMethodHandle(\""); 
+                break;
+            case REF_putStatic:
+                buf.append("mg.pushPutStaticMethodHandle(\""); 
+                break;
+            case REF_invokeVirtual:
+                buf.append("mg.pushInvokeVirtualMethodHandle(\""); 
+                break;
+            case REF_invokeStatic:
+                buf.append("mg.pushInvokeStaticMethodHandle(\""); 
+                break;
+            case REF_invokeSpecial:
+                buf.append("mg.pushInvokeSpecialMethodHandle(\""); 
+                break;
+            case REF_newInvokeSpecial:
+                buf.append("mg.pushInvokeConstructorMethodHandle(\""); 
+                break;
+            case REF_invokeInterface:
+                buf.append("mg.pushInvokeInterfaceMethodHandle(\""); 
+                break;
+        }
+        buf.append(getType(owner));
+        if (tag <= REF_putStatic) {
+            buf.append(", \"");
+            buf.append(name);
+            buf.append("\", ");
+            buf.append(getDescType(desc));
+        } else {
+            buf.append(", ");
+            buf.append(getMethod(name, desc));
+        }
+        buf.append(");\n");
         text.add(buf.toString());
         lastOpcode = LDC;
     }

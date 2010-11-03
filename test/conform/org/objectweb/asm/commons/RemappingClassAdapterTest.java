@@ -42,15 +42,14 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.CstClassInsnNode;
+import org.objectweb.asm.tree.CstMHandleInsnNode;
 import org.objectweb.asm.tree.CstMTypeInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.FrameNode;
 import org.objectweb.asm.tree.InnerClassNode;
-import org.objectweb.asm.tree.CstPrimInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
@@ -98,6 +97,19 @@ public class RemappingClassAdapterTest extends TestCase implements Opcodes {
         assertEquals("(LB1;)V", ((CstMTypeInsnNode)it.next()).methodDesc);
         assertEquals("(JI)[LD1;", ((CstMTypeInsnNode)it.next()).methodDesc);
         
+        CstMHandleInsnNode c1 = (CstMHandleInsnNode)it.next();
+        assertEquals(REF_getField, c1.tag);
+        assertEquals("D1", c1.owner);
+        assertEquals("LB1;", c1.desc);
+        CstMHandleInsnNode c2 = (CstMHandleInsnNode)it.next();
+        assertEquals(REF_putField, c2.tag);
+        assertEquals("D1", c2.owner);
+        assertEquals("[LB1;", c2.desc);
+        CstMHandleInsnNode c3 = (CstMHandleInsnNode)it.next();
+        assertEquals(REF_invokeVirtual, c3.tag);
+        assertEquals("D1", c3.owner);
+        assertEquals("([[LB1;LC1;LD1;)LC1;", c3.desc);
+        
         assertEquals("B1", ((TypeInsnNode) it.next()).desc);
         assertEquals("[LD1;", ((TypeInsnNode) it.next()).desc);
         assertEquals("[I", ((TypeInsnNode) it.next()).desc);
@@ -137,7 +149,7 @@ public class RemappingClassAdapterTest extends TestCase implements Opcodes {
     
     
     public static void dump(ClassVisitor cv) throws Exception {
-        cv.visit(V1_5, 0, "Doo", null, "Boo", new String[] { "I", "I", "Coo", "J", "Boo"});
+        cv.visit(V1_7, 0, "Doo", null, "Boo", new String[] { "I", "I", "Coo", "J", "Boo"});
 
         cv.visitInnerClass("Doo", "Boo", "Doo", 0);
         
@@ -161,6 +173,10 @@ public class RemappingClassAdapterTest extends TestCase implements Opcodes {
         
         mv.visitCstMTypeInsn("(LBoo;)V");
         mv.visitCstMTypeInsn("(JI)[LDoo;");
+        
+        mv.visitCstMHandleInsn(REF_getField, "Doo", "boo", "LBoo;");
+        mv.visitCstMHandleInsn(REF_putField, "Doo", "boo1", "[LBoo;");
+        mv.visitCstMHandleInsn(REF_invokeVirtual, "Doo", "goo", "([[LBoo;LCoo;LDoo;)V");
         
         mv.visitTypeInsn(ANEWARRAY, "Boo");
         mv.visitTypeInsn(ANEWARRAY, "[LDoo;");
@@ -239,7 +255,7 @@ public class RemappingClassAdapterTest extends TestCase implements Opcodes {
             // visitLocalVariable(String, String, String, Label, Label, int)
             Boo boo = this.boo;
             
-            // visitLdcInsn(Object)
+            // visitCstClassInsn(String)
             Class cc = Boo.class;
 
             // visitTypeInsn(int, String)

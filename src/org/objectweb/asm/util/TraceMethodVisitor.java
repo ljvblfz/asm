@@ -359,6 +359,30 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
             mv.visitCstMTypeInsn(methodDesc);
         }
     }
+    
+    public void visitCstMHandleInsn(
+        int tag,
+        String owner,
+        String name,
+        String desc)
+    {
+        
+        buf.setLength(0);
+        buf.append(tab2).append("LDC ").append(METHOD_HANDLE_TAG[tag]).append(' ');
+        appendDescriptor(INTERNAL_NAME, owner);
+        buf.append('.').append(name).append(' ');
+        if (tag <= Opcodes.REF_putStatic)
+          appendDescriptor(FIELD_DESCRIPTOR, desc);
+        else
+          appendDescriptor(METHOD_DESCRIPTOR, desc);
+        buf.append('\n');
+        text.add(buf.toString());
+
+        if (mv != null) {
+            mv.visitCstMHandleInsn(tag, owner, name, desc);
+        }
+        
+    }
 
     public void visitIincInsn(final int var, final int increment) {
         buf.setLength(0);

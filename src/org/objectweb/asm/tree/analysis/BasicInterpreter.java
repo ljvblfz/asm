@@ -104,21 +104,29 @@ public class BasicInterpreter implements Opcodes, Interpreter {
             case SIPUSH:
                 return BasicValue.INT_VALUE;
             case LDC:
-                if (insn.getType() == AbstractInsnNode.CST_PRIM_INSN) {
-                    Object cst = ((CstPrimInsnNode) insn).cst;
-                    if (cst instanceof Integer) {
-                        return BasicValue.INT_VALUE;
-                    } else if (cst instanceof Float) {
-                        return BasicValue.FLOAT_VALUE;
-                    } else if (cst instanceof Long) {
-                        return BasicValue.LONG_VALUE;
-                    } else if (cst instanceof Double) {
-                        return BasicValue.DOUBLE_VALUE;
-                    } else {
-                        return newValue(Type.getType(cst.getClass()));
+                switch(insn.getType()) { 
+                    case AbstractInsnNode.CST_CLASS_INSN:
+                        return newValue(Type.getObjectType("java/lang/Class"));
+                    case AbstractInsnNode.CST_MTYPE_INSN:
+                        return newValue(Type.getObjectType("java/lang/MethodType"));
+                    case AbstractInsnNode.CST_MHANDLE_INSN:
+                        return newValue(Type.getObjectType("java/lang/MethodHandle"));
+                        
+                    //case AbstractInsnNode.CST_PRIM_INSN:
+                    default: {
+                        Object cst = ((CstPrimInsnNode) insn).cst;
+                        if (cst instanceof Integer) {
+                            return BasicValue.INT_VALUE;
+                        } else if (cst instanceof Float) {
+                            return BasicValue.FLOAT_VALUE;
+                        } else if (cst instanceof Long) {
+                            return BasicValue.LONG_VALUE;
+                        } else if (cst instanceof Double) {
+                            return BasicValue.DOUBLE_VALUE;
+                        } else {
+                            return newValue(Type.getType(cst.getClass()));
+                        }
                     }
-                } else {  // CST_CLASS_INSN
-                    return newValue(Type.getObjectType("java/lang/Class"));
                 }
             case JSR:
                 return BasicValue.RETURNADDRESS_VALUE;

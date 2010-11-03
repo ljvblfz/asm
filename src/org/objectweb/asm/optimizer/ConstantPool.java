@@ -31,6 +31,7 @@ package org.objectweb.asm.optimizer;
 
 import java.util.HashMap;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 /**
@@ -45,6 +46,8 @@ public class ConstantPool extends HashMap {
     private final Constant key2 = new Constant();
 
     private final Constant key3 = new Constant();
+    
+    private final Constant key4 = new Constant();
 
     public Constant newInteger(final int value) {
         key1.set(value);
@@ -124,6 +127,21 @@ public class ConstantPool extends HashMap {
         if (result == null) {
             newUTF8(methodDescriptor);
             result = new Constant(key2);
+            put(result);
+        }
+        return result;
+    }
+    
+    public Constant newMHandle(final int tag, final String owner, final String name, final String desc) {
+        key4.set((char)('g' + tag), owner, name, desc);
+        Constant result = get(key4);
+        if (result == null) {
+            if (tag <= Opcodes.REF_putStatic) {
+                newField(owner, name, desc);
+            } else {
+                newMethod(owner, name, desc, tag == Opcodes.REF_invokeInterface);
+            }
+            result = new Constant(key4);
             put(result);
         }
         return result;

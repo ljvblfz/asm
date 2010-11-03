@@ -143,6 +143,15 @@ public class MethodAdapter implements MethodVisitor {
     public void visitCstMTypeInsn(String methodDesc) {
         mv.visitCstMTypeInsn(methodDesc);
     }
+    
+    public void visitCstMHandleInsn(
+        int tag,
+        String owner,
+        String name,
+        String desc)
+    {
+        mv.visitCstMHandleInsn(tag, owner, name, desc);
+    }
 
     public void visitIincInsn(final int var, final int increment) {
         mv.visitIincInsn(var, increment);

@@ -225,13 +225,20 @@ public class ClassWriter implements ClassVisitor {
      * The type of CONSTANT_MethodHandle constant pool items.
      */
     static final int MHANDLE = 15;
-
+    
+    /** 
+     * The base value for all CONSTANT_MethodHandle constant pool items.
+     * Internally, ASM store the 9 variations of CONSTANT_MethodHandle into
+     * 9 different items.
+     */
+    static final int MHANDLE_BASE = 20;
+    
     /**
      * Normal type Item stored in the ClassWriter {@link ClassWriter#typeTable},
      * instead of the constant pool, in order to avoid clashes with normal
      * constant pool items in the ClassWriter constant pool's hash table.
      */
-    static final int TYPE_NORMAL = 20;
+    static final int TYPE_NORMAL = 30;
 
     /**
      * Uninitialized type Item stored in the ClassWriter
@@ -239,14 +246,14 @@ public class ClassWriter implements ClassVisitor {
      * avoid clashes with normal constant pool items in the ClassWriter constant
      * pool's hash table.
      */
-    static final int TYPE_UNINIT = 21;
+    static final int TYPE_UNINIT = 31;
 
     /**
      * Merged type Item stored in the ClassWriter {@link ClassWriter#typeTable},
      * instead of the constant pool, in order to avoid clashes with normal
      * constant pool items in the ClassWriter constant pool's hash table.
      */
-    static final int TYPE_MERGED = 22;
+    static final int TYPE_MERGED = 32;
 
     /**
      * The class reader from which this class writer was constructed, if any.
@@ -292,6 +299,11 @@ public class ClassWriter implements ClassVisitor {
      * A reusable key used to look for items in the {@link #items} hash table.
      */
     final Item key3;
+    
+    /**
+     * A reusable key used to look for items in the {@link #items} hash table.
+     */
+    final Item key4;
 
     /**
      * A type table used to temporarily store internal names that will not
@@ -556,6 +568,7 @@ public class ClassWriter implements ClassVisitor {
         key = new Item();
         key2 = new Item();
         key3 = new Item();
+        key4 = new Item();
         this.computeMaxs = (flags & COMPUTE_MAXS) != 0;
         this.computeFrames = (flags & COMPUTE_FRAMES) != 0;
     }
@@ -1005,7 +1018,7 @@ public class ClassWriter implements ClassVisitor {
         }
         return result;
     }
-
+    
     /**
      * Adds a method type reference to the constant pool of the class being build.
      * Does nothing if the constant pool already contains a similar item.
@@ -1017,6 +1030,56 @@ public class ClassWriter implements ClassVisitor {
      */
     public int newMType(final String methodDesc) {
         return newMTypeItem(methodDesc).index;
+    }
+    
+    /**
+     * Adds a method type reference to the constant pool of the class being build.
+     * Does nothing if the constant pool already contains a similar item.
+     * <i>This method is intended for {@link Attribute} sub classes, and is
+     * normally not needed by class generators or adapters.</i>
+     *
+     * @param tag 
+     *        one among REF_getField, REF_getStatic, REF_putField, REF_putStatic,
+     *        REF_invokeVirtual, REF_invokeStatic, REF_invokeSpecial,
+     *        REF_newInvokeSpecial and REF_invokeInterface.
+     * @param owner internal name of the field reference/method reference. 
+     * @param name name of the field/method.
+     * @param desc field/method descriptor.
+     * @return a new or already existing method type reference item.
+     */
+    Item newMHandleItem(final int tag, final String owner, String name, String desc) {
+        key4.set(MHANDLE_BASE + tag, owner, name, desc);
+        Item result = get(key4);
+        if (result == null) {
+            if (tag <= Opcodes.REF_putStatic) {
+                put112(MHANDLE, tag, newField(owner, name, desc));
+            } else {
+                put112(MHANDLE, tag, newMethod(owner, name, desc, tag == Opcodes.REF_invokeInterface));
+            }
+            result = new Item(index++, key4);
+            put(result);
+        }
+        return result;
+    }
+    
+    /**
+     * Adds a method handle reference to the constant pool of the class being build.
+     * Does nothing if the constant pool already contains a similar item.
+     * <i>This method is intended for {@link Attribute} sub classes, and is
+     * normally not needed by class generators or adapters.</i>
+     * 
+     * @param tag 
+     *        one among REF_getField, REF_getStatic, REF_putField, REF_putStatic,
+     *        REF_invokeVirtual, REF_invokeStatic, REF_invokeSpecial,
+     *        REF_newInvokeSpecial and REF_invokeInterface.
+     * @param owner internal name of the field reference/method reference. 
+     * @param name name of the field/method.
+     * @param desc field/method descriptor.
+     * 
+     * @return the index of a new or already existing method type reference item.
+     */
+    public int newMHandle(final int tag, final String owner, String name, String desc) {
+        return newMHandleItem(tag, owner, name, desc).index;
     }
     
     /**
@@ -1409,4 +1472,15 @@ public class ClassWriter implements ClassVisitor {
     private void put122(final int b, final int s1, final int s2) {
         pool.put12(b, s1).putShort(s2);
     }
+    
+    /**
+    * Puts two bytes and one short into the constant pool.
+    *
+    * @param b1 a byte.
+    * @param b2 another byte.
+    * @param s a short.
+    */
+   private void put112(final int b1, final int b2, final int s) {
+       pool.put11(b1, b2).putShort(s);
+   }
 }

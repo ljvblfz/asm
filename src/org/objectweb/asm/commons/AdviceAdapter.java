@@ -416,6 +416,19 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
             pushValue(OTHER);
         }
     }
+    
+    public void visitCstMHandleInsn(
+        int tag,
+        String owner,
+        String name,
+        String desc)
+    {
+        mv.visitCstMHandleInsn(tag, owner, name, desc);
+
+        if (constructor) {
+            pushValue(OTHER);
+        }
+    }
 
     public void visitMultiANewArrayInsn(final String desc, final int dims) {
         mv.visitMultiANewArrayInsn(desc, dims);

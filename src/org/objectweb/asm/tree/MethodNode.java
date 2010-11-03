@@ -295,6 +295,15 @@ public class MethodNode extends MemberNode implements MethodVisitor {
     public void visitCstMTypeInsn(final String methodDesc) {
         instructions.add(new CstMTypeInsnNode(methodDesc));
     }
+    
+    public void visitCstMHandleInsn(
+        int tag,
+        String owner,
+        String name,
+        String desc)
+    {
+        instructions.add(new CstMHandleInsnNode(tag, owner, name, desc));
+    }
 
     public void visitIincInsn(final int var, final int increment) {
         instructions.add(new IincInsnNode(var, increment));

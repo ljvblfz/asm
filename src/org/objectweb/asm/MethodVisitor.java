@@ -305,15 +305,19 @@ public interface MethodVisitor {
     
     /**
      * Visits a LDC instruction with a constant method handle value.
+     * Depending of the value of the argument {@code tag} the constant method handle
+     * references a field, a static field, a method or a constructor.
      * This instruction is available if enclosing class version is 51.0 or upper.
      * 
      * @param tag 
-     *        one among MH_
-     * @param owner
-     * @param name
-     * @param desc
+     *        one among REF_getField, REF_getStatic, REF_putField, REF_putStatic,
+     *        REF_invokeVirtual, REF_invokeStatic, REF_invokeSpecial,
+     *        REF_newInvokeSpecial and REF_invokeInterface.
+     * @param owner internal name of the field reference/method reference. 
+     * @param name name of the field/method.
+     * @param desc field/method descriptor.
      */
-    //void visitCstMHandleInsn(int tag, String owner, String name, String desc); 
+    void visitCstMHandleInsn(int tag, String owner, String name, String desc); 
     
     /**
      * Visits an IINC instruction.

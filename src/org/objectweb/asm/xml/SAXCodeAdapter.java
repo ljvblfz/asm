@@ -226,8 +226,8 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
                 "",
                 SAXClassAdapter.encode(cst.toString()));
         attrs.addAttribute("",
-                "desc",
-                "desc",
+                "type",
+                "type",
                 "",
                 Type.getDescriptor(cst.getClass()));
         addElement(AbstractVisitor.OPCODES[Opcodes.LDC], attrs);
@@ -236,13 +236,13 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
     public void visitCstClassInsn(final String internalName) {
         AttributesImpl attrs = new AttributesImpl();
         attrs.addAttribute("",
-                "cst",
-                "cst",
+                "desc",
+                "desc",
                 "",
                 SAXClassAdapter.encode(internalName));
         attrs.addAttribute("",
-                "desc",
-                "desc",
+                "type",
+                "type",
                 "",
                 Type.getDescriptor(Type.class));
         addElement(AbstractVisitor.OPCODES[Opcodes.LDC], attrs);
@@ -251,15 +251,50 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
     public void visitCstMTypeInsn(final String methodDesc) {
         AttributesImpl attrs = new AttributesImpl();
         attrs.addAttribute("",
-                "cst",
-                "cst",
+                "desc",
+                "desc",
                 "",
                 SAXClassAdapter.encode(methodDesc));
+        attrs.addAttribute("",
+                "type",
+                "type",
+                "",
+                "Ljava/dyn/MethodType;");
+        addElement(AbstractVisitor.OPCODES[Opcodes.LDC], attrs);
+    }
+    
+    public void visitCstMHandleInsn(
+        int tag,
+        String owner,
+        String name,
+        String desc)
+    {
+        AttributesImpl attrs = new AttributesImpl();
+        attrs.addAttribute("",
+                "tag",
+                "tag",
+                "",
+                AbstractVisitor.METHOD_HANDLE_TAG[tag]);
+        attrs.addAttribute("",
+                "owner",
+                "owner",
+                "",
+                SAXClassAdapter.encode(owner));
+        attrs.addAttribute("",
+                "name",
+                "name",
+                "",
+                SAXClassAdapter.encode(name));
         attrs.addAttribute("",
                 "desc",
                 "desc",
                 "",
-                "Ljava/dyn/MethodType;");
+                SAXClassAdapter.encode(desc));
+        attrs.addAttribute("",
+                "type",
+                "type",
+                "",
+                "Ljava/dyn/MethodHandle;");
         addElement(AbstractVisitor.OPCODES[Opcodes.LDC], attrs);
     }
 

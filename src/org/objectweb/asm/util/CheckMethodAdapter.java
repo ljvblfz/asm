@@ -607,6 +607,26 @@ public class CheckMethodAdapter extends MethodAdapter {
         checkMethodDesc(methodDesc);
         mv.visitCstMTypeInsn(methodDesc);
     }
+    
+    public void visitCstMHandleInsn(
+        int tag,
+        String owner,
+        String name,
+        String desc)
+    {
+        checkStartCode();
+        checkEndCode();
+        checkMethodHandleRef(tag);
+        checkMethodIdentifier(name, "name");
+        checkInternalName(owner, "owner");
+        
+        if (tag <= Opcodes.REF_putStatic) {
+            checkDesc(desc, false);
+        } else {
+            checkMethodDesc(desc);    
+        }
+        mv.visitCstMHandleInsn(tag, owner, name, desc);
+    }
 
     public void visitIincInsn(final int var, final int increment) {
         checkStartCode();
@@ -1470,6 +1490,17 @@ public class CheckMethodAdapter extends MethodAdapter {
             return f;
         } catch (NoSuchFieldException e) {
             return null;
+        }
+    }
+    
+    /**
+     * Checks that the given constant method handle tag is valid.
+     * 
+     * @param tag the method handle tag to be tested.
+     */
+    private static void checkMethodHandleRef(int tag) {
+        if (tag < Opcodes.REF_getField || tag > Opcodes.REF_invokeInterface) {
+            throw new IllegalArgumentException("Invalid constant method handle tag: " + tag);
         }
     }
 }

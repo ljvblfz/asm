@@ -51,7 +51,11 @@ final class Item {
      * {@link ClassWriter#STR}, {@link ClassWriter#CLASS},
      * {@link ClassWriter#NAME_TYPE}, {@link ClassWriter#FIELD},
      * {@link ClassWriter#METH}, {@link ClassWriter#IMETH},
-     * {@link ClassWriter#MTYPE}, {@link ClassWriter#MHANDLE}.
+     * {@link ClassWriter#MTYPE}.
+     * 
+     * MethodHandle constant 9 variations are stored using a range
+     * of 9 values from {@link ClassWriter#MHANDLE_BASE} + 1 to
+     * {@link ClassWriter#MHANDLE_BASE} + 9.
      * 
      * Special Item types are used for Items that are stored in the ClassWriter
      * {@link ClassWriter#typeTable}, instead of the constant pool, in order to
@@ -211,6 +215,7 @@ final class Item {
                 // ClassWriter.FIELD:
                 // ClassWriter.METH:
                 // ClassWriter.IMETH:
+                // ClassWriter.MHANDLE_BASE + 1..9
             default:
                 hashCode = 0x7FFFFFFF & (type + strVal1.hashCode()
                         * strVal2.hashCode() * strVal3.hashCode());
@@ -248,6 +253,7 @@ final class Item {
             // case ClassWriter.FIELD:
             // case ClassWriter.METH:
             // case ClassWriter.IMETH:
+            // case ClassWriter.MHANDLE_BASE + 1..9
             default:    
                 return i.strVal1.equals(strVal1) && i.strVal2.equals(strVal2)
                         && i.strVal3.equals(strVal3);

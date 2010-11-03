@@ -135,6 +135,61 @@ public interface Opcodes {
     Integer NULL = new Integer(5);
     Integer UNINITIALIZED_THIS = new Integer(6);
 
+    /**
+     * Represents a constant method handle tag equivalent to a getfield.
+     * @see MethodVisitor#visitCstMHandleInsn(int, String, String, String)
+     */
+    int REF_getField = 1;
+    
+    /**
+     * Represents a constant method handle tag equivalent to a getstatic.
+     * @see MethodVisitor#visitCstMHandleInsn(int, String, String, String)
+     */
+    int REF_getStatic = 2;
+    
+    /**
+     * Represents a constant method handle tag equivalent to a putfield.
+     * @see MethodVisitor#visitCstMHandleInsn(int, String, String, String)
+     */
+    int REF_putField = 3;
+    
+    /**
+     * Represents a constant method handle tag equivalent to a putstatic.
+     * @see MethodVisitor#visitCstMHandleInsn(int, String, String, String)
+     */
+    int REF_putStatic = 4;
+    
+    /**
+     * Represents a constant method handle tag equivalent to an invokevirtual.
+     * @see MethodVisitor#visitCstMHandleInsn(int, String, String, String)
+     */
+    int REF_invokeVirtual = 5;
+    
+    /**
+     * Represents a constant method handle tag equivalent to an invokestatic.
+     * @see MethodVisitor#visitCstMHandleInsn(int, String, String, String)
+     */
+    int REF_invokeStatic = 6;
+    
+    /**
+     * Represents a constant method handle tag equivalent to an invokespecial.
+     * @see MethodVisitor#visitCstMHandleInsn(int, String, String, String)
+     */
+    int REF_invokeSpecial = 7;
+    
+    /**
+     * Represents a constant method handle tag equivalent to a new/dup/invokespecial.
+     * @see MethodVisitor#visitCstMHandleInsn(int, String, String, String)
+     */
+    int REF_newInvokeSpecial = 8;
+    
+    /**
+     * Represents a constant method handle tag equivalent to an invokeinterface.
+     * @see MethodVisitor#visitCstMHandleInsn(int, String, String, String)
+     */
+    int REF_invokeInterface = 9;
+    
+    
     /** 
      * Represents a owner of an invokedynamic call.
      */

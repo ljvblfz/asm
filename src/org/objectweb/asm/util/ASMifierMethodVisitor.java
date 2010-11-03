@@ -250,6 +250,23 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         buf.append(");\n");
         text.add(buf.toString());
     }
+    
+    public void visitCstMHandleInsn(
+        int tag,
+        String owner,
+        String name,
+        String desc)
+    {
+        buf.setLength(0);
+        buf.append("mv.visitCstMHandleInsn(").append(METHOD_HANDLE_TAG[tag]).append(", ");
+        appendConstant(owner);
+        buf.append(", ");
+        appendConstant(name);
+        buf.append(", ");
+        appendConstant(desc);
+        buf.append(");\n");
+        text.add(buf.toString());
+    }
 
     public void visitIincInsn(final int var, final int increment) {
         buf.setLength(0);

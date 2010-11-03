@@ -689,6 +689,10 @@ public class InstructionAdapter extends MethodAdapter {
         mv.visitCstMTypeInsn(methodDesc);
     }
     
+    public void mhconst(final int tag, final String owner, final String name, final String desc) {
+        mv.visitCstMHandleInsn(tag, owner, name, desc);
+    }
+    
     public void load(final int var, final Type type) {
         mv.visitVarInsn(type.getOpcode(Opcodes.ILOAD), var);
     }

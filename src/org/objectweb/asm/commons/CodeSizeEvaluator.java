@@ -173,6 +173,19 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
             mv.visitCstMTypeInsn(methodDesc);
         }
     }
+    
+    public void visitCstMHandleInsn(
+        int tag,
+        String owner,
+        String name,
+        String desc)
+    {
+        minSize += 2;
+        maxSize += 3;
+        if (mv != null) {
+            mv.visitCstMHandleInsn(tag, owner, name, desc);
+        }
+    }
 
     public void visitIincInsn(final int var, final int increment) {
         if (var > 255 || increment > 127 || increment < -128) {

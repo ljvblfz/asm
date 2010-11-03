@@ -41,10 +41,12 @@ class Constant {
     /**
      * Type of this constant pool item. A single class is used to represent all
      * constant pool item types, in order to minimize the bytecode size of this
-     * package. The value of this field is I, J, F, D, S, s, C, T, G, M, N, t, h,
+     * package. The value of this field is I, J, F, D, S, s, C, T, G, M, N, t, [h..p],
      * (for Constant Integer, Long, Float, Double, STR, UTF8, Class, NameType,
      * Fieldref, Methodref, InterfaceMethodref, MethodType and MethodHandle constant pool items
      * respectively).
+     * 
+     * The 9 variable of MethodHandle constants are stored between h and p.
      */
     char type;
 

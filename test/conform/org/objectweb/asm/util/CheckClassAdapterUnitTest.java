@@ -825,6 +825,36 @@ public class CheckClassAdapterUnitTest extends TestCase implements Opcodes {
         }
     }
     
+    public void testIllegalCstMHandleInsnTag() {
+        MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
+        mv.visitCode();
+        try {
+            mv.visitCstMHandleInsn(0, "java/lang/Object", "foo", "I");
+            fail();
+        } catch (Exception e) {
+        }
+    }
+    
+    public void testIllegalCstMHandleInsnDescriptor() {
+        MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
+        mv.visitCode();
+        try {
+            mv.visitCstMHandleInsn(REF_getField, "java/lang/Object", "foo", "(I)V");
+            fail();
+        } catch (Exception e) {
+        }
+    }
+    
+    public void testIllegalCstMHandleInsnDescriptor2() {
+        MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
+        mv.visitCode();
+        try {
+            mv.visitCstMHandleInsn(REF_invokeInterface, "java/lang/Object", "foo", "I");
+            fail();
+        } catch (Exception e) {
+        }
+    }
+    
     public void testIllegalMultiANewArrayDesc() {
         MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
         mv.visitCode();

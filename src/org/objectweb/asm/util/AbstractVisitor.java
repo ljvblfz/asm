@@ -46,12 +46,19 @@ public abstract class AbstractVisitor {
      * The names of the Java Virtual Machine opcodes.
      */
     public static final String[] OPCODES;
+    
     /**
      * Types for <code>operand</code> parameter of the
      * {@link org.objectweb.asm.MethodVisitor#visitIntInsn} method when
      * <code>opcode</code> is <code>NEWARRAY</code>.
      */
     public static final String[] TYPES;
+    
+    /**
+     * Tag for method handle constant of the
+     * {@link org.objectweb.asm.MethodVisitor#visitCstMHandleInsn(int, String, String, String)} method.
+     */
+    public static final String[] METHOD_HANDLE_TAG;
 
     static {
         String s = "NOP,ACONST_NULL,ICONST_M1,ICONST_0,ICONST_1,ICONST_2,"
@@ -89,6 +96,17 @@ public abstract class AbstractVisitor {
         i = 4;
         while ((l = s.indexOf(',', j)) > 0) {
             TYPES[i++] = s.substring(j, l);
+            j = l + 1;
+        }
+        
+        s = "REF_getField,REF_getStatic,REF_putField,REF_putStatic,"
+          + "REF_invokeVirtual,REF_invokeStatic,REF_invokeSpecial,"
+          + "REF_newInvokeSpecial,REF_invokeInterface,";
+        METHOD_HANDLE_TAG = new String[10];
+        j = 0;
+        i = 1;
+        while ((l = s.indexOf(',', j)) > 0) {
+            METHOD_HANDLE_TAG[i++] = s.substring(j, l);
             j = l + 1;
         }
     }

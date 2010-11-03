@@ -171,6 +171,7 @@ public class ClassReader {
         for (int i = 1; i < n; ++i) {
             items[i] = index + 1;
             int size;
+            
             switch (b[index]) {
                 case ClassWriter.FIELD:
                 case ClassWriter.METH:
@@ -191,8 +192,12 @@ public class ClassReader {
                         max = size;
                     }
                     break;
+                case ClassWriter.MHANDLE:
+                    size = 4;
+                    break;
                 // case ClassWriter.CLASS:
                 // case ClassWriter.STR:
+                // case ClassWriter.MTYPE
                 default:
                     size = 3;
                     break;
@@ -330,8 +335,20 @@ public class ClassReader {
                 }
                     break;
 
+                case ClassWriter.MHANDLE: {
+                    int fieldOrMethodRef = items[readUnsignedShort(index + 1)];
+                    nameType = items[readUnsignedShort(fieldOrMethodRef + 2)];
+                    item.set(ClassWriter.MHANDLE_BASE + readByte(index),
+                            readClass(fieldOrMethodRef, buf),
+                            readUTF8(nameType, buf),
+                            readUTF8(nameType + 2, buf));
+                    
+                }
+                    break;
+                    
                 // case ClassWriter.STR:
                 // case ClassWriter.CLASS:
+                // case ClassWriter.MTYPE
                 default:
                     item.set(tag, readUTF8(index, buf), null, null);
                     break;
@@ -1520,10 +1537,21 @@ public class ClassReader {
             case ClassWriter.MTYPE:
                 mv.visitCstMTypeInsn(readUTF8(index, buf));
                 return;
-                // case ClassWriter.STR:
-            default:
+            case ClassWriter.STR:
                 mv.visitCstPrimInsn(readUTF8(index, buf));
                 return;
+            //case ClassWriter.MHANDLE_BASE + [1..9]:
+            default: {
+                int tag = readByte(index);
+                int[] items = this.items;
+                int cpIndex = items[readUnsignedShort(index + 1)];
+                String owner = readClass(cpIndex, buf);
+                cpIndex = items[readUnsignedShort(cpIndex + 2)];
+                String name = readUTF8(cpIndex, buf);
+                String desc = readUTF8(cpIndex + 2, buf);
+                mv.visitCstMHandleInsn(tag, owner, name, desc);
+                break;
+            }   
         }
     }
     

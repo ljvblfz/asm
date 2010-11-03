@@ -40,7 +40,12 @@ import org.objectweb.asm.MethodVisitor;
  * @author Remi Forax
  */
 public class JSR292 extends Generator {
-
+    int field;
+    int static_field;
+    
+    void foo(int x) { }
+    static void static_foo(int x) { }
+    
     public void generate(final String dir) throws IOException {
         generate(dir, "pkg/JSR292.class", dump());
     }
@@ -68,9 +73,19 @@ public class JSR292 extends Generator {
                 "()V",
                 null,
                 null);
+        
         mv.visitCstClassInsn("java/lang/Object");
+        
         mv.visitCstMTypeInsn("()V");
         mv.visitCstMTypeInsn("(IJ)[Ljava/lang/Object;");
+        
+        mv.visitCstMHandleInsn(REF_getField, "pkg/JSR292", "field", "I");
+        mv.visitCstMHandleInsn(REF_putField, "pkg/JSR292", "field", "I");
+        mv.visitCstMHandleInsn(REF_getStatic, "pkg/JSR292", "static_field", "I");
+        mv.visitCstMHandleInsn(REF_putStatic, "pkg/JSR292", "static_field", "I");
+        
+        mv.visitCstMHandleInsn(REF_invokeVirtual, "pkg/JSR292", "foo", "(I)V");
+        mv.visitCstMHandleInsn(REF_invokeStatic, "pkg/JSR292", "static_foo", "(I)V");
         
         mv.visitInsn(RETURN);
         mv.visitMaxs(0, 0);

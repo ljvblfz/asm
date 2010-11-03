@@ -457,12 +457,117 @@ public class GeneratorAdapter extends LocalVariablesSorter {
     }
     
     /**
-    * Generates the instruction to push a method type on the stack.
-    * 
-    * @param methodDesc method descriptor of the method type to be pushed on the stack.
-    */
-    public void pushMethodType(final String methodDesc) {
-        mv.visitCstMTypeInsn(methodDesc);
+     * Generates the instruction to push a method type on the stack.
+     * 
+     * @param methodDesc method descriptor of the method type to be pushed on the stack.
+     */
+    public void pushMethodType(final Type methodDesc) {
+        mv.visitCstMTypeInsn(methodDesc.getDescriptor());
+    }
+    
+    /**
+     * Generates the instruction to push a constant method handle equivalent to a get field on the stack.
+     * 
+     * @param owner the class in which the field is defined.
+     * @param name the name of the field.
+     * @param type the type of the field.
+     */
+    public void pushGetFieldMethodHandle(final Type owner, final String name, final Type type) {
+        pushFieldMethodHandle(Opcodes.REF_getField, owner, name, type);
+    }
+    
+    /**
+     * Generates the instruction to push a constant method handle equivalent to a get static field on the stack.
+     * 
+     * @param owner the class in which the field is defined.
+     * @param name the name of the field.
+     * @param type the type of the field.
+     */
+    public void pushGetStaticFieldMethodHandle(final Type owner, final String name, final Type type) {
+        pushFieldMethodHandle(Opcodes.REF_getStatic, owner, name, type);
+    }
+    
+    /**
+     * Generates the instruction to push a constant method handle equivalent to a put field on the stack.
+     * 
+     * @param owner the class in which the field is defined.
+     * @param name the name of the field.
+     * @param type the type of the field.
+     */
+    public void pushPutFieldMethodHandle(final Type owner, final String name, final Type type) {
+        pushFieldMethodHandle(Opcodes.REF_putField, owner, name, type);
+    }
+    
+    /**
+     * Generates the instruction to push a constant method handle equivalent to a put static field on the stack.
+     * 
+     * @param owner the class in which the field is defined.
+     * @param name the name of the field.
+     * @param type the type of the field.
+     */
+    public void pushPutStaticFieldMethodHandle(final Type owner, final String name, final Type type) {
+        pushFieldMethodHandle(Opcodes.REF_putStatic, owner, name, type);
+    }
+    
+    /**
+     * Generates the instruction to push a constant method handle equivalent to an invoke virtual on the stack.
+     * 
+     * @param owner the class in which the method is defined.
+     * @param method the method to be invoked.
+     */
+    public void pushInvokeVirtualMethodHandle(final Type owner, final Method method) {
+        pushMethodMethodHandle(Opcodes.REF_invokeVirtual, owner, method);
+    }
+    
+    /**
+     * Generates the instruction to push a constant method handle equivalent to an invoke static on the stack.
+     * 
+     * @param owner the class in which the method is defined.
+     * @param method the method to be invoked.
+     */
+    public void pushInvokeStaticMethodHandle(final Type owner, final Method method) {
+        pushMethodMethodHandle(Opcodes.REF_invokeStatic, owner, method);
+    }
+    
+    /**
+     * Generates the instruction to push a constant method handle equivalent to an invoke special on the stack.
+     * 
+     * @param owner the class in which the method is defined.
+     * @param method the method to be invoked.
+     */
+    public void pushInvokeSpecialMethodHandle(final Type owner, final Method method) {
+        pushMethodMethodHandle(Opcodes.REF_invokeSpecial, owner, method);
+    }
+    
+    /**
+     * Generates the instruction to push a constant method handle equivalent to a constructor call on the stack.
+     * 
+     * @param owner the class in which the method is defined.
+     * @param method the method to be invoked.
+     */
+    public void pushInvokeConstructorMethodHandle(final Type owner, Method method) {
+        pushMethodMethodHandle(Opcodes.REF_newInvokeSpecial, owner, method);
+    }
+    
+    /**
+     * Generates the instruction to push a constant method handle equivalent to an invoke interface on the stack.
+     * 
+     * @param owner the interface in which the method is defined.
+     * @param method the method to be invoked.
+     */
+    public void pushInvokeInterfaceMethodHandle(final Type owner, Method method) {
+        pushMethodMethodHandle(Opcodes.REF_invokeInterface, owner, method);
+    }
+    
+    private void pushFieldMethodHandle(final int tag, final Type type, final String name, final Type desc) {
+        mv.visitCstMHandleInsn(tag, type.getInternalName(), name, desc.getDescriptor());
+    }
+    
+    private void pushMethodMethodHandle(final int tag, final Type type, final Method method) {
+        String owner = type.getSort() == Type.ARRAY
+                     ? type.getDescriptor()
+                     : type.getInternalName();
+        mv.visitCstMHandleInsn(tag, owner, method.getName(), method.getDescriptor());
     }
 
     // ------------------------------------------------------------------------

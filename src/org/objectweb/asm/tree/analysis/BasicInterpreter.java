@@ -108,9 +108,9 @@ public class BasicInterpreter implements Opcodes, Interpreter {
                     case AbstractInsnNode.CST_CLASS_INSN:
                         return newValue(Type.getObjectType("java/lang/Class"));
                     case AbstractInsnNode.CST_MTYPE_INSN:
-                        return newValue(Type.getObjectType("java/lang/MethodType"));
+                        return newValue(Type.getObjectType("java/dyn/MethodType"));
                     case AbstractInsnNode.CST_MHANDLE_INSN:
-                        return newValue(Type.getObjectType("java/lang/MethodHandle"));
+                        return newValue(Type.getObjectType("java/dyn/MethodHandle"));
                         
                     //case AbstractInsnNode.CST_PRIM_INSN:
                     default: {

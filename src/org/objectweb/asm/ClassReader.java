@@ -191,8 +191,12 @@ public class ClassReader {
                         max = size;
                     }
                     break;
+                case ClassWriter.MHANDLE:
+                    size = 4;
+                    break;
                 // case ClassWriter.CLASS:
                 // case ClassWriter.STR:
+                // case ClassWriter.MTYPE
                 default:
                     size = 3;
                     break;
@@ -330,8 +334,20 @@ public class ClassReader {
                 }
                     break;
 
+                case ClassWriter.MHANDLE: {
+                    int fieldOrMethodRef = items[readUnsignedShort(index + 1)];
+                    nameType = items[readUnsignedShort(fieldOrMethodRef + 2)];
+                    item.set(ClassWriter.MHANDLE_BASE + readByte(index),
+                            readClass(fieldOrMethodRef, buf),
+                            readUTF8(nameType, buf),
+                            readUTF8(nameType + 2, buf));
+                    
+                }
+                    break;
+                    
                 // case ClassWriter.STR:
                 // case ClassWriter.CLASS:
+                // case ClassWriter.MTYPE
                 default:
                     item.set(tag, readUTF8(index, buf), null, null);
                     break;
@@ -2024,8 +2040,9 @@ public class ClassReader {
      * @param buf buffer to be used to read the item. This buffer must be
      *        sufficiently large. It is not automatically resized.
      * @return the {@link Integer}, {@link Float}, {@link Long},
-     *         {@link Double}, {@link String} or {@link Type} corresponding to
-     *         the given constant pool item.
+     *         {@link Double}, {@link String}, {@link Type},
+     *         {@link MType} or {@link MHandle}
+     *         corresponding to the given constant pool item.
      */
     public Object readConst(final int item, final char[] buf) {
         int index = items[item];
@@ -2040,9 +2057,22 @@ public class ClassReader {
                 return new Double(Double.longBitsToDouble(readLong(index)));
             case ClassWriter.CLASS:
                 return Type.getObjectType(readUTF8(index, buf));
-                // case ClassWriter.STR:
-            default:
+            case ClassWriter.STR:
                 return readUTF8(index, buf);
+            case ClassWriter.MTYPE:
+                return new MType(readUTF8(index, buf));
+            
+            //case ClassWriter.MHANDLE_BASE + [1..9]:
+            default: {
+                int tag = readByte(index);
+                int[] items = this.items;
+                int cpIndex = items[readUnsignedShort(index + 1)];
+                String owner = readClass(cpIndex, buf);
+                cpIndex = items[readUnsignedShort(cpIndex + 2)];
+                String name = readUTF8(cpIndex, buf);
+                String desc = readUTF8(cpIndex + 2, buf);
+                return new MHandle(tag, owner, name, desc);
+            }   
         }
     }
 }

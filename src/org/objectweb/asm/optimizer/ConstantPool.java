@@ -31,6 +31,8 @@ package org.objectweb.asm.optimizer;
 
 import java.util.HashMap;
 
+import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MType;
 import org.objectweb.asm.Type;
 
 /**
@@ -45,6 +47,8 @@ public class ConstantPool extends HashMap {
     private final Constant key2 = new Constant();
 
     private final Constant key3 = new Constant();
+    
+    private final Constant key4 = new Constant();
 
     public Constant newInteger(final int value) {
         key1.set(value);
@@ -117,6 +121,32 @@ public class ConstantPool extends HashMap {
         }
         return result;
     }
+    
+    public Constant newMType(final String methodDescriptor) {
+        key2.set('t', methodDescriptor, null, null);
+        Constant result = get(key2);
+        if (result == null) {
+            newUTF8(methodDescriptor);
+            result = new Constant(key2);
+            put(result);
+        }
+        return result;
+    }
+    
+    public Constant newMHandle(final int tag, final String owner, final String name, final String desc) {
+        key4.set((char)('h' - 1 + tag), owner, name, desc);
+        Constant result = get(key4);
+        if (result == null) {
+            if (tag <= MHandle.REF_putStatic) {
+                newField(owner, name, desc);
+            } else {
+                newMethod(owner, name, desc, tag == MHandle.REF_invokeInterface);
+            }
+            result = new Constant(key4);
+            put(result);
+        }
+        return result;
+    }
 
     public Constant newConst(final Object cst) {
         if (cst instanceof Integer) {
@@ -138,6 +168,12 @@ public class ConstantPool extends HashMap {
             return newClass(t.getSort() == Type.OBJECT
                     ? t.getInternalName()
                     : t.getDescriptor());
+        } else if (cst instanceof MType) {
+            MType mt = (MType) cst;
+            return newMType(mt.methodDesc);
+        } else if (cst instanceof MHandle) {
+            MHandle mh = (MHandle) cst;
+            return newMHandle(mh.tag, mh.owner, mh.name, mh.desc);
         } else {
             throw new IllegalArgumentException("value " + cst);
         }

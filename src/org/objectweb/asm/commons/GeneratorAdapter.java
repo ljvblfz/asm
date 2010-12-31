@@ -35,6 +35,8 @@ import java.util.List;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MType;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -451,6 +453,24 @@ public class GeneratorAdapter extends LocalVariablesSorter {
                     mv.visitLdcInsn(value);
             }
         }
+    }
+    
+    /**
+     * Generates the instruction to push a constant method type on the stack.
+     * 
+     * @param methodType the constant method type to be pushed on the stack.
+     */
+    public void pushMethodType(final MType methodType) {
+        mv.visitLdcInsn(methodType);
+    }
+    
+    /**
+     * Generates the instruction to push a constant method handle on the stack.
+     * 
+     * @param methodHandle the constant method handle to be pushed on the stack.
+     */
+    public void pushMethodType(final MHandle methodHandle) {
+        mv.visitLdcInsn(methodHandle);
     }
 
     // ------------------------------------------------------------------------

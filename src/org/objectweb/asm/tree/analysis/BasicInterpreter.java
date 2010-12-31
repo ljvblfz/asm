@@ -31,6 +31,8 @@ package org.objectweb.asm.tree.analysis;
 
 import java.util.List;
 
+import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MType;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -115,6 +117,10 @@ public class BasicInterpreter implements Opcodes, Interpreter {
                     return BasicValue.DOUBLE_VALUE;
                 } else if (cst instanceof Type) {
                     return newValue(Type.getObjectType("java/lang/Class"));
+                } else if (cst instanceof MType) {
+                    return newValue(Type.getObjectType("java/dyn/MethodType"));
+                } else if (cst instanceof MHandle) {
+                    return newValue(Type.getObjectType("java/dyn/MethodHandle"));
                 } else {
                     return newValue(Type.getType(cst.getClass()));
                 }

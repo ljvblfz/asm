@@ -31,6 +31,8 @@ package org.objectweb.asm.util;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
+import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MType;
 import org.objectweb.asm.Type;
 
 import java.util.Map;
@@ -142,6 +144,17 @@ public class ASMifierAbstractVisitor extends AbstractVisitor {
             buf.append("Type.getType(\"");
             buf.append(((Type) cst).getDescriptor());
             buf.append("\")");
+        } else if (cst instanceof MType) {
+            buf.append("new MType(\"");
+            buf.append(((MType) cst).methodDesc);
+            buf.append("\")");
+        } else if (cst instanceof MHandle) {
+            buf.append("new MHandle(");
+            MHandle mHandle = (MHandle) cst;
+            buf.append("MHandle.").append(METHOD_HANDLE_TAG[mHandle.tag]).append(", \"");
+            buf.append(mHandle.owner).append("\", \"");
+            buf.append(mHandle.name).append("\", \"");
+            buf.append(mHandle.desc).append("\")");
         } else if (cst instanceof Byte) {
             buf.append("new Byte((byte)").append(cst).append(')');
         } else if (cst instanceof Boolean) {

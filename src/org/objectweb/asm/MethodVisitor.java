@@ -282,9 +282,10 @@ public interface MethodVisitor {
      * 
      * @param cst the constant to be loaded on the stack. This parameter must be
      *        a non null {@link Integer}, a {@link Float}, a {@link Long}, a
-     *        {@link Double} a {@link String} (or a {@link Type} for
-     *        <tt>.class</tt> constants, for classes whose version is 49.0 or
-     *        more).
+     *        {@link Double} a {@link String}, a {@link Type}  for
+     *        <tt>.class</tt> constants, for classes whose version is 49.0,
+     *        a {@link MType} or a {@link MHandle} for constant method type and
+     *        constant method handle, for classes whose version is 51.0.
      */
     void visitLdcInsn(Object cst);
 

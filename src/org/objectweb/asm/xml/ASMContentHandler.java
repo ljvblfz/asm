@@ -42,6 +42,8 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MType;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -565,7 +567,13 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
                     value = new Double(val);
                 } else if (Type.getDescriptor(Type.class).equals(desc)) {
                     value = Type.getType(val);
-
+                    
+                } else if (Type.getDescriptor(MType.class).equals(desc)) {
+                    value = new MType(val);
+                    
+                } else if (Type.getDescriptor(MHandle.class).equals(desc)) {
+                    value = decodeMHandle(val);
+                    
                 } else {
                     // TODO use of default toString().
                     throw new SAXException("Invalid value:" + val + " desc:"
@@ -575,6 +583,23 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
             return value;
         }
 
+        private MHandle decodeMHandle(final String val) throws SAXException {
+            try {
+                int dotIndex = val.indexOf('.');
+                int descIndex = val.indexOf('(', dotIndex + 1);
+                int tagIndex = val.lastIndexOf('(');
+                
+                int tag = Integer.parseInt(val.substring(tagIndex + 1, val.length() - 2));
+                String owner = val.substring(0, dotIndex);
+                String name = val.substring(dotIndex + 1, descIndex);
+                String desc = val.substring(descIndex, tagIndex - 1);
+                return new MHandle(tag, owner, name, desc);
+                
+            } catch(RuntimeException e) {
+                throw new SAXException("Malformed constant method handle "+val, e);
+            }
+        }
+        
         private final String decode(final String val) throws SAXException {
             StringBuffer sb = new StringBuffer(val.length());
             try {

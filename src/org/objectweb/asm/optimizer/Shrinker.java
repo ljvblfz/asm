@@ -146,6 +146,7 @@ public class Shrinker {
                     case 's':
                     case 'S':
                     case 'C':
+                    case 't':
                         return c1.strVal1.compareTo(c2.strVal1);
                     case 'T':
                         d = c1.strVal1.compareTo(c2.strVal1);

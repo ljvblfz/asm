@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MType;
 import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -363,6 +365,10 @@ public class AnalyzerAdapter extends MethodAdapter {
             push("java/lang/String");
         } else if (cst instanceof Type) {
             push("java/lang/Class");
+        } else if (cst instanceof MType) {
+            push("java/dyn/MethodType");
+        } else if (cst instanceof MHandle) {
+            push("java/dyn/MethodHandle");
         } else {
             throw new IllegalArgumentException();
         }

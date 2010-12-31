@@ -41,10 +41,12 @@ class Constant {
     /**
      * Type of this constant pool item. A single class is used to represent all
      * constant pool item types, in order to minimize the bytecode size of this
-     * package. The value of this field is I, J, F, D, S, s, C, T, G, M, or N
+     * package. The value of this field is I, J, F, D, S, s, C, T, G, M, N, t, [h..p],
      * (for Constant Integer, Long, Float, Double, STR, UTF8, Class, NameType,
-     * Fieldref, Methodref, or InterfaceMethodref constant pool items
+     * Fieldref, Methodref, InterfaceMethodref, MethodType and MethodHandle constant pool items
      * respectively).
+     * 
+     * The 9 variable of MethodHandle constants are stored between h and p.
      */
     char type;
 
@@ -172,6 +174,7 @@ class Constant {
             case 's':
             case 'S':
             case 'C':
+            case 't':
                 hashCode = 0x7FFFFFFF & (type + strVal1.hashCode());
                 return;
             case 'T':
@@ -181,6 +184,7 @@ class Constant {
                 // case 'G':
                 // case 'M':
                 // case 'N':
+                // case 'h' ... 'p':
             default:
                 hashCode = 0x7FFFFFFF & (type + strVal1.hashCode()
                         * strVal2.hashCode() * strVal3.hashCode());
@@ -222,6 +226,11 @@ class Constant {
             case 'N':
                 cw.newMethod(strVal1, strVal2, strVal3, true);
                 break;
+            case 't':
+                cw.newMType(strVal1);
+                break;
+            default: //'h' ... 'p': method handle
+                cw.newMHandle(type - 'h' + 1, strVal1, strVal2, strVal3);
         }
     }
 
@@ -243,6 +252,7 @@ class Constant {
                 case 's':
                 case 'S':
                 case 'C':
+                case 't':
                     return c.strVal1.equals(strVal1);
                 case 'T':
                     return c.strVal1.equals(strVal1)
@@ -250,6 +260,7 @@ class Constant {
                     // case 'G':
                     // case 'M':
                     // case 'N':
+                    // case 'h' ... 'p':
                 default:
                     return c.strVal1.equals(strVal1)
                             && c.strVal2.equals(strVal2)

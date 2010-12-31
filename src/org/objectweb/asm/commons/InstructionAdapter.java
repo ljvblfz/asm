@@ -31,6 +31,8 @@
 package org.objectweb.asm.commons;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MType;
 import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -597,6 +599,10 @@ public class InstructionAdapter extends MethodAdapter {
             aconst(cst);
         } else if (cst instanceof Type) {
             tconst((Type) cst);
+        } else if (cst instanceof MType) {
+            mtconst((MType) cst);
+        } else if (cst instanceof MHandle) {
+            mhconst((MHandle) cst);
         } else {
             throw new IllegalArgumentException();
         }
@@ -681,6 +687,14 @@ public class InstructionAdapter extends MethodAdapter {
 
     public void tconst(final Type type) {
         mv.visitLdcInsn(type);
+    }
+    
+    public void mtconst(final MType mtype) {
+        mv.visitLdcInsn(mtype);
+    }
+    
+    public void mhconst(final MHandle mhandle) {
+        mv.visitLdcInsn(mhandle);
     }
 
     public void load(final int var, final Type type) {

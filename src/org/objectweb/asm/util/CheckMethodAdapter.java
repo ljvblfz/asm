@@ -31,6 +31,8 @@ package org.objectweb.asm.util;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MType;
 import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -595,7 +597,23 @@ public class CheckMethodAdapter extends MethodAdapter {
     public void visitLdcInsn(final Object cst) {
         checkStartCode();
         checkEndCode();
-        if (!(cst instanceof Type)) {
+        if (cst instanceof Type) {
+            if ((version & 0xFFFF) < Opcodes.V1_5) {
+                throw new IllegalArgumentException("ldc of a constant class requires at least version 1.5");
+            } 
+        } else if (cst instanceof MType) {
+            if ((version & 0xFFFF) < Opcodes.V1_7) {
+                throw new IllegalArgumentException("ldc of a constant method type requires at least version 1.7");
+            } 
+        } else if (cst instanceof MHandle) {
+            if ((version & 0xFFFF) < Opcodes.V1_7) {
+                throw new IllegalArgumentException("ldc of a constant method handle requires at least version 1.7");
+            } 
+            int tag = ((MHandle)cst).tag;
+            if (tag < MHandle.REF_getField || tag > MHandle.REF_invokeInterface) {
+                throw new IllegalArgumentException("invalid constant method handle tag "+tag);
+            }
+        } else {
             checkConstant(cst);
         }
         mv.visitLdcInsn(cst);

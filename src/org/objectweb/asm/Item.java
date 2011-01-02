@@ -222,6 +222,13 @@ final class Item {
         }
     }
     
+    /**
+     * Sets the item to an InvokeDynamic item.
+     * 
+     * @param name invokedynamic's name.
+     * @param desc invokedynamic's desc.
+     * @param bsmIndex zero based index into the class attribute BootrapMethods.
+     */
     void set(String name, String desc, int bsmIndex) {
         this.type = ClassWriter.INDY;
         this.longVal = bsmIndex;
@@ -231,6 +238,14 @@ final class Item {
                 * strVal1.hashCode() * strVal2.hashCode());
     }
     
+    /**
+     * Sets the item to a BootstrapMethod item.
+     * 
+     * @param position position in byte in the class attribute BootrapMethods.
+     * @param hashCode hashcode of the item. This hashcode is processed from
+     *        the hashcode of the bootstrap method and the hashcode of
+     *        all bootstrap arguments.
+     */
     void set(int position, int hashCode) {
         this.type = ClassWriter.BSM;
         this.intVal = position;

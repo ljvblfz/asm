@@ -1087,7 +1087,7 @@ public class ClassWriter implements ClassVisitor {
      * @param owner internal name of the field reference/method reference. 
      * @param name name of the field/method.
      * @param desc field/method descriptor.
-     * @return a new or already existing method type reference item.
+     * @return a new or an already existing method type reference item.
      */
     Item newMHandleItem(final int tag, final String owner, final String name, final String desc) {
         key4.set(MHANDLE_BASE + tag, owner, name, desc);
@@ -1124,6 +1124,19 @@ public class ClassWriter implements ClassVisitor {
         return newMHandleItem(tag, owner, name, desc).index;
     }
     
+    /**
+     * Adds an invokedynamic reference to the constant pool of the class being build.
+     * Does nothing if the constant pool already contains a similar item.
+     * <i>This method is intended for {@link Attribute} sub classes, and is
+     * normally not needed by class generators or adapters.</i>
+     * 
+     * @param name name of the invokedynamic instruction.
+     * @param desc method descriptor of the invokedynamic instruction.
+     * @param bsm boostrap method as a constant method handle.
+     * @param bsmArgs bootstrap method constant arguments
+     * 
+     * @return a new or an already existing invokedynamic type reference item.
+     */
     Item newIndyItem(final String name, final String desc, final MHandle bsm, final Object[] bsmArgs) {
         ByteVector bootstrapMethods = this.bootstrapMethods; // cache for performance
         if (bootstrapMethods == null) {
@@ -1189,6 +1202,19 @@ public class ClassWriter implements ClassVisitor {
         return result;
     }
     
+    /**
+     * Adds an invokedynamic reference to the constant pool of the class being build.
+     * Does nothing if the constant pool already contains a similar item.
+     * <i>This method is intended for {@link Attribute} sub classes, and is
+     * normally not needed by class generators or adapters.</i>
+     * 
+     * @param name name of the invokedynamic instruction.
+     * @param desc method descriptor of the invokedynamic instruction.
+     * @param bsm boostrap method as a constant method handle.
+     * @param bsmArgs bootstrap method constant arguments
+     * 
+     * @return @return the index of a new or already existing invokedynamic reference item.
+     */
     public int newIndy(final String name, final String desc, final MHandle bsm, final Object[] bsmArgs) {
         return newIndyItem(name, desc, bsm, bsmArgs).index;
     }

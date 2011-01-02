@@ -31,74 +31,67 @@ package org.objectweb.asm.tree;
 
 import java.util.Map;
 
+import org.objectweb.asm.MHandle;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
- * A node that represents a method instruction. A method instruction is an
- * instruction that invokes a method.
+ * A node that represents an invokedynamic instruction.
  * 
- * @author Eric Bruneton
+ * @author Remi Forax
  */
-public class MethodInsnNode extends AbstractInsnNode {
-
+public class IndyMethodInsnNode extends AbstractInsnNode {
     /**
-     * The internal name of the method's owner class (see
-     * {@link org.objectweb.asm.Type#getInternalName() getInternalName}).
-     */
-    public String owner;
-
-    /**
-     * The method's name.
+     * Invokedynamic name.
      */
     public String name;
 
     /**
-     * The method's descriptor (see {@link org.objectweb.asm.Type}).
+     * Invokedynamic descriptor.
      */
     public String desc;
 
     /**
-     * Constructs a new {@link MethodInsnNode}.
-     * 
-     * @param opcode the opcode of the type instruction to be constructed. This
-     *        opcode must be INVOKEVIRTUAL, INVOKESPECIAL, INVOKESTATIC or
-     *        INVOKEINTERFACE.
-     * @param owner the internal name of the method's owner class (see
-     *        {@link org.objectweb.asm.Type#getInternalName() getInternalName}).
-     * @param name the method's name.
-     * @param desc the method's descriptor (see {@link org.objectweb.asm.Type}).
+     * Bootstrap method
      */
-    public MethodInsnNode(
-        final int opcode,
-        final String owner,
+    public MHandle bsm;
+    
+    /**
+     * Bootstrap constant arguments
+     */
+    public Object[] bsmArgs;
+    
+    /**
+     * Constructs a new {@link IndyMethodInsnNode}.
+     * 
+    
+     * @param name invokedynamic name.
+     * @param desc invokedynamic descriptor (see {@link org.objectweb.asm.Type}).
+     * @param bsm the bootstrap method.
+     * @param bsmArgs the boostrap constant arguments.
+     */
+    public IndyMethodInsnNode(
         final String name,
-        final String desc)
+        final String desc,
+        final MHandle bsm,
+        final Object[] bsmArgs)
     {
-        super(opcode);
-        this.owner = owner;
+        super(Opcodes.INVOKEDYNAMIC);
         this.name = name;
         this.desc = desc;
-    }
-
-    /**
-     * Sets the opcode of this instruction.
-     * 
-     * @param opcode the new instruction opcode. This opcode must be
-     *        INVOKEVIRTUAL, INVOKESPECIAL, INVOKESTATIC or INVOKEINTERFACE.
-     */
-    public void setOpcode(final int opcode) {
-        this.opcode = opcode;
+        this.bsm = bsm;
+        this.bsmArgs = bsmArgs;
     }
 
     public int getType() {
-        return METHOD_INSN;
+        return INDY_METHOD_INSN;
     }
 
     public void accept(final MethodVisitor mv) {
-        mv.visitMethodInsn(opcode, owner, name, desc);
+        mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
     }
 
     public AbstractInsnNode clone(final Map labels) {
-        return new MethodInsnNode(opcode, owner, name, desc);
+        return new IndyMethodInsnNode(name, desc, bsm, bsmArgs);
     }
 }

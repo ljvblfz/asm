@@ -32,6 +32,7 @@ package org.objectweb.asm.commons;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MHandle;
 import org.objectweb.asm.MethodVisitor;
 
 /**
@@ -75,6 +76,22 @@ public class RemappingMethodAdapter extends LocalVariablesSorter {
                 remapper.mapType(owner),
                 remapper.mapMethodName(owner, name, desc),
                 remapper.mapMethodDesc(desc));
+    }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        for(int i=0; i<bsmArgs.length; i++) {
+            bsmArgs[i] = remapper.mapValue(bsmArgs[i]);
+        }
+        super.visitIndyMethodInsn(
+                remapper.mapInvokeDynamicMethodName(name, desc),
+                remapper.mapMethodDesc(desc),
+                (MHandle)remapper.mapValue(bsm),
+                bsmArgs);
     }
 
     public void visitTypeInsn(int opcode, String type) {

@@ -34,6 +34,7 @@ import java.util.List;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.IndyMethodInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
 /**
@@ -397,7 +398,10 @@ public class BasicVerifier extends BasicInterpreter {
                             (Value) values.get(0));
                 }
             }
-            Type[] args = Type.getArgumentTypes(((MethodInsnNode) insn).desc);
+            String desc = (opcode == INVOKEDYNAMIC)?
+                    ((IndyMethodInsnNode) insn).desc:
+                        ((MethodInsnNode) insn).desc;
+            Type[] args = Type.getArgumentTypes(desc);
             while (i < values.size()) {
                 Value expected = newValue(args[j++]);
                 Value encountered = (Value) values.get(i++);

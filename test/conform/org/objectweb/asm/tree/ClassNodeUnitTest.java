@@ -29,6 +29,7 @@
  */
 package org.objectweb.asm.tree;
 
+import org.objectweb.asm.MHandle;
 import org.objectweb.asm.Opcodes;
 
 import junit.framework.TestCase;
@@ -87,6 +88,18 @@ public class ClassNodeUnitTest extends TestCase implements Opcodes {
         mn.setOpcode(INVOKESPECIAL);
         assertEquals(INVOKESPECIAL, mn.getOpcode());
         assertEquals(AbstractInsnNode.METHOD_INSN, mn.getType());
+    }
+    
+    public void testIndyMethodInsnNode() {
+        MHandle bsm = new MHandle(MHandle.REF_invokeStatic, "owner", "name", "()V");
+        IndyMethodInsnNode mn = new IndyMethodInsnNode(
+                "name",
+                "()V",
+                bsm,
+                new Object[0]);
+        
+        assertEquals(INVOKEDYNAMIC, mn.getOpcode());
+        assertEquals(AbstractInsnNode.INDY_METHOD_INSN, mn.getType());
     }
 
     public void testJumpInsnNode() {

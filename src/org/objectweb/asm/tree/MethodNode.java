@@ -32,6 +32,7 @@ package org.objectweb.asm.tree;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.MHandle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -274,6 +275,15 @@ public class MethodNode extends MemberNode implements MethodVisitor {
         final String desc)
     {
         instructions.add(new MethodInsnNode(opcode, owner, name, desc));
+    }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        instructions.add(new IndyMethodInsnNode(name, desc, bsm, bsmArgs));
     }
 
     public void visitJumpInsn(final int opcode, final Label label) {

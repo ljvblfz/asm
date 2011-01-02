@@ -178,6 +178,7 @@ public class ClassReader {
                 case ClassWriter.INT:
                 case ClassWriter.FLOAT:
                 case ClassWriter.NAME_TYPE:
+                case ClassWriter.INDY:
                     size = 5;
                     break;
                 case ClassWriter.LONG:
@@ -344,6 +345,15 @@ public class ClassReader {
                     
                 }
                     break;
+                    
+                /* Don't copy indy thing    
+                case ClassWriter.INDY:
+                    nameType = items[readUnsignedShort(index + 2)];
+                    item.set(readUTF8(nameType, buf),
+                            readUTF8(nameType + 2, buf),
+                            items[readUnsignedShort(index)]);
+                    break;
+                */
                     
                 // case ClassWriter.STR:
                 // case ClassWriter.CLASS:
@@ -524,6 +534,7 @@ public class ClassReader {
         String enclosingOwner = null;
         String enclosingName = null;
         String enclosingDesc = null;
+        int[] bootstrapMethods = null;  // start indexed of the bsms
 
         i = readUnsignedShort(v);
         v += 2;
@@ -555,6 +566,14 @@ public class ClassReader {
                 sourceDebug = readUTF(v + 6, len, new char[len]);
             } else if (ANNOTATIONS && "RuntimeInvisibleAnnotations".equals(attrName)) {
                 ianns = v + 6;
+            } else if ("BootstrapMethods".equals(attrName)) {
+                int boostrapMethodCount = readUnsignedShort(v + 6);
+                bootstrapMethods = new int[boostrapMethodCount];
+                int x = v + 8;
+                for (j=0; j<boostrapMethodCount; j++) {
+                    bootstrapMethods[j] = x;
+                    x += 2 + readUnsignedShort(x + 2) << 1;
+                }
             } else {
                 attr = readAttribute(attrs,
                         attrName,
@@ -957,7 +976,8 @@ public class ClassReader {
                         case ClassWriter.IINC_INSN:
                             v += 3;
                             break;
-                        case ClassWriter.ITFDYNMETH_INSN:
+                        case ClassWriter.ITFMETH_INSN:
+                        case ClassWriter.INDYMETH_INSN:    
                             v += 5;
                             break;
                         // case MANA_INSN:
@@ -1408,16 +1428,10 @@ public class ClassReader {
                             v += 3;
                             break;
                         case ClassWriter.FIELDORMETH_INSN:
-                        case ClassWriter.ITFDYNMETH_INSN:
+                        case ClassWriter.ITFMETH_INSN: {
                             int cpIndex = items[readUnsignedShort(v + 1)];
-                            String iowner;
-                            // INVOKEDYNAMIC is receiverless
-                            if (opcode == Opcodes.INVOKEDYNAMIC) {
-                                iowner = Opcodes.INVOKEDYNAMIC_OWNER;
-                            } else {
-                                iowner = readClass(cpIndex, c);
-                                cpIndex = items[readUnsignedShort(cpIndex + 2)];
-                            }
+                            String iowner = readClass(cpIndex, c);
+                            cpIndex = items[readUnsignedShort(cpIndex + 2)];
                             String iname = readUTF8(cpIndex, c);
                             String idesc = readUTF8(cpIndex + 2, c);
                             if (opcode < Opcodes.INVOKEVIRTUAL) {
@@ -1425,12 +1439,35 @@ public class ClassReader {
                             } else {
                                 mv.visitMethodInsn(opcode, iowner, iname, idesc);
                             }
-                            if (opcode == Opcodes.INVOKEINTERFACE || opcode == Opcodes.INVOKEDYNAMIC) {
+                            if (opcode == Opcodes.INVOKEINTERFACE) {
                                 v += 5;
                             } else {
                                 v += 3;
                             }
                             break;
+                        }
+                        case ClassWriter.INDYMETH_INSN: {
+                            int cpIndex = items[readUnsignedShort(v + 1)];
+                            int bsmIndex = bootstrapMethods[readUnsignedShort(cpIndex)];
+                            cpIndex = items[readUnsignedShort(cpIndex + 2)];
+                            String iname = readUTF8(cpIndex, c);
+                            String idesc = readUTF8(cpIndex + 2, c);
+                            
+                            int mhIndex = readUnsignedShort(bsmIndex);
+                            MHandle bsm = (MHandle)readConst(mhIndex, c);
+                            int bsmArgCount = readUnsignedShort(bsmIndex + 2);
+                            Object[] bsmArgs = new Object[bsmArgCount]; 
+                            bsmIndex +=4;
+                            for(int a=0; a<bsmArgCount; a++) {
+                                int argIndex = readUnsignedShort(bsmIndex);
+                                bsmArgs[a] = readConst(argIndex, c);
+                                bsmIndex += 2;
+                            }
+                            mv.visitIndyMethodInsn(iname, idesc, bsm, bsmArgs);
+                            
+                            v += 5;
+                            break;
+                        }
                         case ClassWriter.TYPE_INSN:
                             mv.visitTypeInsn(opcode, readClass(v + 1, c));
                             v += 3;

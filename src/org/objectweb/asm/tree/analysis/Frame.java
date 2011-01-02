@@ -36,6 +36,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IincInsnNode;
+import org.objectweb.asm.tree.IndyMethodInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
@@ -576,15 +577,13 @@ public class Frame {
             case Opcodes.INVOKEVIRTUAL:
             case Opcodes.INVOKESPECIAL:
             case Opcodes.INVOKESTATIC:
-            case Opcodes.INVOKEINTERFACE:
-            case Opcodes.INVOKEDYNAMIC:
+            case Opcodes.INVOKEINTERFACE: {
                 values = new ArrayList();
                 String desc = ((MethodInsnNode) insn).desc;
                 for (int i = Type.getArgumentTypes(desc).length; i > 0; --i) {
                     values.add(0, pop());
                 }
-                if (insn.getOpcode() != Opcodes.INVOKESTATIC &&
-                    insn.getOpcode() != Opcodes.INVOKEDYNAMIC) {
+                if (insn.getOpcode() != Opcodes.INVOKESTATIC) {
                     values.add(0, pop());
                 }
                 if (Type.getReturnType(desc) == Type.VOID_TYPE) {
@@ -593,6 +592,20 @@ public class Frame {
                     push(interpreter.naryOperation(insn, values));
                 }
                 break;
+            }
+            case Opcodes.INVOKEDYNAMIC: {
+                values = new ArrayList();
+                String desc = ((IndyMethodInsnNode) insn).desc;
+                for (int i = Type.getArgumentTypes(desc).length; i > 0; --i) {
+                    values.add(0, pop());
+                }
+                if (Type.getReturnType(desc) == Type.VOID_TYPE) {
+                    interpreter.naryOperation(insn, values);
+                } else {
+                    push(interpreter.naryOperation(insn, values));
+                }
+                break;
+            }
             case Opcodes.NEW:
                 push(interpreter.newOperation(insn));
                 break;

@@ -109,14 +109,6 @@ public class MHandle {
      * the tag value. 
      */
     public String desc;
-
-    
-    /**
-     * Empty constructor.
-     */
-    public MHandle() {
-        // do nothing
-    }
     
     /**
      * Constructs a new constant method handle.

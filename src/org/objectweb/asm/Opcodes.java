@@ -134,11 +134,6 @@ public interface Opcodes {
     Integer LONG = new Integer(4);
     Integer NULL = new Integer(5);
     Integer UNINITIALIZED_THIS = new Integer(6);
-
-    /** 
-     * Represents a owner of an invokedynamic call.
-     */
-    String INVOKEDYNAMIC_OWNER = "java/lang/dyn/Dynamic";
     
     // opcodes // visit method (- = idem)
 
@@ -328,7 +323,7 @@ public interface Opcodes {
     int INVOKESPECIAL = 183; // -
     int INVOKESTATIC = 184; // -
     int INVOKEINTERFACE = 185; // -
-    int INVOKEDYNAMIC = 186; // -
+    int INVOKEDYNAMIC = 186; // visitIndyMethodInsn
     int NEW = 187; // visitTypeInsn
     int NEWARRAY = 188; // visitIntInsn
     int ANEWARRAY = 189; // visitTypeInsn

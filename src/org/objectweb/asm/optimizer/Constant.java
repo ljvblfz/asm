@@ -87,7 +87,7 @@ class Constant {
      * primitive value.
      */
     String strVal3;
-
+    
     /**
      * The hash code value of this constant pool item.
      */

@@ -106,7 +106,7 @@ public class CheckMethodAdapter extends MethodAdapter {
         String s = "BBBBBBBBBBBBBBBBCCIAADDDDDAAAAAAAAAAAAAAAAAAAABBBBBBBBDD"
                 + "DDDAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
                 + "BBBBBBBBBBBBBBBBBBBJBBBBBBBBBBBBBBBBBBBBHHHHHHHHHHHHHHHHD"
-                + "KLBBBBBBFFFFGGGGGECEBBEEBBAMHHAA";
+                + "KLBBBBBBFFFFGGGGAECEBBEEBBAMHHAA";
         TYPE = new int[s.length()];
         for (int i = 0; i < TYPE.length; ++i) {
             TYPE[i] = s.charAt(i) - 'A' - 1;
@@ -302,7 +302,7 @@ public class CheckMethodAdapter extends MethodAdapter {
     // 5, //INVOKESPECIAL
     // 5, //INVOKESTATIC
     // 5, //INVOKEINTERFACE
-    // 5, //INVOKEDYNAMIC
+    // -1, //INVOKEDYNAMIC
     // 3, //NEW
     // 1, //NEWARRAY
     // 3, //ANEWARRAY
@@ -568,10 +568,26 @@ public class CheckMethodAdapter extends MethodAdapter {
         checkMethodIdentifier(version, name, "name");
         checkInternalName(owner, "owner");
         checkMethodDesc(desc);
-        if (opcode == Opcodes.INVOKEDYNAMIC && owner != Opcodes.INVOKEDYNAMIC_OWNER) {
-            throw new IllegalArgumentException("INVOKEDYNAMIC cannot be used with another owner than INVOKEDYNAMIC_OWNER");
-        }
         mv.visitMethodInsn(opcode, owner, name, desc);
+    }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        checkStartCode();
+        checkEndCode();
+        checkMethodIdentifier(version, name, "name");
+        checkMethodDesc(desc);
+        if (bsm.tag != MHandle.REF_invokeStatic && bsm.tag != MHandle.REF_newInvokeSpecial) {
+            throw new IllegalArgumentException("invalid constant method handle tag "+bsm.tag);
+        }
+        for(int i=0; i<bsmArgs.length; i++) {
+            checkLDCConstant(bsmArgs[i]);
+        }
+        mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
     }
 
     public void visitJumpInsn(final int opcode, final Label label) {
@@ -597,25 +613,7 @@ public class CheckMethodAdapter extends MethodAdapter {
     public void visitLdcInsn(final Object cst) {
         checkStartCode();
         checkEndCode();
-        if (cst instanceof Type) {
-            if ((version & 0xFFFF) < Opcodes.V1_5) {
-                throw new IllegalArgumentException("ldc of a constant class requires at least version 1.5");
-            } 
-        } else if (cst instanceof MType) {
-            if ((version & 0xFFFF) < Opcodes.V1_7) {
-                throw new IllegalArgumentException("ldc of a constant method type requires at least version 1.7");
-            } 
-        } else if (cst instanceof MHandle) {
-            if ((version & 0xFFFF) < Opcodes.V1_7) {
-                throw new IllegalArgumentException("ldc of a constant method handle requires at least version 1.7");
-            } 
-            int tag = ((MHandle)cst).tag;
-            if (tag < MHandle.REF_getField || tag > MHandle.REF_invokeInterface) {
-                throw new IllegalArgumentException("invalid constant method handle tag "+tag);
-            }
-        } else {
-            checkConstant(cst);
-        }
+        checkLDCConstant(cst);
         mv.visitLdcInsn(cst);
     }
 
@@ -873,6 +871,28 @@ public class CheckMethodAdapter extends MethodAdapter {
                 && !(cst instanceof String))
         {
             throw new IllegalArgumentException("Invalid constant: " + cst);
+        }
+    }
+    
+    void checkLDCConstant(final Object cst) {
+        if (cst instanceof Type) {
+            if ((version & 0xFFFF) < Opcodes.V1_5) {
+                throw new IllegalArgumentException("ldc of a constant class requires at least version 1.5");
+            } 
+        } else if (cst instanceof MType) {
+            if ((version & 0xFFFF) < Opcodes.V1_7) {
+                throw new IllegalArgumentException("ldc of a constant method type requires at least version 1.7");
+            } 
+        } else if (cst instanceof MHandle) {
+            if ((version & 0xFFFF) < Opcodes.V1_7) {
+                throw new IllegalArgumentException("ldc of a constant method handle requires at least version 1.7");
+            } 
+            int tag = ((MHandle)cst).tag;
+            if (tag < MHandle.REF_getField || tag > MHandle.REF_invokeInterface) {
+                throw new IllegalArgumentException("invalid constant method handle tag "+tag);
+            }
+        } else {
+            checkConstant(cst);
         }
     }
 

@@ -30,6 +30,7 @@
 package org.objectweb.asm.commons;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MHandle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -439,7 +440,6 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
             }
             switch (opcode) {
                 // case INVOKESTATIC:
-                // case INVOKEDYNAMIC
                 // break;
 
                 case INVOKEINTERFACE:
@@ -457,6 +457,33 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
                         constructor = false;
                     }
                     break;
+            }
+
+            Type returnType = Type.getReturnType(desc);
+            if (returnType != Type.VOID_TYPE) {
+                pushValue(OTHER);
+                if (returnType.getSize() == 2) {
+                    pushValue(OTHER);
+                }
+            }
+        }
+    }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
+        
+        if (constructor) {
+            Type[] types = Type.getArgumentTypes(desc);
+            for (int i = 0; i < types.length; i++) {
+                popValue();
+                if (types[i].getSize() == 2) {
+                    popValue();
+                }
             }
 
             Type returnType = Type.getReturnType(desc);

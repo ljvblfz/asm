@@ -34,6 +34,7 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MHandle;
 import org.objectweb.asm.MethodVisitor;
 
 /**
@@ -158,6 +159,14 @@ public class EmptyVisitor implements
         final String owner,
         final String name,
         final String desc)
+    {
+    }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
     {
     }
 

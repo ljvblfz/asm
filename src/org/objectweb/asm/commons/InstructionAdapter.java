@@ -504,6 +504,15 @@ public class InstructionAdapter extends MethodAdapter {
                 throw new IllegalArgumentException();
         }
     }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+       invokedynamic(name, desc, bsm, bsmArgs);
+    }
 
     public void visitJumpInsn(final int opcode, final Label label) {
         switch (opcode) {
@@ -1011,6 +1020,15 @@ public class InstructionAdapter extends MethodAdapter {
         final String desc)
     {
         mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, owner, name, desc);
+    }
+    
+    public void invokedynamic(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
     }
 
     public void anew(final Type type) {

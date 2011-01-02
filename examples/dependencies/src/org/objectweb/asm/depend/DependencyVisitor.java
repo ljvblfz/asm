@@ -39,6 +39,8 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MType;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.signature.SignatureReader;
@@ -199,10 +201,21 @@ public class DependencyVisitor implements
         addMethodDesc(desc);
     }
 
-    public void visitLdcInsn(final Object cst) {
-        if (cst instanceof Type) {
-            addType((Type) cst);
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        addMethodDesc(desc);
+        addConstant(bsm);
+        for(int i=0; i<bsmArgs.length; i++) {
+            addConstant(bsmArgs[i]);
         }
+    }
+    
+    public void visitLdcInsn(final Object cst) {
+        addConstant(cst);
     }
 
     public void visitMultiANewArrayInsn(final String desc, final int dims) {
@@ -446,6 +459,18 @@ public class DependencyVisitor implements
     private void addTypeSignature(final String signature) {
         if (signature != null) {
             new SignatureReader(signature).acceptType(this);
+        }
+    }
+    
+    private void addConstant(final Object cst) {
+        if (cst instanceof Type) {
+            addType((Type) cst);
+        } else if (cst instanceof MType) {
+            addMethodDesc(((MType) cst).methodDesc);
+        } else if (cst instanceof MHandle) {
+            MHandle mHandle = (MHandle) cst;
+            addInternalName(mHandle.owner);
+            addMethodDesc(mHandle.desc);
         }
     }
 }

@@ -241,15 +241,26 @@ public interface MethodVisitor {
      * invokes a method.
      * 
      * @param opcode the opcode of the type instruction to be visited. This
-     *        opcode is either INVOKEVIRTUAL, INVOKESPECIAL, INVOKESTATIC,
-     *        INVOKEINTERFACE or INVOKEDYNAMIC.
+     *        opcode is either INVOKEVIRTUAL, INVOKESPECIAL, INVOKESTATIC
+     *        or INVOKEINTERFACE.
      * @param owner the internal name of the method's owner class (see {@link
-     *        Type#getInternalName() getInternalName})
-     *        or {@link org.objectweb.asm.Opcodes#INVOKEDYNAMIC_OWNER}.
+     *        Type#getInternalName() getInternalName}).
      * @param name the method's name.
      * @param desc the method's descriptor (see {@link Type Type}).
      */
     void visitMethodInsn(int opcode, String owner, String name, String desc);
+    
+    /**
+     * Visits an invokedynamic instruction.
+     * 
+     * @param name the method's name.
+     * @param desc the method's descriptor (see {@link Type Type}).
+     * @param bsm a constant method handle referencing the bootstrap method.
+     * @param bsmArgs an array of constants use as parameters of the bootstrap method.
+     *        This method is allowed to modify the content of the array so
+     *        a caller should expect that this array may change.
+     */
+    void visitIndyMethodInsn(String name, String desc, MHandle bsm, Object[] bsmArgs);
 
     /**
      * Visits a jump instruction. A jump instruction is an instruction that may

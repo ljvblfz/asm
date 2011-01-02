@@ -30,6 +30,8 @@
 
 package org.objectweb.asm.commons;
 
+import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MType;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
@@ -133,7 +135,20 @@ public abstract class Remapper {
     }
 
     public Object mapValue(Object value) {
-        return value instanceof Type ? mapType((Type) value) : value;
+        if (value instanceof Type) {
+            return mapType((Type) value);
+        }
+        if (value instanceof MType) {
+            return new MType(mapMethodDesc(((MType) value).methodDesc));
+        }
+        if (value instanceof MHandle) {
+            MHandle mHandle = (MHandle)value;
+            return new MHandle(mHandle.tag,
+                    mapType(mHandle.owner),
+                    mapMethodName(mHandle.owner, mHandle.name, mHandle.desc),
+                    mapMethodDesc(mHandle.desc));
+        }
+        return value;
     }
 
     /**
@@ -167,6 +182,13 @@ public abstract class Remapper {
      * Map method name to the new name. Subclasses can override. 
      */
     public String mapMethodName(String owner, String name, String desc) {
+        return name;
+    }
+    
+    /**
+     * Map invokedynamic method name to the new name. Subclasses can override. 
+     */
+    public String mapInvokeDynamicMethodName(String name, String desc) {
         return name;
     }
 

@@ -31,6 +31,7 @@ package org.objectweb.asm.optimizer;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MHandle;
 import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -113,6 +114,17 @@ public class MethodConstantsCollector extends MethodAdapter {
         boolean itf = opcode == Opcodes.INVOKEINTERFACE;
         cp.newMethod(owner, name, desc, itf);
         mv.visitMethodInsn(opcode, owner, name, desc);
+    }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        throw new UnsupportedOperationException("NYI");
+        //cp.newIndy(name, desc, bsm, bsmArgs);
+        //mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
     }
 
     public void visitLdcInsn(final Object cst) {

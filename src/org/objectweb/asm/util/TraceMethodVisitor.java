@@ -31,6 +31,7 @@ package org.objectweb.asm.util;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
+import org.objectweb.asm.MHandle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -294,6 +295,37 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
 
         if (mv != null) {
             mv.visitMethodInsn(opcode, owner, name, desc);
+        }
+    }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        buf.setLength(0);
+        buf.append(tab2).append("INVOKEDYNAMIC").append(' ');
+        buf.append(name).append(' ');
+        appendDescriptor(METHOD_DESCRIPTOR, desc);
+        buf.append(" [").append(bsm).append(", ");
+        for(int i=0; i<bsmArgs.length; i++) {
+            Object cst = bsmArgs[i];
+            if (cst instanceof String) {
+                AbstractVisitor.appendString(buf, (String) cst);
+            } else if (cst instanceof Type) {
+                buf.append(((Type) cst).getDescriptor()).append(".class");
+            } else {
+                buf.append(cst);
+            }
+            buf.append(", ");
+        }
+        buf.setLength(buf.length() - 2);
+        buf.append("]\n");
+        text.add(buf.toString());
+
+        if (mv != null) {
+            mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
         }
     }
 

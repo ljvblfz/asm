@@ -1353,11 +1353,11 @@ public class GeneratorAdapter extends LocalVariablesSorter {
      * 
      * @param method the method to be invoked.
      */
-    public void invokeDynamic(final Method method) {
+    /*public void invokeDynamic(final Method method) {
         invokeInsn(Opcodes.INVOKEDYNAMIC,
                 Type.getObjectType(Opcodes.INVOKEDYNAMIC_OWNER),
                 method);
-    }
+    }*/
 
     // ------------------------------------------------------------------------
     // Instructions to create objects and arrays

@@ -812,9 +812,7 @@ class MethodWriter implements MethodVisitor {
         final String desc)
     {
         boolean itf = opcode == Opcodes.INVOKEINTERFACE;
-        Item i = (opcode == Opcodes.INVOKEDYNAMIC) ?
-                cw.newNameTypeItem(name, desc):
-                cw.newMethodItem(owner, name, desc, itf);
+        Item i = cw.newMethodItem(owner, name, desc, itf);
         int argSize = i.intVal;
         // Label currentBlock = this.currentBlock;
         if (currentBlock != null) {
@@ -838,7 +836,7 @@ class MethodWriter implements MethodVisitor {
                     i.intVal = argSize;
                 }
                 int size;
-                if (opcode == Opcodes.INVOKESTATIC || opcode == Opcodes.INVOKEDYNAMIC) {
+                if (opcode == Opcodes.INVOKESTATIC) {
                     size = stackSize - (argSize >> 2) + (argSize & 0x03) + 1;
                 } else {
                     size = stackSize - (argSize >> 2) + (argSize & 0x03);
@@ -859,10 +857,50 @@ class MethodWriter implements MethodVisitor {
             code.put12(Opcodes.INVOKEINTERFACE, i.index).put11(argSize >> 2, 0);
         } else {
             code.put12(opcode, i.index);
-            if (opcode==Opcodes.INVOKEDYNAMIC) {
-                code.putShort(0);
+        }
+    }
+    
+    public void visitIndyMethodInsn(
+        final String name,
+        final String desc,
+        final MHandle bsm,
+        final Object[] bsmArgs)
+    {
+        Item i = cw.newIndyItem(name, desc, bsm, bsmArgs);
+        int argSize = i.intVal;
+        // Label currentBlock = this.currentBlock;
+        if (currentBlock != null) {
+            if (compute == FRAMES) {
+                currentBlock.frame.execute(Opcodes.INVOKEDYNAMIC, 0, cw, i);
+            } else {
+                /*
+                 * computes the stack size variation. In order not to recompute
+                 * several times this variation for the same Item, we use the
+                 * intVal field of this item to store this variation, once it
+                 * has been computed. More precisely this intVal field stores
+                 * the sizes of the arguments and of the return value
+                 * corresponding to desc.
+                 */
+                if (argSize == 0) {
+                    // the above sizes have not been computed yet,
+                    // so we compute them...
+                    argSize = Type.getArgumentsAndReturnSizes(desc);
+                    // ... and we save them in order
+                    // not to recompute them in the future
+                    i.intVal = argSize;
+                }
+                int size = stackSize - (argSize >> 2) + (argSize & 0x03) + 1;
+                
+                // updates current and max stack sizes
+                if (size > maxStackSize) {
+                    maxStackSize = size;
+                }
+                stackSize = size;
             }
         }
+        // adds the instruction to the bytecode of the method
+        code.put12(Opcodes.INVOKEDYNAMIC, i.index);
+        code.putShort(0);
     }
 
     public void visitJumpInsn(final int opcode, final Label label) {
@@ -2191,7 +2229,8 @@ class MethodWriter implements MethodVisitor {
                     case ClassWriter.IINC_INSN:
                         u += 3;
                         break;
-                    case ClassWriter.ITFDYNMETH_INSN:
+                    case ClassWriter.ITFMETH_INSN:
+                    case ClassWriter.INDYMETH_INSN:
                         u += 5;
                         break;
                     // case ClassWriter.MANA_INSN:
@@ -2354,7 +2393,8 @@ class MethodWriter implements MethodVisitor {
                     newCode.putByteArray(b, u, 3);
                     u += 3;
                     break;
-                case ClassWriter.ITFDYNMETH_INSN:
+                case ClassWriter.ITFMETH_INSN:
+                case ClassWriter.INDYMETH_INSN:
                     newCode.putByteArray(b, u, 5);
                     u += 5;
                     break;

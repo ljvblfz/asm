@@ -37,6 +37,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.IndyMethodInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
@@ -313,8 +314,11 @@ public class BasicInterpreter implements Opcodes, Interpreter {
     public Value naryOperation(final AbstractInsnNode insn, final List values)
             throws AnalyzerException
     {
-        if (insn.getOpcode() == MULTIANEWARRAY) {
+        int opcode = insn.getOpcode();
+        if (opcode == MULTIANEWARRAY) {
             return newValue(Type.getType(((MultiANewArrayInsnNode) insn).desc));
+        } else if (opcode == INVOKEDYNAMIC){
+            return newValue(Type.getReturnType(((IndyMethodInsnNode) insn).desc));
         } else {
             return newValue(Type.getReturnType(((MethodInsnNode) insn).desc));
         }

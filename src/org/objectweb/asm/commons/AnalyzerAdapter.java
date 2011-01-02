@@ -297,7 +297,7 @@ public class AnalyzerAdapter extends MethodAdapter {
             return;
         }
         pop(desc);
-        if (opcode != Opcodes.INVOKESTATIC && opcode != Opcodes.INVOKEDYNAMIC) {
+        if (opcode != Opcodes.INVOKESTATIC) {
             Object t = pop();
             if (opcode == Opcodes.INVOKESPECIAL && name.charAt(0) == '<') {
                 Object u;
@@ -318,6 +318,24 @@ public class AnalyzerAdapter extends MethodAdapter {
                 }
             }
         }
+        pushDesc(desc);
+        labels = null;
+    }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        if (mv != null) {
+            mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
+        }
+        if (this.locals == null) {
+            labels = null;
+            return;
+        }
+        pop(desc);
         pushDesc(desc);
         labels = null;
     }

@@ -123,6 +123,15 @@ public class MethodAdapter implements MethodVisitor {
     {
         mv.visitMethodInsn(opcode, owner, name, desc);
     }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
+    }
 
     public void visitJumpInsn(final int opcode, final Label label) {
         mv.visitJumpInsn(opcode, label);

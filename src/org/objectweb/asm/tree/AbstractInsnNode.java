@@ -71,51 +71,56 @@ public abstract class AbstractInsnNode {
      * The type of {@link MethodInsnNode} instructions.
      */
     public static final int METHOD_INSN = 5;
+    
+    /**
+     * The type of {@link IndyMethodInsnNode} instructions.
+     */
+    public static final int INDY_METHOD_INSN = 6;
 
     /**
      * The type of {@link JumpInsnNode} instructions.
      */
-    public static final int JUMP_INSN = 6;
+    public static final int JUMP_INSN = 7;
 
     /**
      * The type of {@link LabelNode} "instructions".
      */
-    public static final int LABEL = 7;
+    public static final int LABEL = 8;
 
     /**
      * The type of {@link LdcInsnNode} instructions.
      */
-    public static final int LDC_INSN = 8;
+    public static final int LDC_INSN = 9;
 
     /**
      * The type of {@link IincInsnNode} instructions.
      */
-    public static final int IINC_INSN = 9;
+    public static final int IINC_INSN = 10;
 
     /**
      * The type of {@link TableSwitchInsnNode} instructions.
      */
-    public static final int TABLESWITCH_INSN = 10;
+    public static final int TABLESWITCH_INSN = 11;
 
     /**
      * The type of {@link LookupSwitchInsnNode} instructions.
      */
-    public static final int LOOKUPSWITCH_INSN = 11;
+    public static final int LOOKUPSWITCH_INSN = 12;
 
     /**
      * The type of {@link MultiANewArrayInsnNode} instructions.
      */
-    public static final int MULTIANEWARRAY_INSN = 12;
+    public static final int MULTIANEWARRAY_INSN = 13;
 
     /**
      * The type of {@link FrameNode} "instructions".
      */
-    public static final int FRAME = 13;
+    public static final int FRAME = 14;
 
     /**
      * The type of {@link LineNumberNode} "instructions".
      */
-    public static final int LINE = 14;
+    public static final int LINE = 15;
 
     /**
      * The opcode of this instruction.

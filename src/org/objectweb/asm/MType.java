@@ -41,13 +41,6 @@ public class MType {
      */
     public String methodDesc;
 
-    /** 
-     * Empty constructor
-     */
-    public MType() {
-        // do nothing
-    }
-
     /**
      * Create a constant method type from a method descriptor
      * @param methodDesc a method descriptor

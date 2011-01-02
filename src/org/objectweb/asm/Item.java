@@ -51,7 +51,7 @@ final class Item {
      * {@link ClassWriter#STR}, {@link ClassWriter#CLASS},
      * {@link ClassWriter#NAME_TYPE}, {@link ClassWriter#FIELD},
      * {@link ClassWriter#METH}, {@link ClassWriter#IMETH},
-     * {@link ClassWriter#MTYPE}.
+     * {@link ClassWriter#MTYPE}, {@link ClassWriter#INDY}.
      * 
      * MethodHandle constant 9 variations are stored using a range
      * of 9 values from {@link ClassWriter#MHANDLE_BASE} + 1 to
@@ -93,7 +93,7 @@ final class Item {
      * primitive value.
      */
     String strVal3;
-
+    
     /**
      * The hash code value of this constant pool item.
      */
@@ -221,6 +221,21 @@ final class Item {
                         * strVal2.hashCode() * strVal3.hashCode());
         }
     }
+    
+    void set(String name, String desc, int bsmIndex) {
+        this.type = ClassWriter.INDY;
+        this.longVal = bsmIndex;
+        this.strVal1 = name;
+        this.strVal2 = desc;
+        this.hashCode = 0x7FFFFFFF & (ClassWriter.INDY + bsmIndex
+                * strVal1.hashCode() * strVal2.hashCode());
+    }
+    
+    void set(int position, int hashCode) {
+        this.type = ClassWriter.BSM;
+        this.intVal = position;
+        this.hashCode = hashCode;
+    }
 
     /**
      * Indicates if the given item is equal to this one. <i>This method assumes
@@ -250,6 +265,10 @@ final class Item {
                 return i.intVal == intVal && i.strVal1.equals(strVal1);
             case ClassWriter.NAME_TYPE:
                 return i.strVal1.equals(strVal1) && i.strVal2.equals(strVal2);
+            case ClassWriter.INDY:
+                return i.longVal == longVal && i.strVal1.equals(strVal1)
+                        && i.strVal2.equals(strVal2);
+                
             // case ClassWriter.FIELD:
             // case ClassWriter.METH:
             // case ClassWriter.IMETH:

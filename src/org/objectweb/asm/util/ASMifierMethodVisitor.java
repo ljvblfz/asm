@@ -30,6 +30,7 @@
 package org.objectweb.asm.util;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.MHandle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -206,6 +207,30 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         buf.append(", ");
         appendConstant(desc);
         buf.append(");\n");
+        text.add(buf.toString());
+    }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        buf.setLength(0);
+        buf.append("mv.visitIndyMethodInsn(");
+        appendConstant(name);
+        buf.append(", ");
+        appendConstant(desc);
+        buf.append(", ");
+        appendConstant(bsm);
+        buf.append(", new Object[]{");
+        for(int i=0; i<bsmArgs.length; i++) {
+            appendConstant(bsmArgs[i]);
+            if (i != bsmArgs.length - 1) {
+                buf.append(", ");
+            }
+        }
+        buf.append("});\n");
         text.add(buf.toString());
     }
 

@@ -149,10 +149,11 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         public static final int INSN_TYPE = 3;
         public static final int INSN_FIELD = 4;
         public static final int INSN_METHOD = 5;
-        public static final int INSN_JUMP = 6;
-        public static final int INSN_LDC = 7;
-        public static final int INSN_IINC = 8;
-        public static final int INSN_MULTIANEWARRAY = 9;
+        public static final int INSN_INDY_METHOD = 6;
+        public static final int INSN_JUMP = 7;
+        public static final int INSN_LDC = 8;
+        public static final int INSN_IINC = 9;
+        public static final int INSN_MULTIANEWARRAY = 10;
     }
 
     /**
@@ -302,7 +303,7 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         addOpcode("INVOKESPECIAL", INVOKESPECIAL, OpcodeGroup.INSN_METHOD);
         addOpcode("INVOKESTATIC", INVOKESTATIC, OpcodeGroup.INSN_METHOD);
         addOpcode("INVOKEINTERFACE", INVOKEINTERFACE, OpcodeGroup.INSN_METHOD);
-        addOpcode("INVOKEDYNAMIC", INVOKEDYNAMIC, OpcodeGroup.INSN_METHOD);
+        addOpcode("INVOKEDYNAMIC", INVOKEDYNAMIC, OpcodeGroup.INSN_INDY_METHOD);
         addOpcode("NEW", NEW, OpcodeGroup.INSN_TYPE);
         addOpcode("NEWARRAY", NEWARRAY, OpcodeGroup.INSN_INT);
         addOpcode("ANEWARRAY", ANEWARRAY, OpcodeGroup.INSN_TYPE);
@@ -1118,12 +1119,20 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
 
                 case OpcodeGroup.INSN_METHOD:
                     getCodeVisitor().visitMethodInsn(o.opcode,
-                            (o.opcode != Opcodes.INVOKEDYNAMIC)?
-                                    attrs.getValue("owner"):
-                                    Opcodes.INVOKEDYNAMIC_OWNER,
+                            attrs.getValue("owner"),
                             attrs.getValue("name"),
                             attrs.getValue("desc"));
                     break;
+                    
+                case OpcodeGroup.INSN_INDY_METHOD:
+                    throw new UnsupportedOperationException("NYI");
+                    /*
+                    getCodeVisitor().visitIndyMethodInsn(
+                            attrs.getValue("name"),
+                            attrs.getValue("desc"));
+                            
+                    break;
+                    */
 
                 case OpcodeGroup.INSN_TYPE:
                     getCodeVisitor().visitTypeInsn(o.opcode,

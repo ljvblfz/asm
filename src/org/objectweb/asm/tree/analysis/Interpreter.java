@@ -152,7 +152,7 @@ public interface Interpreter {
      * This method is called for the following opcodes:
      * 
      * INVOKEVIRTUAL, INVOKESPECIAL, INVOKESTATIC, INVOKEINTERFACE,
-     * MULTIANEWARRAY
+     * MULTIANEWARRAY and INVOKEDYNAMIC
      * 
      * @param insn the bytecode instruction to be interpreted.
      * @param values the arguments of the instruction to be interpreted.

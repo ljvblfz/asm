@@ -109,52 +109,57 @@ public class ClassWriter implements ClassVisitor {
     /**
      * The type of the INVOKEINTERFACE/INVOKEDYNAMIC instruction.
      */
-    static final int ITFDYNMETH_INSN = 7;
+    static final int ITFMETH_INSN = 7;
+    
+    /**
+     * The type of the INVOKEDYNAMIC instruction.
+     */
+    static final int INDYMETH_INSN = 8;
 
     /**
      * The type of instructions with a 2 bytes bytecode offset label.
      */
-    static final int LABEL_INSN = 8;
+    static final int LABEL_INSN = 9;
 
     /**
      * The type of instructions with a 4 bytes bytecode offset label.
      */
-    static final int LABELW_INSN = 9;
+    static final int LABELW_INSN = 10;
 
     /**
      * The type of the LDC instruction.
      */
-    static final int LDC_INSN = 10;
+    static final int LDC_INSN = 11;
 
     /**
      * The type of the LDC_W and LDC2_W instructions.
      */
-    static final int LDCW_INSN = 11;
+    static final int LDCW_INSN = 12;
 
     /**
      * The type of the IINC instruction.
      */
-    static final int IINC_INSN = 12;
+    static final int IINC_INSN = 13;
 
     /**
      * The type of the TABLESWITCH instruction.
      */
-    static final int TABL_INSN = 13;
+    static final int TABL_INSN = 14;
 
     /**
      * The type of the LOOKUPSWITCH instruction.
      */
-    static final int LOOK_INSN = 14;
+    static final int LOOK_INSN = 15;
 
     /**
      * The type of the MULTIANEWARRAY instruction.
      */
-    static final int MANA_INSN = 15;
+    static final int MANA_INSN = 16;
 
     /**
      * The type of the WIDE instruction.
      */
-    static final int WIDE_INSN = 16;
+    static final int WIDE_INSN = 17;
 
     /**
      * The instruction types of all JVM opcodes.
@@ -226,6 +231,11 @@ public class ClassWriter implements ClassVisitor {
      */
     static final int MHANDLE = 15;
     
+    /**
+     * The type of CONSTANT_InvokeDynamic constant pool items.
+     */
+    static final int INDY = 18;
+    
     /** 
      * The base value for all CONSTANT_MethodHandle constant pool items.
      * Internally, ASM store the 9 variations of CONSTANT_MethodHandle into
@@ -254,6 +264,13 @@ public class ClassWriter implements ClassVisitor {
      * constant pool items in the ClassWriter constant pool's hash table.
      */
     static final int TYPE_MERGED = 32;
+    
+    /**
+     * The type of BootstrapMethods items. These items are stored in a
+     * special class attribute named BootstrapMethods and
+     * not in the constant pool.
+     */
+    static final int BSM = 33;
 
     /**
      * The class reader from which this class writer was constructed, if any.
@@ -408,6 +425,16 @@ public class ClassWriter implements ClassVisitor {
      * The InnerClasses attribute.
      */
     private ByteVector innerClasses;
+    
+    /**
+     * The number of entries in the BootstrapMethods attribute.
+     */
+    private int bootstrapMethodsCount;
+    
+    /**
+     * The BootstrapMethods attribute.
+     */
+    private ByteVector bootstrapMethods;
 
     /**
      * The fields of this class. These fields are stored in a linked list of
@@ -472,10 +499,10 @@ public class ClassWriter implements ClassVisitor {
     static {
         int i;
         byte[] b = new byte[220];
-        String s = "AAAAAAAAAAAAAAAABCKLLDDDDDEEEEEEEEEEEEEEEEEEEEAAAAAAAADD"
+        String s = "AAAAAAAAAAAAAAAABCLMMDDDDDEEEEEEEEEEEEEEEEEEEEAAAAAAAADD"
                 + "DDDEEEEEEEEEEEEEEEEEEEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-                + "AAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAIIIIIIIIIIIIIIIIDNOAA"
-                + "AAAAGGGGGGGHHFBFAAFFAAQPIIJJIIIIIIIIIIIIIIIIII";
+                + "AAAAAAAAAAAAAAAAANAAAAAAAAAAAAAAAAAAAAJJJJJJJJJJJJJJJJDOPAA"
+                + "AAAAGGGGGGGHIFBFAAFFAARQJJKKJJJJJJJJJJJJJJJJJJ";
         for (i = 0; i < b.length; ++i) {
             b[i] = (byte) (s.charAt(i) - 'A');
         }
@@ -515,8 +542,8 @@ public class ClassWriter implements ClassVisitor {
         // for (i = Constants.GETSTATIC; i <= Constants.INVOKESTATIC; ++i) {
         // b[i] = FIELDORMETH_INSN;
         // }
-        // b[Constants.INVOKEINTERFACE] = ITFDYNMETH_INSN;
-        // b[Constants.INVOKEDYNAMIC] = ITFDYNMETH_INSN;
+        // b[Constants.INVOKEINTERFACE] = ITFMETH_INSN;
+        // b[Constants.INVOKEDYNAMIC] = INDYMETH_INSN;
         //
         // // LABEL(W)_INSN instructions
         // for (i = Constants.IFEQ; i <= Constants.JSR; ++i) {
@@ -791,6 +818,11 @@ public class ClassWriter implements ClassVisitor {
             size += 8 + innerClasses.length;
             newUTF8("InnerClasses");
         }
+        if (bootstrapMethods != null) {
+            ++attributeCount;
+            size += 8 + bootstrapMethods.length;
+            newUTF8("BootstrapMethods");
+        }
         if (ClassReader.ANNOTATIONS && anns != null) {
             ++attributeCount;
             size += 8 + anns.getSize();
@@ -859,6 +891,11 @@ public class ClassWriter implements ClassVisitor {
             out.putShort(newUTF8("InnerClasses"));
             out.putInt(innerClasses.length + 2).putShort(innerClassesCount);
             out.putByteArray(innerClasses.data, 0, innerClasses.length);
+        }
+        if (bootstrapMethods != null) {
+            out.putShort(newUTF8("BootstrapMethods"));
+            out.putInt(bootstrapMethods.length + 2).putShort(bootstrapMethodsCount);
+            out.putByteArray(bootstrapMethods.data, 0, bootstrapMethods.length);
         }
         if (ClassReader.ANNOTATIONS && anns != null) {
             out.putShort(newUTF8("RuntimeVisibleAnnotations"));
@@ -1052,7 +1089,7 @@ public class ClassWriter implements ClassVisitor {
      * @param desc field/method descriptor.
      * @return a new or already existing method type reference item.
      */
-    Item newMHandleItem(final int tag, final String owner, String name, String desc) {
+    Item newMHandleItem(final int tag, final String owner, final String name, final String desc) {
         key4.set(MHANDLE_BASE + tag, owner, name, desc);
         Item result = get(key4);
         if (result == null) {
@@ -1083,8 +1120,77 @@ public class ClassWriter implements ClassVisitor {
      * 
      * @return the index of a new or already existing method type reference item.
      */
-    public int newMHandle(final int tag, final String owner, String name, String desc) {
+    public int newMHandle(final int tag, final String owner, final String name, final String desc) {
         return newMHandleItem(tag, owner, name, desc).index;
+    }
+    
+    Item newIndyItem(final String name, final String desc, final MHandle bsm, final Object[] bsmArgs) {
+        ByteVector bootstrapMethods = this.bootstrapMethods; // cache for performance
+        if (bootstrapMethods == null) {
+            bootstrapMethods = this.bootstrapMethods = new ByteVector();
+        }
+        
+        int position = bootstrapMethods.length;  // record current position
+        
+        Item bsmItem = newMHandleItem(bsm.tag, bsm.owner, bsm.name, bsm.desc);
+        bootstrapMethods.putShort(bsmItem.index);
+        int hashCode = bsmItem.hashCode;
+        
+        int argsLength = bsmArgs.length;
+        bootstrapMethods.putShort(argsLength);
+        
+        for(int i=0; i<argsLength; i++) {
+            Item argItem = newConstItem(bsmArgs[i]);
+            hashCode ^= argItem.hashCode;
+            bootstrapMethods.putShort(argItem.index);
+        }
+        
+        byte[] data = bootstrapMethods.data;
+        int length = (1 + 1 + argsLength) << 1;         // (bsm + argCount + arguments) as u2
+        
+        Item result = items[hashCode % items.length];
+        while (result != null) {
+            if (result.type != BSM || result.hashCode != hashCode) {
+                result = result.next;
+                continue;
+            }
+            
+            // because the data encode the size of the argument
+            // we don't need to test if these size are equals
+            int resultPosition = result.intVal;
+            for(int p=0; p<length; p++) {
+                if (data[position + p] != data[resultPosition + p]) {
+                    result = result.next;
+                    continue;
+                }
+            }
+            break;
+        }
+        
+        int bootstrapMethodIndex;
+        if (result != null) { 
+            bootstrapMethodIndex = result.index;
+            bootstrapMethods.length = position;  // revert to old position
+        } else {
+            bootstrapMethodIndex = bootstrapMethodsCount++;
+            result = new Item(bootstrapMethodIndex);
+            result.set(position, hashCode);
+            put(result);
+        }
+        
+        // now, create the InvokeDynamic constant
+        key3.set(name, desc, bootstrapMethodIndex);
+        result = get(key3);
+        if (result == null) {
+            put122(INDY, bootstrapMethodIndex, newNameType(name, desc));
+            result = new Item(index++, key3);
+            put(result);
+        }
+        return result;
+    }
+    
+    public int newIndy(final String name, final String desc, final MHandle bsm, final Object[] bsmArgs) {
+        return newIndyItem(name, desc, bsm, bsmArgs).index;
     }
     
     /**

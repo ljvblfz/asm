@@ -30,6 +30,7 @@
 package org.objectweb.asm.commons;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MHandle;
 import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -121,7 +122,7 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
         final String name,
         final String desc)
     {
-        if (opcode == INVOKEINTERFACE || opcode == INVOKEDYNAMIC) {
+        if (opcode == INVOKEINTERFACE) {
             minSize += 5;
             maxSize += 5;
         } else {
@@ -130,6 +131,19 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
         }
         if (mv != null) {
             mv.visitMethodInsn(opcode, owner, name, desc);
+        }
+    }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        minSize += 5;
+        maxSize += 5;
+        if (mv != null) {
+            mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
         }
     }
 

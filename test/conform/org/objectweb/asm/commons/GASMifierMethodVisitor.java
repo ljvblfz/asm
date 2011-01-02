@@ -30,6 +30,8 @@
 package org.objectweb.asm.commons;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MType;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -701,24 +703,42 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
             case INVOKEINTERFACE:
                 buf.append("mg.invokeInterface(");
                 break;
-            case INVOKEDYNAMIC:
-                buf.append("mg.invokeDynamic(");
-                break;
             default:
                 throw new RuntimeException("unexpected case");
         }
-        if (opcode != INVOKEDYNAMIC) {
-            if (owner.charAt(0) == '[') {
-                buf.append(getDescType(owner));
-            } else {
-                buf.append(getType(owner));
-            }
-            buf.append(", ");
+        if (owner.charAt(0) == '[') {
+            buf.append(getDescType(owner));
+        } else {
+            buf.append(getType(owner));
         }
+        buf.append(", ");
         buf.append(getMethod(name, desc));
         buf.append(");\n");
         text.add(buf.toString());
         lastOpcode = opcode;
+    }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        buf.setLength(0);
+        buf.append("mg.invokeDynamic(");
+        buf.append(getMethod(name, desc));
+        buf.append(", ");
+        appendConstant(buf, bsm);
+        buf.append(", new Object[]{");
+        for(int i=0; i<bsmArgs.length; i++) {
+            appendConstant(buf, bsmArgs[i]);
+            if (i != bsmArgs.length - 1) {
+              buf.append(", ");
+            }
+        }
+        buf.append("});\n");
+        text.add(buf.toString());
+        lastOpcode = INVOKEDYNAMIC;
     }
 
     public void visitJumpInsn(final int opcode, final Label label) {
@@ -822,43 +842,13 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
     public void visitLdcInsn(final Object cst) {
         buf.setLength(0);
         buf.append("mg.push(");
-        if (cst == null) {
-            buf.append("(String)null");
-        } else if (cst instanceof Long) {
-            buf.append(cst + "L");
-        } else if (cst instanceof Float) {
-            float f = ((Float) cst).floatValue();
-            if (Float.isNaN(f)) {
-                buf.append("Float.NaN");
-            } else if (Float.isInfinite(f)) {
-                buf.append(f > 0
-                        ? "Float.POSITIVE_INFINITY"
-                        : "Float.NEGATIVE_INFINITY");
-            } else {
-                buf.append(cst + "f");
-            }
-        } else if (cst instanceof Double) {
-            double d = ((Double) cst).doubleValue();
-            if (Double.isNaN(d)) {
-                buf.append("Double.NaN");
-            } else if (Double.isInfinite(d)) {
-                buf.append(d > 0
-                        ? "Double.POSITIVE_INFINITY"
-                        : "Double.NEGATIVE_INFINITY");
-            } else {
-                buf.append(cst + "d");
-            }
-        } else if (cst instanceof String) {
-            appendString(buf, (String) cst);
-        } else if (cst instanceof Type) {
-            buf.append("Type.getType(\"").append(cst).append("\")");
-        } else {
-            buf.append(cst);
-        }
+        appendConstant(buf, cst);
         buf.append(");\n");
         text.add(buf.toString());
         lastOpcode = LDC;
     }
+    
+    
 
     public void visitIincInsn(final int var, final int increment) {
         buf.setLength(0);
@@ -1060,6 +1050,50 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         }
         buf.append(")\")");
         return buf.toString();
+    }
+    
+    private static void appendConstant(final StringBuffer buf, final Object cst) {
+        if (cst == null) {
+            buf.append("(String)null");
+        } else if (cst instanceof Long) {
+            buf.append(cst + "L");
+        } else if (cst instanceof Float) {
+            float f = ((Float) cst).floatValue();
+            if (Float.isNaN(f)) {
+                buf.append("Float.NaN");
+            } else if (Float.isInfinite(f)) {
+                buf.append(f > 0
+                        ? "Float.POSITIVE_INFINITY"
+                        : "Float.NEGATIVE_INFINITY");
+            } else {
+                buf.append(cst + "f");
+            }
+        } else if (cst instanceof Double) {
+            double d = ((Double) cst).doubleValue();
+            if (Double.isNaN(d)) {
+                buf.append("Double.NaN");
+            } else if (Double.isInfinite(d)) {
+                buf.append(d > 0
+                        ? "Double.POSITIVE_INFINITY"
+                        : "Double.NEGATIVE_INFINITY");
+            } else {
+                buf.append(cst + "d");
+            }
+        } else if (cst instanceof String) {
+            appendString(buf, (String) cst);
+        } else if (cst instanceof Type) {
+            buf.append("Type.getType(\"").append(cst).append("\")");
+        } else if (cst instanceof MType) {
+            buf.append("new MType(\"").append(cst).append("\")");
+        } else if (cst instanceof MHandle) {
+            MHandle mHandle = (MHandle) cst;
+            buf.append("new MHandle(").append(mHandle.tag).
+                append(", \"").append(mHandle.owner).
+                append("\", \"").append(mHandle.name).
+                append("\", \"").append(mHandle.desc).append("\")");
+        } else {
+            buf.append(cst);
+        }
     }
 
     private void declareFrameTypes(final int n, final Object[] o) {

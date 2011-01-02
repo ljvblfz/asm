@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.MHandle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Label;
@@ -198,12 +199,27 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
         final String desc)
     {
         AttributesImpl attrs = new AttributesImpl();
-        if (opcode != Opcodes.INVOKEDYNAMIC) {
-            attrs.addAttribute("", "owner", "owner", "", owner);
-        }
+        attrs.addAttribute("", "owner", "owner", "", owner);
         attrs.addAttribute("", "name", "name", "", name);
         attrs.addAttribute("", "desc", "desc", "", desc);
         addElement(AbstractVisitor.OPCODES[opcode], attrs);
+    }
+    
+    public void visitIndyMethodInsn(
+        String name,
+        String desc,
+        MHandle bsm,
+        Object[] bsmArgs)
+    {
+        throw new UnsupportedOperationException("NYI");
+        /*
+        AttributesImpl attrs = new AttributesImpl();
+        attrs.addAttribute("", "name", "name", "", name);
+        attrs.addAttribute("", "desc", "desc", "", desc);
+        addStart("INVOKEDYNAMIC", attrs);
+          
+        addEnd("INVOKEDYNAMIC");   
+        */
     }
 
     public final void visitJumpInsn(final int opcode, final Label label) {

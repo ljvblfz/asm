@@ -220,6 +220,13 @@ class Constant {
         this.strVal2 = desc;
         this.objVal3 = bsm;
         this.objVals = bsmArgs;
+        
+        int hashCode =  'y' + name.hashCode()
+                * desc.hashCode() * bsm.hashCode();
+        for(int i=0; i<bsmArgs.length; i++) {
+            hashCode *= bsmArgs[i].hashCode();
+        }
+        this.hashCode = 0x7FFFFFFF & hashCode;
     }
 
     void write(final ClassWriter cw) {

@@ -128,6 +128,24 @@ public class MHandle {
         this.desc = desc;
     }
     
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof MHandle)) {
+            return false;
+        }
+        MHandle mHandle = (MHandle)obj;
+        return tag == mHandle.tag
+                && owner.equals(mHandle.owner) 
+                && name.equals(mHandle.name) 
+                && desc.equals(mHandle.desc);
+    }
+    
+    public int hashCode() {
+        return tag + owner.hashCode() * name.hashCode() * desc.hashCode();
+    }
+    
     /**
      * Returns the textual representation of the current constant method handle.
      * The textual representation is:

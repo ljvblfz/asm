@@ -49,6 +49,8 @@ public class ConstantPool extends HashMap {
     private final Constant key3 = new Constant();
     
     private final Constant key4 = new Constant();
+    
+    private final Constant key5 = new Constant();
 
     public Constant newInteger(final int value) {
         key1.set(value);
@@ -207,6 +209,22 @@ public class ConstantPool extends HashMap {
             newClass(owner);
             newNameType(name, desc);
             result = new Constant(key3);
+            put(result);
+        }
+        return result;
+    }
+    
+    public Constant newIndy(String name, String desc, MHandle bsm, Object[] bsmArgs)
+    {
+        key5.set(name, desc, bsm, bsmArgs);
+        Constant result = get(key5);
+        if (result == null) {
+            newNameType(name, desc);
+            newMHandle(bsm.tag, bsm.owner, bsm.name, bsm.desc);
+            for(int i=0; i<bsmArgs.length; i++) {
+                newConst(bsmArgs[i]);
+            }
+            result = new Constant(key5);
             put(result);
         }
         return result;

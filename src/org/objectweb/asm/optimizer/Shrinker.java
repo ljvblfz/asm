@@ -43,6 +43,9 @@ import java.util.TreeSet;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MType;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.commons.SimpleRemapper;
 
@@ -154,17 +157,79 @@ public class Shrinker {
                             d = c1.strVal2.compareTo(c2.strVal2);
                         }
                         break;
+                    case 'y':
+                        d = c1.strVal1.compareTo(c2.strVal1);
+                        if (d == 0) {
+                            d = c1.strVal2.compareTo(c2.strVal2);
+                            if (d == 0) {
+                                MHandle bsm1 = (MHandle)c1.objVal3;
+                                MHandle bsm2 = (MHandle)c2.objVal3;
+                                d = compareMHandle(bsm1, bsm2);
+                                if (d == 0) {
+                                    d = compareObjects(c1.objVals, c2.objVals);
+                                }
+                            }
+                        }
+                        break;
+                        
                     default:
                         d = c1.strVal1.compareTo(c2.strVal1);
                         if (d == 0) {
                             d = c1.strVal2.compareTo(c2.strVal2);
                             if (d == 0) {
-                                d = c1.strVal3.compareTo(c2.strVal3);
+                                d = ((String)c1.objVal3).compareTo((String)c2.objVal3);
                             }
                         }
                 }
             }
             return d;
+        }
+
+        private int compareMHandle(MHandle mh1, MHandle mh2) {
+            int d = mh1.tag - mh2.tag;
+            if (d == 0) {
+                d = mh1.owner.compareTo(mh2.owner);
+                if (d == 0) {
+                    d = mh1.name.compareTo(mh2.name);
+                    if (d == 0) {
+                        d = mh1.desc.compareTo(mh2.desc);
+                    }
+                }
+            }
+            return d;
+        }
+        
+        private int compareMType(MType mtype1, MType mtype2) {
+            return mtype1.methodDesc.compareTo(mtype2.methodDesc);
+        }
+        
+        private int compareObjects(Object[] objVals1, Object[] objVals2)
+        {
+            int length = objVals1.length;
+            int d = length - objVals2.length;
+            if (d == 0) {
+                for(int i=0; i<length; i++) {
+                    Object objVal1 = objVals1[i];
+                    Object objVal2 = objVals2[i];
+                    d = objVal1.getClass().getName().compareTo(objVal2.getClass().getName());
+                    if (d == 0) {
+                        if (objVal1 instanceof Type) {
+                            d = ((Type)objVal1).getDescriptor().compareTo(((Type)objVal2).getDescriptor());
+                        } else if (objVal1 instanceof MType) {
+                            d = compareMType((MType)objVal1,(MType)objVal2);
+                        } else if (objVal1 instanceof MHandle) {
+                            d = compareMHandle((MHandle)objVal1,(MHandle)objVal2);
+                        } else {
+                            d = ((Comparable)objVal1).compareTo(objVal2);
+                        }
+                    }
+                    
+                    if (d != 0) {
+                        return d;
+                    }
+                }
+            }
+            return 0;
         }
 
         private static int getSort(final Constant c) {
@@ -189,8 +254,14 @@ public class Shrinker {
                     return 8;
                 case 'M':
                     return 9;
-                default:
+                case 'N':
                     return 10;
+                case 'y':
+                    return 11;
+                case 't':
+                    return 12;
+                default:
+                    return 100 + c.type - 'h';
             }
         }
     }

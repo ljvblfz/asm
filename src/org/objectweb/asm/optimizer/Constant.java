@@ -29,7 +29,10 @@
  */
 package org.objectweb.asm.optimizer;
 
+import java.util.Arrays;
+
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MHandle;
 
 /**
  * A constant pool item.
@@ -41,10 +44,11 @@ class Constant {
     /**
      * Type of this constant pool item. A single class is used to represent all
      * constant pool item types, in order to minimize the bytecode size of this
-     * package. The value of this field is I, J, F, D, S, s, C, T, G, M, N, t, [h..p],
+     * package.
+     * The value of this field is I, J, F, D, S, s, C, T, G, M, N, y, t, [h..p]
      * (for Constant Integer, Long, Float, Double, STR, UTF8, Class, NameType,
-     * Fieldref, Methodref, InterfaceMethodref, MethodType and MethodHandle constant pool items
-     * respectively).
+     * Fieldref, Methodref, InterfaceMethodref, InvokeDynamic,
+     * MethodType and MethodHandle constant pool items respectively).
      * 
      * The 9 variable of MethodHandle constants are stored between h and p.
      */
@@ -86,7 +90,12 @@ class Constant {
      * Third part of the value of this item, for items that do not hold a
      * primitive value.
      */
-    String strVal3;
+    Object objVal3;
+    
+    /**
+     * InvokeDynamic's constant values.
+     */
+    Object[] objVals;
     
     /**
      * The hash code value of this constant pool item.
@@ -104,7 +113,8 @@ class Constant {
         doubleVal = i.doubleVal;
         strVal1 = i.strVal1;
         strVal2 = i.strVal2;
-        strVal3 = i.strVal3;
+        objVal3 = i.objVal3;
+        objVals = i.objVals;
         hashCode = i.hashCode;
     }
 
@@ -169,7 +179,7 @@ class Constant {
         this.type = type;
         this.strVal1 = strVal1;
         this.strVal2 = strVal2;
-        this.strVal3 = strVal3;
+        this.objVal3 = strVal3;
         switch (type) {
             case 's':
             case 'S':
@@ -189,6 +199,27 @@ class Constant {
                 hashCode = 0x7FFFFFFF & (type + strVal1.hashCode()
                         * strVal2.hashCode() * strVal3.hashCode());
         }
+    }
+    
+    /**
+     * Set this item to an InvokeDynamic item.
+     * 
+     * @param name invokedynamic's name.
+     * @param desc invokedynamic's descriptor.
+     * @param bsm bootstrap method.
+     * @param bsmArgs bootstrap method constant arguments.
+     */
+    void set(
+        final String name,
+        final String desc,
+        final MHandle bsm,
+        final Object[] bsmArgs)
+    {
+        this.type = 'y';
+        this.strVal1 = name;
+        this.strVal2 = desc;
+        this.objVal3 = bsm;
+        this.objVals = bsmArgs;
     }
 
     void write(final ClassWriter cw) {
@@ -218,19 +249,21 @@ class Constant {
                 cw.newNameType(strVal1, strVal2);
                 break;
             case 'G':
-                cw.newField(strVal1, strVal2, strVal3);
+                cw.newField(strVal1, strVal2, (String)objVal3);
                 break;
             case 'M':
-                cw.newMethod(strVal1, strVal2, strVal3, false);
+                cw.newMethod(strVal1, strVal2, (String)objVal3, false);
                 break;
             case 'N':
-                cw.newMethod(strVal1, strVal2, strVal3, true);
+                cw.newMethod(strVal1, strVal2, (String)objVal3, true);
                 break;
+            case 'y':
+                cw.newIndy(strVal1, strVal2, (MHandle)objVal3, objVals);
             case 't':
                 cw.newMType(strVal1);
                 break;
             default: //'h' ... 'p': method handle
-                cw.newMHandle(type - 'h' + 1, strVal1, strVal2, strVal3);
+                cw.newMHandle(type - 'h' + 1, strVal1, strVal2, (String)objVal3);
         }
     }
 
@@ -257,6 +290,11 @@ class Constant {
                 case 'T':
                     return c.strVal1.equals(strVal1)
                             && c.strVal2.equals(strVal2);
+                case 'y':
+                    return c.strVal1.equals(strVal1)
+                            && c.strVal2.equals(strVal2)
+                            && c.objVal3.equals(objVal3)
+                            && Arrays.equals(c.objVals, objVals);
                     // case 'G':
                     // case 'M':
                     // case 'N':
@@ -264,7 +302,7 @@ class Constant {
                 default:
                     return c.strVal1.equals(strVal1)
                             && c.strVal2.equals(strVal2)
-                            && c.strVal3.equals(strVal3);
+                            && c.objVal3.equals(objVal3);
             }
         }
         return false;

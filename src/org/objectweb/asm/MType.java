@@ -49,6 +49,20 @@ public class MType {
         this.methodDesc = methodDesc;
     }
 
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof MType)) {
+            return false;
+        }
+        return methodDesc.equals(((MType) obj).methodDesc);
+    }
+    
+    public int hashCode() {
+       return ~methodDesc.hashCode();
+    }
+    
     public String toString() {
         return methodDesc;
     }

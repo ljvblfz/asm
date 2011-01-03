@@ -122,9 +122,8 @@ public class MethodConstantsCollector extends MethodAdapter {
         MHandle bsm,
         Object[] bsmArgs)
     {
-        throw new UnsupportedOperationException("NYI");
-        //cp.newIndy(name, desc, bsm, bsmArgs);
-        //mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
+        cp.newIndy(name, desc, bsm, bsmArgs);
+        mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
     }
 
     public void visitLdcInsn(final Object cst) {

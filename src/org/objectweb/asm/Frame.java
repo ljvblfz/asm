@@ -437,7 +437,7 @@ final class Frame {
         // NA, //INVOKESPECIAL, // -
         // NA, //INVOKESTATIC, // -
         // NA, //INVOKEINTERFACE, // -
-        // NA, //INVOKEDYNAMIC, // -
+        // NA, //INVOKEDYNAMIC, // visitIndyMethodInsn
         // 1, //NEW, // visitTypeInsn
         // 0, //NEWARRAY, // visitIntInsn
         // 0, //ANEWARRAY, // visitTypeInsn

@@ -429,12 +429,12 @@ public class ClassWriter implements ClassVisitor {
     /**
      * The number of entries in the BootstrapMethods attribute.
      */
-    private int bootstrapMethodsCount;
+    int bootstrapMethodsCount;
     
     /**
      * The BootstrapMethods attribute.
      */
-    private ByteVector bootstrapMethods;
+    ByteVector bootstrapMethods;
 
     /**
      * The fields of this class. These fields are stored in a linked list of
@@ -781,6 +781,11 @@ public class ClassWriter implements ClassVisitor {
             mb = mb.next;
         }
         int attributeCount = 0;
+        if (bootstrapMethods != null) {
+            ++attributeCount;
+            size += 8 + bootstrapMethods.length;
+            newUTF8("BootstrapMethods");
+        }
         if (ClassReader.SIGNATURES && signature != 0) {
             ++attributeCount;
             size += 8;
@@ -817,11 +822,6 @@ public class ClassWriter implements ClassVisitor {
             ++attributeCount;
             size += 8 + innerClasses.length;
             newUTF8("InnerClasses");
-        }
-        if (bootstrapMethods != null) {
-            ++attributeCount;
-            size += 8 + bootstrapMethods.length;
-            newUTF8("BootstrapMethods");
         }
         if (ClassReader.ANNOTATIONS && anns != null) {
             ++attributeCount;
@@ -864,6 +864,11 @@ public class ClassWriter implements ClassVisitor {
             mb = mb.next;
         }
         out.putShort(attributeCount);
+        if (bootstrapMethods != null) {   // should be the first class attribute ?
+            out.putShort(newUTF8("BootstrapMethods"));
+            out.putInt(bootstrapMethods.length + 2).putShort(bootstrapMethodsCount);
+            out.putByteArray(bootstrapMethods.data, 0, bootstrapMethods.length);
+        }
         if (ClassReader.SIGNATURES && signature != 0) {
             out.putShort(newUTF8("Signature")).putInt(2).putShort(signature);
         }
@@ -891,11 +896,6 @@ public class ClassWriter implements ClassVisitor {
             out.putShort(newUTF8("InnerClasses"));
             out.putInt(innerClasses.length + 2).putShort(innerClassesCount);
             out.putByteArray(innerClasses.data, 0, innerClasses.length);
-        }
-        if (bootstrapMethods != null) {
-            out.putShort(newUTF8("BootstrapMethods"));
-            out.putInt(bootstrapMethods.length + 2).putShort(bootstrapMethodsCount);
-            out.putByteArray(bootstrapMethods.data, 0, bootstrapMethods.length);
         }
         if (ClassReader.ANNOTATIONS && anns != null) {
             out.putShort(newUTF8("RuntimeVisibleAnnotations"));
@@ -1145,17 +1145,16 @@ public class ClassWriter implements ClassVisitor {
         
         int position = bootstrapMethods.length;  // record current position
         
-        Item bsmItem = newMHandleItem(bsm.tag, bsm.owner, bsm.name, bsm.desc);
-        bootstrapMethods.putShort(bsmItem.index);
-        int hashCode = bsmItem.hashCode;
+        int hashCode = bsm.hashCode();
+        bootstrapMethods.putShort(newMHandle(bsm.tag, bsm.owner, bsm.name, bsm.desc));
         
         int argsLength = bsmArgs.length;
         bootstrapMethods.putShort(argsLength);
         
         for(int i=0; i<argsLength; i++) {
-            Item argItem = newConstItem(bsmArgs[i]);
-            hashCode ^= argItem.hashCode;
-            bootstrapMethods.putShort(argItem.index);
+            Object bsmArg = bsmArgs[i];
+            hashCode ^= bsmArg.hashCode();
+            bootstrapMethods.putShort(newConst(bsmArg));
         }
         
         byte[] data = bootstrapMethods.data;

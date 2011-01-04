@@ -346,14 +346,17 @@ public class ClassReader {
                 }
                     break;
                     
-                /* Don't copy indy thing    
+                 
                 case ClassWriter.INDY:
+                    if (classWriter.bootstrapMethods == null) {
+                        copyBootstrapMethods(classWriter, items2, buf);
+                    }
                     nameType = items[readUnsignedShort(index + 2)];
                     item.set(readUTF8(nameType, buf),
                             readUTF8(nameType + 2, buf),
-                            items[readUnsignedShort(index)]);
+                            readUnsignedShort(index));
                     break;
-                */
+                
                     
                 // case ClassWriter.STR:
                 // case ClassWriter.CLASS:
@@ -373,6 +376,73 @@ public class ClassReader {
         classWriter.items = items2;
         classWriter.threshold = (int) (0.75d * ll);
         classWriter.index = ll;
+    }
+
+    private void copyBootstrapMethods(ClassWriter classWriter, Item[] items2, char[] buf) {
+        int i, j, k, u, v;    
+    
+        // skip class header
+        v = header;
+        v += 8 + (readUnsignedShort(v + 6) << 1);
+
+        // skips fields and methods
+        i = readUnsignedShort(v);
+        v += 2;
+        for (; i > 0; --i) {
+            j = readUnsignedShort(v + 6);
+            v += 8;
+            for (; j > 0; --j) {
+                v += 6 + readInt(v + 2);
+            }
+        }
+        i = readUnsignedShort(v);
+        v += 2;
+        for (; i > 0; --i) {
+            j = readUnsignedShort(v + 6);
+            v += 8;
+            for (; j > 0; --j) {
+                v += 6 + readInt(v + 2);
+            }
+        }
+        
+        // read class attributes
+        i = readUnsignedShort(v);
+        v += 2;
+        for (; i > 0; --i) {   // spec doesn't require BootstrapMethods to be the first attribute
+                               // but should. Wait spec change.
+            String attrName = readUTF8(v, buf);
+            int size = readInt(v + 2);
+            if ("BootstrapMethods".equals(attrName)) {
+                int boostrapMethodCount = readUnsignedShort(v + 6);
+                int x = v + 8;
+                for (j = 0; j<boostrapMethodCount; j++) {
+                    int hashCode = readConst(readUnsignedShort(x), buf).hashCode();
+                    k = readUnsignedShort(x + 2);
+                    u = x + 4;
+                    for(; k > 0; --k) {
+                        hashCode ^= readConst(readUnsignedShort(u), buf).hashCode();
+                        u += 2;
+                    }
+                    Item item = new Item();
+                    item.set(x, hashCode);
+                    
+                    int index2 = item.hashCode % items2.length;
+                    item.next = items2[index2];
+                    items2[index2] = item;
+                    
+                    x = u;
+                }
+                
+                classWriter.bootstrapMethodsCount = boostrapMethodCount;
+                ByteVector bootstrapMethods = new ByteVector(size + 62);
+                bootstrapMethods.putByteArray(b, v + 8, size - 2);
+                classWriter.bootstrapMethods = bootstrapMethods;
+                return;
+            }
+            v += 6 + size;
+        }
+        
+        // we are in trouble !!!
     }
 
     /**

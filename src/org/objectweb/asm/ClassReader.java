@@ -424,7 +424,7 @@ public class ClassReader {
                         u += 2;
                     }
                     Item item = new Item();
-                    item.set(x, hashCode);
+                    item.set(x, hashCode & 0x7FFFFFFF);
                     
                     int index2 = item.hashCode % items2.length;
                     item.next = items2[index2];

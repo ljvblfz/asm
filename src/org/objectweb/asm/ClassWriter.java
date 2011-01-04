@@ -1159,7 +1159,7 @@ public class ClassWriter implements ClassVisitor {
         
         byte[] data = bootstrapMethods.data;
         int length = (1 + 1 + argsLength) << 1;         // (bsm + argCount + arguments) as u2
-        
+        hashCode &= 0x7FFFFFFF;
         Item result = items[hashCode % items.length];
         while (result != null) {
             if (result.type != BSM || result.hashCode != hashCode) {

@@ -781,7 +781,8 @@ public class ClassWriter implements ClassVisitor {
             mb = mb.next;
         }
         int attributeCount = 0;
-        if (bootstrapMethods != null) {
+        if (bootstrapMethods != null) {  // we put it as first argument in order
+                                         // to improve a bit ClassReader.copyBootstrapMethods
             ++attributeCount;
             size += 8 + bootstrapMethods.length;
             newUTF8("BootstrapMethods");

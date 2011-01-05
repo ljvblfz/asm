@@ -408,8 +408,7 @@ public class ClassReader {
         // read class attributes
         i = readUnsignedShort(v);
         v += 2;
-        for (; i > 0; --i) {   // spec doesn't require BootstrapMethods to be the first attribute
-                               // but should. Wait spec change.
+        for (; i > 0; --i) {
             String attrName = readUTF8(v, buf);
             int size = readInt(v + 2);
             if ("BootstrapMethods".equals(attrName)) {

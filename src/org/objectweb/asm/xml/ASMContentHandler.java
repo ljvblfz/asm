@@ -126,6 +126,9 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         RULES.add(BASE + "/method/code/LOOKUPSWITCH", new LookupSwitchRule());
         RULES.add(BASE + "/method/code/LOOKUPSWITCH/label",
                 new LookupSwitchLabelRule());
+        
+        RULES.add(BASE + "/method/code/INVOKEDYNAMIC", new InvokeDynamicRule());
+        RULES.add(BASE + "/method/code/INVOKEDYNAMIC/bsmArg", new InvokeDynamicBsmArgumentsRule());
 
         RULES.add(BASE + "/method/code/Label", new LabelRule());
         RULES.add(BASE + "/method/code/TryCatch", new TryCatchRule());
@@ -149,11 +152,10 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         public static final int INSN_TYPE = 3;
         public static final int INSN_FIELD = 4;
         public static final int INSN_METHOD = 5;
-        public static final int INSN_INDY_METHOD = 6;
-        public static final int INSN_JUMP = 7;
-        public static final int INSN_LDC = 8;
-        public static final int INSN_IINC = 9;
-        public static final int INSN_MULTIANEWARRAY = 10;
+        public static final int INSN_JUMP = 6;
+        public static final int INSN_LDC = 7;
+        public static final int INSN_IINC = 8;
+        public static final int INSN_MULTIANEWARRAY = 9;
     }
 
     /**
@@ -303,7 +305,6 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         addOpcode("INVOKESPECIAL", INVOKESPECIAL, OpcodeGroup.INSN_METHOD);
         addOpcode("INVOKESTATIC", INVOKESTATIC, OpcodeGroup.INSN_METHOD);
         addOpcode("INVOKEINTERFACE", INVOKEINTERFACE, OpcodeGroup.INSN_METHOD);
-        addOpcode("INVOKEDYNAMIC", INVOKEDYNAMIC, OpcodeGroup.INSN_INDY_METHOD);
         addOpcode("NEW", NEW, OpcodeGroup.INSN_TYPE);
         addOpcode("NEWARRAY", NEWARRAY, OpcodeGroup.INSN_INT);
         addOpcode("ANEWARRAY", ANEWARRAY, OpcodeGroup.INSN_TYPE);
@@ -584,13 +585,13 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
             return value;
         }
 
-        private MHandle decodeMHandle(final String val) throws SAXException {
+        MHandle decodeMHandle(final String val) throws SAXException {
             try {
                 int dotIndex = val.indexOf('.');
                 int descIndex = val.indexOf('(', dotIndex + 1);
                 int tagIndex = val.lastIndexOf('(');
                 
-                int tag = Integer.parseInt(val.substring(tagIndex + 1, val.length() - 2));
+                int tag = Integer.parseInt(val.substring(tagIndex + 1, val.length() - 1));
                 String owner = val.substring(0, dotIndex);
                 String name = val.substring(dotIndex + 1, descIndex);
                 String desc = val.substring(descIndex, tagIndex - 1);
@@ -1078,6 +1079,37 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
     }
 
     /**
+     * InvokeDynamicRule
+     */
+    final class InvokeDynamicRule extends Rule {
+        public void begin(final String element, final Attributes attrs) throws SAXException {
+            push(attrs.getValue("name"));
+            push(attrs.getValue("desc"));
+            push(decodeMHandle(attrs.getValue("bsm")));
+            push(new ArrayList());
+        }
+        
+        public void end(final String element) {
+            ArrayList bsmArgs = (ArrayList)pop();
+            MHandle bsm = (MHandle)pop();
+            String desc = (String)pop();
+            String name = (String)pop();
+            getCodeVisitor().visitIndyMethodInsn(name, desc, bsm, bsmArgs.toArray());
+        }
+    }
+    
+    /**
+     * InvokeDynamicBsmArgumentsRule
+     */
+    final class InvokeDynamicBsmArgumentsRule extends Rule {
+        public void begin(final String element, final Attributes attrs) throws SAXException {
+            ArrayList bsmArgs = (ArrayList)peek();
+            bsmArgs.add(getValue(attrs.getValue("desc"),
+                    attrs.getValue("cst")));       
+        }
+    }
+    
+    /**
      * OpcodesRule
      */
     final class OpcodesRule extends Rule {
@@ -1123,16 +1155,6 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
                             attrs.getValue("name"),
                             attrs.getValue("desc"));
                     break;
-                    
-                case OpcodeGroup.INSN_INDY_METHOD:
-                    throw new UnsupportedOperationException("NYI");
-                    /*
-                    getCodeVisitor().visitIndyMethodInsn(
-                            attrs.getValue("name"),
-                            attrs.getValue("desc"));
-                            
-                    break;
-                    */
 
                 case OpcodeGroup.INSN_TYPE:
                     getCodeVisitor().visitTypeInsn(o.opcode,

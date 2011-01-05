@@ -211,15 +211,15 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
         MHandle bsm,
         Object[] bsmArgs)
     {
-        throw new UnsupportedOperationException("NYI");
-        /*
         AttributesImpl attrs = new AttributesImpl();
         attrs.addAttribute("", "name", "name", "", name);
         attrs.addAttribute("", "desc", "desc", "", desc);
+        attrs.addAttribute("", "bsm", "bsm", "", SAXClassAdapter.encode(bsm.toString()));
         addStart("INVOKEDYNAMIC", attrs);
-          
-        addEnd("INVOKEDYNAMIC");   
-        */
+        for(int i = 0; i < bsmArgs.length; i++) {
+            addElement("bsmArg", getConstantAttribute(bsmArgs[i]));    
+        }
+        addEnd("INVOKEDYNAMIC");
     }
 
     public final void visitJumpInsn(final int opcode, final Label label) {
@@ -235,6 +235,10 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
     }
 
     public final void visitLdcInsn(final Object cst) {
+        addElement(AbstractVisitor.OPCODES[Opcodes.LDC], getConstantAttribute(cst));
+    }
+    
+    private AttributesImpl getConstantAttribute(final Object cst) {
         AttributesImpl attrs = new AttributesImpl();
         attrs.addAttribute("",
                 "cst",
@@ -246,7 +250,7 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
                 "desc",
                 "",
                 Type.getDescriptor(cst.getClass()));
-        addElement(AbstractVisitor.OPCODES[Opcodes.LDC], attrs);
+        return attrs;
     }
 
     public final void visitIincInsn(final int var, final int increment) {

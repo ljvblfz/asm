@@ -79,8 +79,8 @@ public class MethodType {
      * 
      * @param m a {@link Method Method} object.
      */
-    public MethodType(final Method c) {
-        this.desc = Type.getMethodDescriptor(c);
+    public MethodType(final Method m) {
+        this.desc = Type.getMethodDescriptor(m);
     }
 
     /**

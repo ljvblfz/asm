@@ -34,13 +34,13 @@ import java.util.List;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.IndyMethodInsnNode;
+import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
 /**
  * An extended {@link BasicInterpreter} that checks that bytecode instructions
  * are correctly used.
- * 
+ *
  * @author Eric Bruneton
  * @author Bing Ran
  */
@@ -399,7 +399,7 @@ public class BasicVerifier extends BasicInterpreter {
                 }
             }
             String desc = (opcode == INVOKEDYNAMIC)?
-                    ((IndyMethodInsnNode) insn).desc:
+                    ((InvokeDynamicInsnNode) insn).desc:
                         ((MethodInsnNode) insn).desc;
             Type[] args = Type.getArgumentTypes(desc);
             while (i < values.size()) {

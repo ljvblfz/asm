@@ -43,22 +43,22 @@ import java.util.TreeSet;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MHandle;
-import org.objectweb.asm.MType;
+import org.objectweb.asm.MethodHandle;
+import org.objectweb.asm.MethodType;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.commons.SimpleRemapper;
 
 /**
  * A class file shrinker utility.
- * 
+ *
  * @author Eric Bruneton
  * @author Eugene Kuleshov
  */
 public class Shrinker {
 
     static final Properties MAPPING = new Properties();
-    
+
     public static void main(final String[] args) throws IOException {
         int n = args.length - 1;
         for (int i = 0; i < n - 1; ++i) {
@@ -78,7 +78,7 @@ public class Shrinker {
                 return s;
             }
         });
-        
+
         Iterator i = unused.iterator();
         while (i.hasNext()) {
             String s = (String) i.next();
@@ -162,8 +162,8 @@ public class Shrinker {
                         if (d == 0) {
                             d = c1.strVal2.compareTo(c2.strVal2);
                             if (d == 0) {
-                                MHandle bsm1 = (MHandle)c1.objVal3;
-                                MHandle bsm2 = (MHandle)c2.objVal3;
+                                MethodHandle bsm1 = (MethodHandle)c1.objVal3;
+                                MethodHandle bsm2 = (MethodHandle)c2.objVal3;
                                 d = compareMHandle(bsm1, bsm2);
                                 if (d == 0) {
                                     d = compareObjects(c1.objVals, c2.objVals);
@@ -171,7 +171,7 @@ public class Shrinker {
                             }
                         }
                         break;
-                        
+
                     default:
                         d = c1.strVal1.compareTo(c2.strVal1);
                         if (d == 0) {
@@ -185,24 +185,24 @@ public class Shrinker {
             return d;
         }
 
-        private int compareMHandle(MHandle mh1, MHandle mh2) {
-            int d = mh1.tag - mh2.tag;
+        private int compareMHandle(MethodHandle mh1, MethodHandle mh2) {
+            int d = mh1.getTag() - mh2.getTag();
             if (d == 0) {
-                d = mh1.owner.compareTo(mh2.owner);
+                d = mh1.getOwner().compareTo(mh2.getOwner());
                 if (d == 0) {
-                    d = mh1.name.compareTo(mh2.name);
+                    d = mh1.getName().compareTo(mh2.getName());
                     if (d == 0) {
-                        d = mh1.desc.compareTo(mh2.desc);
+                        d = mh1.getDesc().compareTo(mh2.getDesc());
                     }
                 }
             }
             return d;
         }
-        
-        private int compareMType(MType mtype1, MType mtype2) {
-            return mtype1.methodDesc.compareTo(mtype2.methodDesc);
+
+        private int compareMethodType(MethodType mtype1, MethodType mtype2) {
+            return mtype1.getDescriptor().compareTo(mtype2.getDescriptor());
         }
-        
+
         private int compareObjects(Object[] objVals1, Object[] objVals2)
         {
             int length = objVals1.length;
@@ -215,15 +215,15 @@ public class Shrinker {
                     if (d == 0) {
                         if (objVal1 instanceof Type) {
                             d = ((Type)objVal1).getDescriptor().compareTo(((Type)objVal2).getDescriptor());
-                        } else if (objVal1 instanceof MType) {
-                            d = compareMType((MType)objVal1,(MType)objVal2);
-                        } else if (objVal1 instanceof MHandle) {
-                            d = compareMHandle((MHandle)objVal1,(MHandle)objVal2);
+                        } else if (objVal1 instanceof MethodType) {
+                            d = compareMethodType((MethodType)objVal1,(MethodType)objVal2);
+                        } else if (objVal1 instanceof MethodHandle) {
+                            d = compareMHandle((MethodHandle)objVal1,(MethodHandle)objVal2);
                         } else {
                             d = ((Comparable)objVal1).compareTo(objVal2);
                         }
                     }
-                    
+
                     if (d != 0) {
                         return d;
                     }

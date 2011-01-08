@@ -35,8 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MHandle;
-import org.objectweb.asm.MType;
+import org.objectweb.asm.MethodHandle;
+import org.objectweb.asm.MethodType;
 import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -58,7 +58,7 @@ import org.objectweb.asm.Type;
  * compute the stack map frame for each instruction. In this case no exception
  * is thrown but the {@link #locals} and {@link #stack} fields will be null for
  * these instructions.
- * 
+ *
  * @author Eric Bruneton
  */
 public class AnalyzerAdapter extends MethodAdapter {
@@ -120,7 +120,7 @@ public class AnalyzerAdapter extends MethodAdapter {
      * The owner's class name.
      */
     private String owner;
-    
+
     /**
      * Creates a new {@link AnalyzerAdapter}.
      *
@@ -321,15 +321,15 @@ public class AnalyzerAdapter extends MethodAdapter {
         pushDesc(desc);
         labels = null;
     }
-    
-    public void visitIndyMethodInsn(
+
+    public void visitInvokeDynamicInsn(
         String name,
         String desc,
-        MHandle bsm,
+        MethodHandle bsm,
         Object[] bsmArgs)
     {
         if (mv != null) {
-            mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
+            mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
         }
         if (this.locals == null) {
             labels = null;
@@ -383,9 +383,9 @@ public class AnalyzerAdapter extends MethodAdapter {
             push("java/lang/String");
         } else if (cst instanceof Type) {
             push("java/lang/Class");
-        } else if (cst instanceof MType) {
+        } else if (cst instanceof MethodType) {
             push("java/dyn/MethodType");
-        } else if (cst instanceof MHandle) {
+        } else if (cst instanceof MethodHandle) {
             push("java/dyn/MethodHandle");
         } else {
             throw new IllegalArgumentException();

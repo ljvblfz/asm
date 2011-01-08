@@ -30,7 +30,7 @@
 package org.objectweb.asm.util;
 
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MethodHandle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -40,7 +40,7 @@ import java.util.HashMap;
 /**
  * A {@link MethodVisitor} that prints the ASM code that generates the methods
  * it visits.
- * 
+ *
  * @author Eric Bruneton
  * @author Eugene Kuleshov
  */
@@ -209,15 +209,15 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         buf.append(");\n");
         text.add(buf.toString());
     }
-    
-    public void visitIndyMethodInsn(
+
+    public void visitInvokeDynamicInsn(
         String name,
         String desc,
-        MHandle bsm,
+        MethodHandle bsm,
         Object[] bsmArgs)
     {
         buf.setLength(0);
-        buf.append("mv.visitIndyMethodInsn(");
+        buf.append("mv.visitInvokeDynamicInsn(");
         appendConstant(name);
         buf.append(", ");
         appendConstant(desc);
@@ -443,7 +443,7 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor implements
      * Appends a declaration of the given label to {@link #buf buf}. This
      * declaration is of the form "Label lXXX = new Label();". Does nothing if
      * the given label has already been declared.
-     * 
+     *
      * @param l a label.
      */
     private void declareLabel(final Label l) {
@@ -459,7 +459,7 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor implements
      * Appends the name of the given label to {@link #buf buf}. The given label
      * <i>must</i> already have a name. One way to ensure this is to always
      * call {@link #declareLabel declared} before calling this method.
-     * 
+     *
      * @param l a label.
      */
     private void appendLabel(final Label l) {

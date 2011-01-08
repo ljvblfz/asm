@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MethodHandle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Label;
@@ -45,10 +45,10 @@ import org.xml.sax.helpers.AttributesImpl;
 /**
  * A {@link MethodVisitor} that generates SAX 2.0 events from the visited
  * method.
- * 
+ *
  * @see org.objectweb.asm.xml.SAXClassAdapter
  * @see org.objectweb.asm.xml.Processor
- * 
+ *
  * @author Eugene Kuleshov
  */
 public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
@@ -66,7 +66,7 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
 
     /**
      * Constructs a new {@link SAXCodeAdapter SAXCodeAdapter} object.
-     * 
+     *
      * @param h content handler that will be used to send SAX 2.0 events.
      */
     public SAXCodeAdapter(final ContentHandler h, final int access) {
@@ -204,11 +204,11 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
         attrs.addAttribute("", "desc", "desc", "", desc);
         addElement(AbstractVisitor.OPCODES[opcode], attrs);
     }
-    
-    public void visitIndyMethodInsn(
+
+    public void visitInvokeDynamicInsn(
         String name,
         String desc,
-        MHandle bsm,
+        MethodHandle bsm,
         Object[] bsmArgs)
     {
         AttributesImpl attrs = new AttributesImpl();
@@ -217,7 +217,7 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
         attrs.addAttribute("", "bsm", "bsm", "", SAXClassAdapter.encode(bsm.toString()));
         addStart("INVOKEDYNAMIC", attrs);
         for(int i = 0; i < bsmArgs.length; i++) {
-            addElement("bsmArg", getConstantAttribute(bsmArgs[i]));    
+            addElement("bsmArg", getConstantAttribute(bsmArgs[i]));
         }
         addEnd("INVOKEDYNAMIC");
     }
@@ -237,7 +237,7 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
     public final void visitLdcInsn(final Object cst) {
         addElement(AbstractVisitor.OPCODES[Opcodes.LDC], getConstantAttribute(cst));
     }
-    
+
     private AttributesImpl getConstantAttribute(final Object cst) {
         AttributesImpl attrs = new AttributesImpl();
         attrs.addAttribute("",

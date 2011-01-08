@@ -31,16 +31,16 @@ package org.objectweb.asm.tree;
 
 import java.util.Map;
 
-import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MethodHandle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 /**
  * A node that represents an invokedynamic instruction.
- * 
+ *
  * @author Remi Forax
  */
-public class IndyMethodInsnNode extends AbstractInsnNode {
+public class InvokeDynamicInsnNode extends AbstractInsnNode {
     /**
      * Invokedynamic name.
      */
@@ -54,26 +54,26 @@ public class IndyMethodInsnNode extends AbstractInsnNode {
     /**
      * Bootstrap method
      */
-    public MHandle bsm;
-    
+    public MethodHandle bsm;
+
     /**
      * Bootstrap constant arguments
      */
     public Object[] bsmArgs;
-    
+
     /**
-     * Constructs a new {@link IndyMethodInsnNode}.
-     * 
-    
+     * Constructs a new {@link InvokeDynamicInsnNode}.
+     *
+
      * @param name invokedynamic name.
      * @param desc invokedynamic descriptor (see {@link org.objectweb.asm.Type}).
      * @param bsm the bootstrap method.
      * @param bsmArgs the boostrap constant arguments.
      */
-    public IndyMethodInsnNode(
+    public InvokeDynamicInsnNode(
         final String name,
         final String desc,
-        final MHandle bsm,
+        final MethodHandle bsm,
         final Object[] bsmArgs)
     {
         super(Opcodes.INVOKEDYNAMIC);
@@ -84,14 +84,14 @@ public class IndyMethodInsnNode extends AbstractInsnNode {
     }
 
     public int getType() {
-        return INDY_METHOD_INSN;
+        return INVOKE_DYNAMIC_INSN;
     }
 
     public void accept(final MethodVisitor mv) {
-        mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
+        mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
     }
 
     public AbstractInsnNode clone(final Map labels) {
-        return new IndyMethodInsnNode(name, desc, bsm, bsmArgs);
+        return new InvokeDynamicInsnNode(name, desc, bsm, bsmArgs);
     }
 }

@@ -31,7 +31,7 @@ package org.objectweb.asm.util;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
-import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MethodHandle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -44,7 +44,7 @@ import java.util.Map;
 /**
  * A {@link MethodVisitor} that prints a disassembled view of the methods it
  * visits.
- * 
+ *
  * @author Eric Bruneton
  */
 public class TraceMethodVisitor extends TraceAbstractVisitor implements
@@ -86,7 +86,7 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
 
     /**
      * Constructs a new {@link TraceMethodVisitor}.
-     * 
+     *
      * @param mv the {@link MethodVisitor} to which this visitor delegates
      *        calls. May be <tt>null</tt>.
      */
@@ -297,11 +297,11 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
             mv.visitMethodInsn(opcode, owner, name, desc);
         }
     }
-    
-    public void visitIndyMethodInsn(
+
+    public void visitInvokeDynamicInsn(
         String name,
         String desc,
-        MHandle bsm,
+        MethodHandle bsm,
         Object[] bsmArgs)
     {
         buf.setLength(0);
@@ -325,7 +325,7 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
         text.add(buf.toString());
 
         if (mv != null) {
-            mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
+            mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
         }
     }
 
@@ -585,7 +585,7 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
     /**
      * Appends the name of the given label to {@link #buf buf}. Creates a new
      * label name if the given label does not yet have one.
-     * 
+     *
      * @param l a label.
      */
     protected void appendLabel(final Label l) {

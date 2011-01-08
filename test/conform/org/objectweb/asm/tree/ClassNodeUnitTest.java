@@ -29,14 +29,14 @@
  */
 package org.objectweb.asm.tree;
 
-import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MethodHandle;
 import org.objectweb.asm.Opcodes;
 
 import junit.framework.TestCase;
 
 /**
  * ClassNode unit tests.
- * 
+ *
  * @author Eric Bruneton
  */
 public class ClassNodeUnitTest extends TestCase implements Opcodes {
@@ -89,17 +89,17 @@ public class ClassNodeUnitTest extends TestCase implements Opcodes {
         assertEquals(INVOKESPECIAL, mn.getOpcode());
         assertEquals(AbstractInsnNode.METHOD_INSN, mn.getType());
     }
-    
-    public void testIndyMethodInsnNode() {
-        MHandle bsm = new MHandle(MHandle.REF_invokeStatic, "owner", "name", "()V");
-        IndyMethodInsnNode mn = new IndyMethodInsnNode(
+
+    public void testInvokeDynamicInsnNode() {
+        MethodHandle bsm = new MethodHandle(Opcodes.MH_INVOKESTATIC, "owner", "name", "()V");
+        InvokeDynamicInsnNode mn = new InvokeDynamicInsnNode(
                 "name",
                 "()V",
                 bsm,
                 new Object[0]);
-        
+
         assertEquals(INVOKEDYNAMIC, mn.getOpcode());
-        assertEquals(AbstractInsnNode.INDY_METHOD_INSN, mn.getType());
+        assertEquals(AbstractInsnNode.INVOKE_DYNAMIC_INSN, mn.getType());
     }
 
     public void testJumpInsnNode() {

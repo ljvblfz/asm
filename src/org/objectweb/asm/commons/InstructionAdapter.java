@@ -31,8 +31,8 @@
 package org.objectweb.asm.commons;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MHandle;
-import org.objectweb.asm.MType;
+import org.objectweb.asm.MethodHandle;
+import org.objectweb.asm.MethodType;
 import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -504,11 +504,11 @@ public class InstructionAdapter extends MethodAdapter {
                 throw new IllegalArgumentException();
         }
     }
-    
-    public void visitIndyMethodInsn(
+
+    public void visitInvokeDynamicInsn(
         String name,
         String desc,
-        MHandle bsm,
+        MethodHandle bsm,
         Object[] bsmArgs)
     {
        invokedynamic(name, desc, bsm, bsmArgs);
@@ -608,10 +608,10 @@ public class InstructionAdapter extends MethodAdapter {
             aconst(cst);
         } else if (cst instanceof Type) {
             tconst((Type) cst);
-        } else if (cst instanceof MType) {
-            mtconst((MType) cst);
-        } else if (cst instanceof MHandle) {
-            mhconst((MHandle) cst);
+        } else if (cst instanceof MethodType) {
+            mtconst((MethodType) cst);
+        } else if (cst instanceof MethodHandle) {
+            mhconst((MethodHandle) cst);
         } else {
             throw new IllegalArgumentException();
         }
@@ -697,12 +697,12 @@ public class InstructionAdapter extends MethodAdapter {
     public void tconst(final Type type) {
         mv.visitLdcInsn(type);
     }
-    
-    public void mtconst(final MType mtype) {
+
+    public void mtconst(final MethodType mtype) {
         mv.visitLdcInsn(mtype);
     }
-    
-    public void mhconst(final MHandle mhandle) {
+
+    public void mhconst(final MethodHandle mhandle) {
         mv.visitLdcInsn(mhandle);
     }
 
@@ -1021,14 +1021,14 @@ public class InstructionAdapter extends MethodAdapter {
     {
         mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, owner, name, desc);
     }
-    
+
     public void invokedynamic(
         String name,
         String desc,
-        MHandle bsm,
+        MethodHandle bsm,
         Object[] bsmArgs)
     {
-        mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
+        mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
     }
 
     public void anew(final Type type) {

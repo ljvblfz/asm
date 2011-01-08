@@ -31,13 +31,14 @@ package org.objectweb.asm.optimizer;
 
 import java.util.HashMap;
 
-import org.objectweb.asm.MHandle;
-import org.objectweb.asm.MType;
+import org.objectweb.asm.MethodHandle;
+import org.objectweb.asm.MethodType;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 /**
  * A constant pool.
- * 
+ *
  * @author Eric Bruneton
  */
 public class ConstantPool extends HashMap {
@@ -47,9 +48,9 @@ public class ConstantPool extends HashMap {
     private final Constant key2 = new Constant();
 
     private final Constant key3 = new Constant();
-    
+
     private final Constant key4 = new Constant();
-    
+
     private final Constant key5 = new Constant();
 
     public Constant newInteger(final int value) {
@@ -123,8 +124,8 @@ public class ConstantPool extends HashMap {
         }
         return result;
     }
-    
-    public Constant newMType(final String methodDescriptor) {
+
+    public Constant newMethodType(final String methodDescriptor) {
         key2.set('t', methodDescriptor, null, null);
         Constant result = get(key2);
         if (result == null) {
@@ -134,15 +135,15 @@ public class ConstantPool extends HashMap {
         }
         return result;
     }
-    
+
     public Constant newMHandle(final int tag, final String owner, final String name, final String desc) {
         key4.set((char)('h' - 1 + tag), owner, name, desc);
         Constant result = get(key4);
         if (result == null) {
-            if (tag <= MHandle.REF_putStatic) {
+            if (tag <= Opcodes.MH_PUTSTATIC) {
                 newField(owner, name, desc);
             } else {
-                newMethod(owner, name, desc, tag == MHandle.REF_invokeInterface);
+                newMethod(owner, name, desc, tag == Opcodes.MH_INVOKEINTERFACE);
             }
             result = new Constant(key4);
             put(result);
@@ -170,12 +171,12 @@ public class ConstantPool extends HashMap {
             return newClass(t.getSort() == Type.OBJECT
                     ? t.getInternalName()
                     : t.getDescriptor());
-        } else if (cst instanceof MType) {
-            MType mt = (MType) cst;
-            return newMType(mt.methodDesc);
-        } else if (cst instanceof MHandle) {
-            MHandle mh = (MHandle) cst;
-            return newMHandle(mh.tag, mh.owner, mh.name, mh.desc);
+        } else if (cst instanceof MethodType) {
+            MethodType mt = (MethodType) cst;
+            return newMethodType(mt.getDescriptor());
+        } else if (cst instanceof MethodHandle) {
+            MethodHandle mh = (MethodHandle) cst;
+            return newMHandle(mh.getTag(), mh.getOwner(), mh.getName(), mh.getDesc());
         } else {
             throw new IllegalArgumentException("value " + cst);
         }
@@ -213,14 +214,14 @@ public class ConstantPool extends HashMap {
         }
         return result;
     }
-    
-    public Constant newIndy(String name, String desc, MHandle bsm, Object[] bsmArgs)
+
+    public Constant newInvokeDynamic(String name, String desc, MethodHandle bsm, Object[] bsmArgs)
     {
         key5.set(name, desc, bsm, bsmArgs);
         Constant result = get(key5);
         if (result == null) {
             newNameType(name, desc);
-            newMHandle(bsm.tag, bsm.owner, bsm.name, bsm.desc);
+            newMHandle(bsm.getTag(), bsm.getOwner(), bsm.getName(), bsm.getDesc());
             for(int i=0; i<bsmArgs.length; i++) {
                 newConst(bsmArgs[i]);
             }

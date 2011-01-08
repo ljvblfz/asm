@@ -37,13 +37,13 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.IndyMethodInsnNode;
+import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
 /**
  * An {@link Interpreter} for {@link SourceValue} values.
- * 
+ *
  * @author Eric Bruneton
  */
 public class SourceInterpreter implements Opcodes, Interpreter {
@@ -153,7 +153,7 @@ public class SourceInterpreter implements Opcodes, Interpreter {
             size = 1;
         } else {
             String desc = (opcode == INVOKEDYNAMIC)?
-                    ((IndyMethodInsnNode) insn).desc:
+                    ((InvokeDynamicInsnNode) insn).desc:
                     ((MethodInsnNode) insn).desc;
             size = Type.getReturnType(desc).getSize();
         }

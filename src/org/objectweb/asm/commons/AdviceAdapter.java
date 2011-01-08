@@ -30,7 +30,7 @@
 package org.objectweb.asm.commons;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MethodHandle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -468,15 +468,15 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
             }
         }
     }
-    
-    public void visitIndyMethodInsn(
+
+    public void visitInvokeDynamicInsn(
         String name,
         String desc,
-        MHandle bsm,
+        MethodHandle bsm,
         Object[] bsmArgs)
     {
-        mv.visitIndyMethodInsn(name, desc, bsm, bsmArgs);
-        
+        mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
+
         if (constructor) {
             Type[] types = Type.getArgumentTypes(desc);
             for (int i = 0; i < types.length; i++) {

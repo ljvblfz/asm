@@ -31,13 +31,13 @@ package org.objectweb.asm.tree.analysis;
 
 import java.util.List;
 
-import org.objectweb.asm.MHandle;
-import org.objectweb.asm.MType;
+import org.objectweb.asm.MethodHandle;
+import org.objectweb.asm.MethodType;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.IndyMethodInsnNode;
+import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
@@ -46,7 +46,7 @@ import org.objectweb.asm.tree.TypeInsnNode;
 
 /**
  * An {@link Interpreter} for {@link BasicValue} values.
- * 
+ *
  * @author Eric Bruneton
  * @author Bing Ran
  */
@@ -118,9 +118,9 @@ public class BasicInterpreter implements Opcodes, Interpreter {
                     return BasicValue.DOUBLE_VALUE;
                 } else if (cst instanceof Type) {
                     return newValue(Type.getObjectType("java/lang/Class"));
-                } else if (cst instanceof MType) {
+                } else if (cst instanceof MethodType) {
                     return newValue(Type.getObjectType("java/dyn/MethodType"));
-                } else if (cst instanceof MHandle) {
+                } else if (cst instanceof MethodHandle) {
                     return newValue(Type.getObjectType("java/dyn/MethodHandle"));
                 } else {
                     return newValue(Type.getType(cst.getClass()));
@@ -318,7 +318,7 @@ public class BasicInterpreter implements Opcodes, Interpreter {
         if (opcode == MULTIANEWARRAY) {
             return newValue(Type.getType(((MultiANewArrayInsnNode) insn).desc));
         } else if (opcode == INVOKEDYNAMIC){
-            return newValue(Type.getReturnType(((IndyMethodInsnNode) insn).desc));
+            return newValue(Type.getReturnType(((InvokeDynamicInsnNode) insn).desc));
         } else {
             return newValue(Type.getReturnType(((MethodInsnNode) insn).desc));
         }
@@ -330,7 +330,7 @@ public class BasicInterpreter implements Opcodes, Interpreter {
         final Value expected) throws AnalyzerException
     {
     }
-    
+
     public Value merge(final Value v, final Value w) {
         if (!v.equals(w)) {
             return BasicValue.UNINITIALIZED_VALUE;

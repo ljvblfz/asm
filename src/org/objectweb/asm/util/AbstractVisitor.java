@@ -99,9 +99,9 @@ public abstract class AbstractVisitor {
             j = l + 1;
         }
         
-        s = "REF_getField,REF_getStatic,REF_putField,REF_putStatic,"
-          + "REF_invokeVirtual,REF_invokeStatic,REF_invokeSpecial,"
-          + "REF_newInvokeSpecial,REF_invokeInterface,";
+        s = "MH_GETFIELD,MH_GETSTATIC,MH_PUTFIELD,MH_PUTSTATIC,"
+          + "MH_INVOKEVIRTUAL,MH_INVOKESTATIC,MH_INVOKESPECIAL,"
+          + "MH_NEWINVOKESPECIAL,MH_INVOKEINTERFACE,";
         METHOD_HANDLE_TAG = new String[10];
         j = 0;
         i = 1;

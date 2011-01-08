@@ -37,7 +37,7 @@ import java.io.IOException;
  * This class parses a byte array conforming to the Java class file format and
  * calls the appropriate visit methods of a given class visitor for each field,
  * method and bytecode instruction encountered.
- * 
+ *
  * @author Eric Bruneton
  * @author Eugene Kuleshov
  */
@@ -47,27 +47,27 @@ public class ClassReader {
      * True to enable signatures support.
      */
     static final boolean SIGNATURES = true;
-    
+
     /**
      * True to enable annotations support.
      */
     static final boolean ANNOTATIONS = true;
-    
+
     /**
      * True to enable stack map frames support.
      */
     static final boolean FRAMES = true;
-    
+
     /**
      * True to enable bytecode writing support.
      */
     static final boolean WRITER = true;
-    
+
     /**
      * True to enable JSR_W and GOTO_W support.
      */
     static final boolean RESIZE = true;
-    
+
     /**
      * Flag to skip method code. If this class is set <code>CODE</code>
      * attribute won't be visited. This can be used, for example, to retrieve
@@ -146,7 +146,7 @@ public class ClassReader {
 
     /**
      * Constructs a new {@link ClassReader} object.
-     * 
+     *
      * @param b the bytecode of the class to be read.
      */
     public ClassReader(final byte[] b) {
@@ -155,7 +155,7 @@ public class ClassReader {
 
     /**
      * Constructs a new {@link ClassReader} object.
-     * 
+     *
      * @param b the bytecode of the class to be read.
      * @param off the start offset of the class data.
      * @param len the length of the class data.
@@ -213,9 +213,9 @@ public class ClassReader {
      * Returns the class's access flags (see {@link Opcodes}). This value may
      * not reflect Deprecated and Synthetic flags when bytecode is before 1.5
      * and those flags are represented by attributes.
-     * 
+     *
      * @return the class access flags
-     * 
+     *
      * @see ClassVisitor#visit(int, int, String, String, String, String[])
      */
     public int getAccess() {
@@ -225,9 +225,9 @@ public class ClassReader {
     /**
      * Returns the internal name of the class (see
      * {@link Type#getInternalName() getInternalName}).
-     * 
+     *
      * @return the internal class name
-     * 
+     *
      * @see ClassVisitor#visit(int, int, String, String, String, String[])
      */
     public String getClassName() {
@@ -238,10 +238,10 @@ public class ClassReader {
      * Returns the internal of name of the super class (see
      * {@link Type#getInternalName() getInternalName}). For interfaces, the
      * super class is {@link Object}.
-     * 
+     *
      * @return the internal name of super class, or <tt>null</tt> for
      *         {@link Object} class.
-     * 
+     *
      * @see ClassVisitor#visit(int, int, String, String, String, String[])
      */
     public String getSuperName() {
@@ -252,10 +252,10 @@ public class ClassReader {
     /**
      * Returns the internal names of the class's interfaces (see
      * {@link Type#getInternalName() getInternalName}).
-     * 
+     *
      * @return the array of internal names for all implemented interfaces or
      *         <tt>null</tt>.
-     * 
+     *
      * @see ClassVisitor#visit(int, int, String, String, String, String[])
      */
     public String[] getInterfaces() {
@@ -275,7 +275,7 @@ public class ClassReader {
     /**
      * Copies the constant pool data into the given {@link ClassWriter}. Should
      * be called before the {@link #accept(ClassVisitor,int)} method.
-     * 
+     *
      * @param classWriter the {@link ClassWriter} to copy constant pool into.
      */
     void copyPool(final ClassWriter classWriter) {
@@ -342,11 +342,11 @@ public class ClassReader {
                             readClass(fieldOrMethodRef, buf),
                             readUTF8(nameType, buf),
                             readUTF8(nameType + 2, buf));
-                    
+
                 }
                     break;
-                    
-                 
+
+
                 case ClassWriter.INDY:
                     if (classWriter.bootstrapMethods == null) {
                         copyBootstrapMethods(classWriter, items2, buf);
@@ -356,8 +356,8 @@ public class ClassReader {
                             readUTF8(nameType + 2, buf),
                             readUnsignedShort(index));
                     break;
-                
-                    
+
+
                 // case ClassWriter.STR:
                 // case ClassWriter.CLASS:
                 // case ClassWriter.MTYPE
@@ -379,8 +379,8 @@ public class ClassReader {
     }
 
     private void copyBootstrapMethods(ClassWriter classWriter, Item[] items2, char[] buf) {
-        int i, j, k, u, v;    
-    
+        int i, j, k, u, v;
+
         // skip class header
         v = header;
         v += 8 + (readUnsignedShort(v + 6) << 1);
@@ -404,7 +404,7 @@ public class ClassReader {
                 v += 6 + readInt(v + 2);
             }
         }
-        
+
         // read class attributes
         i = readUnsignedShort(v);
         v += 2;
@@ -424,14 +424,14 @@ public class ClassReader {
                     }
                     Item item = new Item();
                     item.set(x, hashCode & 0x7FFFFFFF);
-                    
+
                     int index2 = item.hashCode % items2.length;
                     item.next = items2[index2];
                     items2[index2] = item;
-                    
+
                     x = u;
                 }
-                
+
                 classWriter.bootstrapMethodsCount = boostrapMethodCount;
                 ByteVector bootstrapMethods = new ByteVector(size + 62);
                 bootstrapMethods.putByteArray(b, v + 8, size - 2);
@@ -440,13 +440,13 @@ public class ClassReader {
             }
             v += 6 + size;
         }
-        
+
         // we are in trouble !!!
     }
 
     /**
      * Constructs a new {@link ClassReader} object.
-     * 
+     *
      * @param is an input stream from which to read the class.
      * @throws IOException if a problem occurs during reading.
      */
@@ -456,7 +456,7 @@ public class ClassReader {
 
     /**
      * Constructs a new {@link ClassReader} object.
-     * 
+     *
      * @param name the fully qualified name of the class to be read.
      * @throws IOException if an exception occurs during reading.
      */
@@ -467,7 +467,7 @@ public class ClassReader {
 
     /**
      * Reads the bytecode of a class.
-     * 
+     *
      * @param is an input stream from which to read the class.
      * @return the bytecode read from the given input stream.
      * @throws IOException if a problem occurs during reading.
@@ -510,7 +510,7 @@ public class ClassReader {
      * Makes the given visitor visit the Java class of this {@link ClassReader}.
      * This class is the one specified in the constructor (see
      * {@link #ClassReader(byte[]) ClassReader}).
-     * 
+     *
      * @param classVisitor the visitor that must visit this class.
      * @param flags option flags that can be used to modify the default behavior
      *        of this class. See {@link #SKIP_DEBUG}, {@link #EXPAND_FRAMES},
@@ -524,7 +524,7 @@ public class ClassReader {
      * Makes the given visitor visit the Java class of this {@link ClassReader}.
      * This class is the one specified in the constructor (see
      * {@link #ClassReader(byte[]) ClassReader}).
-     * 
+     *
      * @param classVisitor the visitor that must visit this class.
      * @param attrs prototypes of the attributes that must be parsed during the
      *        visit of the class. Any attribute whose type is not equal to the
@@ -1046,7 +1046,7 @@ public class ClassReader {
                             v += 3;
                             break;
                         case ClassWriter.ITFMETH_INSN:
-                        case ClassWriter.INDYMETH_INSN:    
+                        case ClassWriter.INDYMETH_INSN:
                             v += 5;
                             break;
                         // case MANA_INSN:
@@ -1253,11 +1253,11 @@ public class ClassReader {
                      * decoding each element of the stack map table, we look
                      * for 3 consecutive bytes that "look like" an UNINITIALIZED
                      * type (tag 8, offset within code bounds, NEW instruction
-                     * at this offset). We may find false positives (i.e. not 
-                     * real UNINITIALIZED types), but this should be rare, and 
-                     * the only consequence will be the creation of an unneeded 
+                     * at this offset). We may find false positives (i.e. not
+                     * real UNINITIALIZED types), but this should be rare, and
+                     * the only consequence will be the creation of an unneeded
                      * label. This is better than creating a label for each NEW
-                     * instruction, and faster than fully decoding the whole 
+                     * instruction, and faster than fully decoding the whole
                      * stack map table.
                      */
                     for (j = stackMap; j < stackMap + stackMapSize - 2; ++j) {
@@ -1521,19 +1521,19 @@ public class ClassReader {
                             cpIndex = items[readUnsignedShort(cpIndex + 2)];
                             String iname = readUTF8(cpIndex, c);
                             String idesc = readUTF8(cpIndex + 2, c);
-                            
+
                             int mhIndex = readUnsignedShort(bsmIndex);
-                            MHandle bsm = (MHandle)readConst(mhIndex, c);
+                            MethodHandle bsm = (MethodHandle)readConst(mhIndex, c);
                             int bsmArgCount = readUnsignedShort(bsmIndex + 2);
-                            Object[] bsmArgs = new Object[bsmArgCount]; 
+                            Object[] bsmArgs = new Object[bsmArgCount];
                             bsmIndex +=4;
                             for(int a=0; a<bsmArgCount; a++) {
                                 int argIndex = readUnsignedShort(bsmIndex);
                                 bsmArgs[a] = readConst(argIndex, c);
                                 bsmIndex += 2;
                             }
-                            mv.visitIndyMethodInsn(iname, idesc, bsm, bsmArgs);
-                            
+                            mv.visitInvokeDynamicInsn(iname, idesc, bsm, bsmArgs);
+
                             v += 5;
                             break;
                         }
@@ -1619,7 +1619,7 @@ public class ClassReader {
 
     /**
      * Reads parameter annotations and makes the given visitor visit them.
-     * 
+     *
      * @param v start offset in {@link #b b} of the annotations to be read.
      * @param desc the method descriptor.
      * @param buf buffer to be used to call {@link #readUTF8 readUTF8},
@@ -1647,7 +1647,7 @@ public class ClassReader {
         int synthetics = Type.getArgumentTypes(desc).length - n;
         AnnotationVisitor av;
         for (i = 0; i < synthetics; ++i) {
-            // virtual annotation to detect synthetic parameters in MethodWriter 
+            // virtual annotation to detect synthetic parameters in MethodWriter
             av = mv.visitParameterAnnotation(i, "Ljava/lang/Synthetic;", false);
             if (av != null) {
                 av.visitEnd();
@@ -1665,7 +1665,7 @@ public class ClassReader {
 
     /**
      * Reads the values of an annotation and makes the given visitor visit them.
-     * 
+     *
      * @param v the start offset in {@link #b b} of the values to be read
      *        (including the unsigned short that gives the number of values).
      * @param buf buffer to be used to call {@link #readUTF8 readUTF8},
@@ -1700,7 +1700,7 @@ public class ClassReader {
 
     /**
      * Reads a value of an annotation and makes the given visitor visit it.
-     * 
+     *
      * @param v the start offset in {@link #b b} of the value to be read (<i>not
      *        including the value name constant pool index</i>).
      * @param buf buffer to be used to call {@link #readUTF8 readUTF8},
@@ -1913,7 +1913,7 @@ public class ClassReader {
      * Returns the label corresponding to the given offset. The default
      * implementation of this method creates a label for the given offset if it
      * has not been already created.
-     * 
+     *
      * @param offset a bytecode offset in a method.
      * @param labels the already created labels, indexed by their offset. If a
      *        label already exists for offset this method must not create a new
@@ -1929,7 +1929,7 @@ public class ClassReader {
 
     /**
      * Reads an attribute in {@link #b b}.
-     * 
+     *
      * @param attrs prototypes of the attributes that must be parsed during the
      *        visit of the class. Any attribute whose type is not equal to the
      *        type of one the prototypes is ignored (i.e. an empty
@@ -1977,7 +1977,7 @@ public class ClassReader {
      * Returns the start index of the constant pool item in {@link #b b}, plus
      * one. <i>This method is intended for {@link Attribute} sub classes, and is
      * normally not needed by class generators or adapters.</i>
-     * 
+     *
      * @param item the index a constant pool item.
      * @return the start index of the constant pool item in {@link #b b}, plus
      *         one.
@@ -1990,7 +1990,7 @@ public class ClassReader {
      * Reads a byte value in {@link #b b}. <i>This method is intended for
      * {@link Attribute} sub classes, and is normally not needed by class
      * generators or adapters.</i>
-     * 
+     *
      * @param index the start index of the value to be read in {@link #b b}.
      * @return the read value.
      */
@@ -2002,7 +2002,7 @@ public class ClassReader {
      * Reads an unsigned short value in {@link #b b}. <i>This method is
      * intended for {@link Attribute} sub classes, and is normally not needed by
      * class generators or adapters.</i>
-     * 
+     *
      * @param index the start index of the value to be read in {@link #b b}.
      * @return the read value.
      */
@@ -2015,7 +2015,7 @@ public class ClassReader {
      * Reads a signed short value in {@link #b b}. <i>This method is intended
      * for {@link Attribute} sub classes, and is normally not needed by class
      * generators or adapters.</i>
-     * 
+     *
      * @param index the start index of the value to be read in {@link #b b}.
      * @return the read value.
      */
@@ -2028,7 +2028,7 @@ public class ClassReader {
      * Reads a signed int value in {@link #b b}. <i>This method is intended for
      * {@link Attribute} sub classes, and is normally not needed by class
      * generators or adapters.</i>
-     * 
+     *
      * @param index the start index of the value to be read in {@link #b b}.
      * @return the read value.
      */
@@ -2042,7 +2042,7 @@ public class ClassReader {
      * Reads a signed long value in {@link #b b}. <i>This method is intended
      * for {@link Attribute} sub classes, and is normally not needed by class
      * generators or adapters.</i>
-     * 
+     *
      * @param index the start index of the value to be read in {@link #b b}.
      * @return the read value.
      */
@@ -2056,7 +2056,7 @@ public class ClassReader {
      * Reads an UTF8 string constant pool item in {@link #b b}. <i>This method
      * is intended for {@link Attribute} sub classes, and is normally not needed
      * by class generators or adapters.</i>
-     * 
+     *
      * @param index the start index of an unsigned short value in {@link #b b},
      *        whose value is the index of an UTF8 constant pool item.
      * @param buf buffer to be used to read the item. This buffer must be
@@ -2075,7 +2075,7 @@ public class ClassReader {
 
     /**
      * Reads UTF8 string in {@link #b b}.
-     * 
+     *
      * @param index start offset of the UTF8 string to be read.
      * @param utfLen length of the UTF8 string to be read.
      * @param buf buffer to be used to read the string. This buffer must be
@@ -2104,12 +2104,12 @@ public class ClassReader {
                         st = 2;
                     }
                     break;
-                    
-                case 1:  // byte 2 of 2-byte char or byte 3 of 3-byte char 
+
+                case 1:  // byte 2 of 2-byte char or byte 3 of 3-byte char
                     buf[strLen++] = (char) ((cc << 6) | (c & 0x3F));
                     st = 0;
                     break;
-                    
+
                 case 2:  // byte 2 of 3-byte char
                     cc = (char) ((cc << 6) | (c & 0x3F));
                     st = 1;
@@ -2118,12 +2118,12 @@ public class ClassReader {
         }
         return new String(buf, 0, strLen);
     }
-    
+
     /**
      * Reads a class constant pool item in {@link #b b}. <i>This method is
      * intended for {@link Attribute} sub classes, and is normally not needed by
      * class generators or adapters.</i>
-     * 
+     *
      * @param index the start index of an unsigned short value in {@link #b b},
      *        whose value is the index of a class constant pool item.
      * @param buf buffer to be used to read the item. This buffer must be
@@ -2141,13 +2141,13 @@ public class ClassReader {
      * Reads a numeric or string constant pool item in {@link #b b}. <i>This
      * method is intended for {@link Attribute} sub classes, and is normally not
      * needed by class generators or adapters.</i>
-     * 
+     *
      * @param item the index of a constant pool item.
      * @param buf buffer to be used to read the item. This buffer must be
      *        sufficiently large. It is not automatically resized.
      * @return the {@link Integer}, {@link Float}, {@link Long},
      *         {@link Double}, {@link String}, {@link Type},
-     *         {@link MType} or {@link MHandle}
+     *         {@link MethodType} or {@link MethodHandle}
      *         corresponding to the given constant pool item.
      */
     public Object readConst(final int item, final char[] buf) {
@@ -2166,8 +2166,8 @@ public class ClassReader {
             case ClassWriter.STR:
                 return readUTF8(index, buf);
             case ClassWriter.MTYPE:
-                return new MType(readUTF8(index, buf));
-            
+                return new MethodType(readUTF8(index, buf));
+
             //case ClassWriter.MHANDLE_BASE + [1..9]:
             default: {
                 int tag = readByte(index);
@@ -2177,8 +2177,8 @@ public class ClassReader {
                 cpIndex = items[readUnsignedShort(cpIndex + 2)];
                 String name = readUTF8(cpIndex, buf);
                 String desc = readUTF8(cpIndex + 2, buf);
-                return new MHandle(tag, owner, name, desc);
-            }   
+                return new MethodHandle(tag, owner, name, desc);
+            }
         }
     }
 }

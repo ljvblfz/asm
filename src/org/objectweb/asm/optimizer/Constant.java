@@ -32,11 +32,11 @@ package org.objectweb.asm.optimizer;
 import java.util.Arrays;
 
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MHandle;
+import org.objectweb.asm.MethodHandle;
 
 /**
  * A constant pool item.
- * 
+ *
  * @author Eric Bruneton
  */
 class Constant {
@@ -49,7 +49,7 @@ class Constant {
      * (for Constant Integer, Long, Float, Double, STR, UTF8, Class, NameType,
      * Fieldref, Methodref, InterfaceMethodref, InvokeDynamic,
      * MethodType and MethodHandle constant pool items respectively).
-     * 
+     *
      * The 9 variable of MethodHandle constants are stored between h and p.
      */
     char type;
@@ -91,12 +91,12 @@ class Constant {
      * primitive value.
      */
     Object objVal3;
-    
+
     /**
      * InvokeDynamic's constant values.
      */
     Object[] objVals;
-    
+
     /**
      * The hash code value of this constant pool item.
      */
@@ -120,7 +120,7 @@ class Constant {
 
     /**
      * Sets this item to an integer item.
-     * 
+     *
      * @param intVal the value of this item.
      */
     void set(final int intVal) {
@@ -131,7 +131,7 @@ class Constant {
 
     /**
      * Sets this item to a long item.
-     * 
+     *
      * @param longVal the value of this item.
      */
     void set(final long longVal) {
@@ -142,7 +142,7 @@ class Constant {
 
     /**
      * Sets this item to a float item.
-     * 
+     *
      * @param floatVal the value of this item.
      */
     void set(final float floatVal) {
@@ -153,7 +153,7 @@ class Constant {
 
     /**
      * Sets this item to a double item.
-     * 
+     *
      * @param doubleVal the value of this item.
      */
     void set(final double doubleVal) {
@@ -164,7 +164,7 @@ class Constant {
 
     /**
      * Sets this item to an item that do not hold a primitive value.
-     * 
+     *
      * @param type the type of this item.
      * @param strVal1 first part of the value of this item.
      * @param strVal2 second part of the value of this item.
@@ -200,10 +200,10 @@ class Constant {
                         * strVal2.hashCode() * strVal3.hashCode());
         }
     }
-    
+
     /**
      * Set this item to an InvokeDynamic item.
-     * 
+     *
      * @param name invokedynamic's name.
      * @param desc invokedynamic's descriptor.
      * @param bsm bootstrap method.
@@ -212,7 +212,7 @@ class Constant {
     void set(
         final String name,
         final String desc,
-        final MHandle bsm,
+        final MethodHandle bsm,
         final Object[] bsmArgs)
     {
         this.type = 'y';
@@ -220,7 +220,7 @@ class Constant {
         this.strVal2 = desc;
         this.objVal3 = bsm;
         this.objVals = bsmArgs;
-        
+
         int hashCode =  'y' + name.hashCode()
                 * desc.hashCode() * bsm.hashCode();
         for(int i=0; i<bsmArgs.length; i++) {
@@ -265,12 +265,12 @@ class Constant {
                 cw.newMethod(strVal1, strVal2, (String)objVal3, true);
                 break;
             case 'y':
-                cw.newIndy(strVal1, strVal2, (MHandle)objVal3, objVals);
+                cw.newInvokeDynamic(strVal1, strVal2, (MethodHandle)objVal3, objVals);
             case 't':
-                cw.newMType(strVal1);
+                cw.newMethodType(strVal1);
                 break;
             default: //'h' ... 'p': method handle
-                cw.newMHandle(type - 'h' + 1, strVal1, strVal2, (String)objVal3);
+                cw.newMethodHandle(type - 'h' + 1, strVal1, strVal2, (String)objVal3);
         }
     }
 

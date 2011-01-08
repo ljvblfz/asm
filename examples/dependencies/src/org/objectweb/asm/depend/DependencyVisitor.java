@@ -39,8 +39,8 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MHandle;
-import org.objectweb.asm.MType;
+import org.objectweb.asm.MethodHandle;
+import org.objectweb.asm.MethodType;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.signature.SignatureReader;
@@ -48,7 +48,7 @@ import org.objectweb.asm.signature.SignatureVisitor;
 
 /**
  * DependencyVisitor
- * 
+ *
  * @author Eugene Kuleshov
  */
 public class DependencyVisitor implements
@@ -201,10 +201,10 @@ public class DependencyVisitor implements
         addMethodDesc(desc);
     }
 
-    public void visitIndyMethodInsn(
+    public void visitInvokeDynamicInsn(
         String name,
         String desc,
-        MHandle bsm,
+        MethodHandle bsm,
         Object[] bsmArgs)
     {
         addMethodDesc(desc);
@@ -213,7 +213,7 @@ public class DependencyVisitor implements
             addConstant(bsmArgs[i]);
         }
     }
-    
+
     public void visitLdcInsn(final Object cst) {
         addConstant(cst);
     }
@@ -426,7 +426,7 @@ public class DependencyVisitor implements
             addInternalName(names[i]);
         }
     }
-    
+
     private void addDesc(final String desc) {
         addType(Type.getType(desc));
     }
@@ -461,16 +461,16 @@ public class DependencyVisitor implements
             new SignatureReader(signature).acceptType(this);
         }
     }
-    
+
     private void addConstant(final Object cst) {
         if (cst instanceof Type) {
             addType((Type) cst);
-        } else if (cst instanceof MType) {
-            addMethodDesc(((MType) cst).methodDesc);
-        } else if (cst instanceof MHandle) {
-            MHandle mHandle = (MHandle) cst;
-            addInternalName(mHandle.owner);
-            addMethodDesc(mHandle.desc);
+        } else if (cst instanceof MethodType) {
+            addMethodDesc(((MethodType) cst).getDescriptor());
+        } else if (cst instanceof MethodHandle) {
+            MethodHandle mHandle = (MethodHandle) cst;
+            addInternalName(mHandle.getOwner());
+            addMethodDesc(mHandle.getDesc());
         }
     }
 }

@@ -38,8 +38,8 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MHandle;
-import org.objectweb.asm.MType;
+import org.objectweb.asm.MethodHandle;
+import org.objectweb.asm.MethodType;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -111,7 +111,7 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         RULES.add(BASE + "/method/code/LOOKUPSWITCH", new LookupSwitchRule());
         RULES.add(BASE + "/method/code/LOOKUPSWITCH/label",
                 new LookupSwitchLabelRule());
-        
+
         RULES.add(BASE + "/method/code/INVOKEDYNAMIC", new InvokeDynamicRule());
         RULES.add(BASE + "/method/code/INVOKEDYNAMIC/bsmArg", new InvokeDynamicBsmArgumentsRule());
 
@@ -526,13 +526,13 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
                     value = new Double(val);
                 } else if (Type.getDescriptor(Type.class).equals(desc)) {
                     value = Type.getType(val);
-                    
-                } else if (Type.getDescriptor(MType.class).equals(desc)) {
-                    value = new MType(val);
-                    
-                } else if (Type.getDescriptor(MHandle.class).equals(desc)) {
+
+                } else if (Type.getDescriptor(MethodType.class).equals(desc)) {
+                    value = new MethodType(val);
+
+                } else if (Type.getDescriptor(MethodHandle.class).equals(desc)) {
                     value = decodeMHandle(val);
-                    
+
                 } else {
                     // TODO use of default toString().
                     throw new SAXException("Invalid value:" + val + " desc:"
@@ -542,23 +542,23 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
             return value;
         }
 
-        MHandle decodeMHandle(final String val) throws SAXException {
+        MethodHandle decodeMHandle(final String val) throws SAXException {
             try {
                 int dotIndex = val.indexOf('.');
                 int descIndex = val.indexOf('(', dotIndex + 1);
                 int tagIndex = val.lastIndexOf('(');
-                
+
                 int tag = Integer.parseInt(val.substring(tagIndex + 1, val.length() - 1));
                 String owner = val.substring(0, dotIndex);
                 String name = val.substring(dotIndex + 1, descIndex);
                 String desc = val.substring(descIndex, tagIndex - 1);
-                return new MHandle(tag, owner, name, desc);
-                
+                return new MethodHandle(tag, owner, name, desc);
+
             } catch(RuntimeException e) {
                 throw new SAXException("Malformed constant method handle "+val, e);
             }
         }
-        
+
         private final String decode(final String val) throws SAXException {
             StringBuffer sb = new StringBuffer(val.length());
             try {
@@ -1044,16 +1044,16 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
             push(decodeMHandle(attrs.getValue("bsm")));
             push(new ArrayList());
         }
-        
+
         public final void end(final String element) {
             ArrayList bsmArgs = (ArrayList)pop();
-            MHandle bsm = (MHandle)pop();
+            MethodHandle bsm = (MethodHandle)pop();
             String desc = (String)pop();
             String name = (String)pop();
-            getCodeVisitor().visitIndyMethodInsn(name, desc, bsm, bsmArgs.toArray());
+            getCodeVisitor().visitInvokeDynamicInsn(name, desc, bsm, bsmArgs.toArray());
         }
     }
-    
+
     /**
      * InvokeDynamicBsmArgumentsRule
      */
@@ -1061,10 +1061,10 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         public final void begin(final String element, final Attributes attrs) throws SAXException {
             ArrayList bsmArgs = (ArrayList)peek();
             bsmArgs.add(getValue(attrs.getValue("desc"),
-                    attrs.getValue("cst")));       
+                    attrs.getValue("cst")));
         }
     }
-    
+
     /**
      * OpcodesRule
      */

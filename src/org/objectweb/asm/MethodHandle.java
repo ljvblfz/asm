@@ -36,7 +36,7 @@ package org.objectweb.asm;
  * @author Remi Forax
  * @author Eric Bruneton
  */
-public class MethodHandle {
+public final class MethodHandle {
 
     /**
      * Constant method handle tag, should be a value among Opcodes#MH_GETFIELD,

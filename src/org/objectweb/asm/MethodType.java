@@ -39,7 +39,7 @@ import java.lang.reflect.Method;
  * @author Remi Forax
  * @author Eric Bruneton
  */
-public class MethodType {
+public final class MethodType {
 
     /**
      * The descriptor of methods of this type.

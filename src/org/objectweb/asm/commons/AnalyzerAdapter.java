@@ -75,7 +75,7 @@ public class AnalyzerAdapter extends MethodAdapter {
      * this uninitialized value). This field is <tt>null</tt> for unreacheable
      * instructions.
      */
-    public List locals;
+    public List<Object> locals;
 
     /**
      * <code>List</code> of the operand stack slots for current execution
@@ -89,13 +89,13 @@ public class AnalyzerAdapter extends MethodAdapter {
      * this uninitialized value). This field is <tt>null</tt> for unreacheable
      * instructions.
      */
-    public List stack;
+    public List<Object> stack;
 
     /**
      * The labels that designate the next instruction to be visited. May be
      * <tt>null</tt>.
      */
-    private List labels;
+    private List<Label> labels;
 
     /**
      * Information about uninitialized types in the current execution frame.
@@ -104,7 +104,7 @@ public class AnalyzerAdapter extends MethodAdapter {
      * types, and the associated internal name represents the NEW operand, i.e.
      * the final, initialized type value.
      */
-    public Map uninitializedTypes;
+    public Map<Object,Object> uninitializedTypes;
 
     /**
      * The maximum stack size of this method.
@@ -140,9 +140,9 @@ public class AnalyzerAdapter extends MethodAdapter {
     {
         super(mv);
         this.owner = owner;
-        locals = new ArrayList();
-        stack = new ArrayList();
-        uninitializedTypes = new HashMap();
+        locals = new ArrayList<Object>();
+        stack = new ArrayList<Object>();
+        uninitializedTypes = new HashMap<Object, Object>();
 
         if ((access & Opcodes.ACC_STATIC) == 0) {
             if ("<init>".equals(name)) {
@@ -202,8 +202,8 @@ public class AnalyzerAdapter extends MethodAdapter {
             this.locals.clear();
             this.stack.clear();
         } else {
-            this.locals = new ArrayList();
-            this.stack = new ArrayList();
+            this.locals = new ArrayList<Object>();
+            this.stack = new ArrayList<Object>();
         }
         visitFrameTypes(nLocal, local, this.locals);
         visitFrameTypes(nStack, stack, this.stack);
@@ -213,7 +213,7 @@ public class AnalyzerAdapter extends MethodAdapter {
     private static void visitFrameTypes(
         final int n,
         final Object[] types,
-        final List result)
+        final List<Object> result)
     {
         for (int i = 0; i < n; ++i) {
             Object type = types[i];
@@ -255,7 +255,7 @@ public class AnalyzerAdapter extends MethodAdapter {
         if (opcode == Opcodes.NEW) {
             if (labels == null) {
                 Label l = new Label();
-                labels = new ArrayList(3);
+                labels = new ArrayList<Label>(3);
                 labels.add(l);
                 if (mv != null) {
                     mv.visitLabel(l);
@@ -356,7 +356,7 @@ public class AnalyzerAdapter extends MethodAdapter {
             mv.visitLabel(label);
         }
         if (labels == null) {
-            labels = new ArrayList(3);
+            labels = new ArrayList<Label>(3);
         }
         labels.add(label);
     }

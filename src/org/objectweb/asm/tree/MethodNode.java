@@ -75,7 +75,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
      * {@link Type#getInternalName() getInternalName}). This list is a list of
      * {@link String} objects.
      */
-    public List exceptions;
+    public List<String> exceptions;
 
     /**
      * The default value of this annotation interface method. This field must be
@@ -94,7 +94,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
      * @associates org.objectweb.asm.tree.AnnotationNode
      * @label invisible parameters
      */
-    public List[] visibleParameterAnnotations;
+    public List<AnnotationNode>[] visibleParameterAnnotations;
 
     /**
      * The runtime invisible parameter annotations of this method. These lists
@@ -103,7 +103,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
      * @associates org.objectweb.asm.tree.AnnotationNode
      * @label visible parameters
      */
-    public List[] invisibleParameterAnnotations;
+    public List<AnnotationNode>[] invisibleParameterAnnotations;
 
     /**
      * The instructions of this method. This list is a list of
@@ -120,7 +120,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
      *
      * @associates org.objectweb.asm.tree.TryCatchBlockNode
      */
-    public List tryCatchBlocks;
+    public List<TryCatchBlockNode> tryCatchBlocks;
 
     /**
      * The maximum stack size of this method.
@@ -138,7 +138,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
      *
      * @associates org.objectweb.asm.tree.LocalVariableNode
      */
-    public List localVariables;
+    public List<LocalVariableNode> localVariables;
 
     /**
      * Constructs an unitialized {@link MethodNode}.
@@ -172,14 +172,14 @@ public class MethodNode extends MemberNode implements MethodVisitor {
         this.name = name;
         this.desc = desc;
         this.signature = signature;
-        this.exceptions = new ArrayList(exceptions == null
+        this.exceptions = new ArrayList<String>(exceptions == null
                 ? 0
                 : exceptions.length);
         boolean isAbstract = (access & Opcodes.ACC_ABSTRACT) != 0;
         if (!isAbstract) {
-            this.localVariables = new ArrayList(5);
+            this.localVariables = new ArrayList<LocalVariableNode>(5);
         }
-        this.tryCatchBlocks = new ArrayList();
+        this.tryCatchBlocks = new ArrayList<TryCatchBlockNode>();
         if (exceptions != null) {
             this.exceptions.addAll(Arrays.asList(exceptions));
         }
@@ -190,7 +190,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
     // ------------------------------------------------------------------------
 
     public AnnotationVisitor visitAnnotationDefault() {
-        return new AnnotationNode(new ArrayList(0) {
+        return new AnnotationNode(new ArrayList<Object>(0) {
             public boolean add(final Object o) {
                 annotationDefault = o;
                 return super.add(o);
@@ -207,19 +207,19 @@ public class MethodNode extends MemberNode implements MethodVisitor {
         if (visible) {
             if (visibleParameterAnnotations == null) {
                 int params = Type.getArgumentTypes(this.desc).length;
-                visibleParameterAnnotations = new List[params];
+                visibleParameterAnnotations = (List<AnnotationNode>[])new List<?>[params];
             }
             if (visibleParameterAnnotations[parameter] == null) {
-                visibleParameterAnnotations[parameter] = new ArrayList(1);
+                visibleParameterAnnotations[parameter] = new ArrayList<AnnotationNode>(1);
             }
             visibleParameterAnnotations[parameter].add(an);
         } else {
             if (invisibleParameterAnnotations == null) {
                 int params = Type.getArgumentTypes(this.desc).length;
-                invisibleParameterAnnotations = new List[params];
+                invisibleParameterAnnotations = (List<AnnotationNode>[])new List<?>[params];
             }
             if (invisibleParameterAnnotations[parameter] == null) {
-                invisibleParameterAnnotations[parameter] = new ArrayList(1);
+                invisibleParameterAnnotations[parameter] = new ArrayList<AnnotationNode>(1);
             }
             invisibleParameterAnnotations[parameter].add(an);
         }
@@ -440,19 +440,19 @@ public class MethodNode extends MemberNode implements MethodVisitor {
         }
         n = visibleAnnotations == null ? 0 : visibleAnnotations.size();
         for (i = 0; i < n; ++i) {
-            AnnotationNode an = (AnnotationNode) visibleAnnotations.get(i);
+            AnnotationNode an = visibleAnnotations.get(i);
             an.accept(mv.visitAnnotation(an.desc, true));
         }
         n = invisibleAnnotations == null ? 0 : invisibleAnnotations.size();
         for (i = 0; i < n; ++i) {
-            AnnotationNode an = (AnnotationNode) invisibleAnnotations.get(i);
+            AnnotationNode an = invisibleAnnotations.get(i);
             an.accept(mv.visitAnnotation(an.desc, false));
         }
         n = visibleParameterAnnotations == null
                 ? 0
                 : visibleParameterAnnotations.length;
         for (i = 0; i < n; ++i) {
-            List l = visibleParameterAnnotations[i];
+            List<?> l = visibleParameterAnnotations[i];
             if (l == null) {
                 continue;
             }
@@ -465,7 +465,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
                 ? 0
                 : invisibleParameterAnnotations.length;
         for (i = 0; i < n; ++i) {
-            List l = invisibleParameterAnnotations[i];
+            List<?> l = invisibleParameterAnnotations[i];
             if (l == null) {
                 continue;
             }
@@ -476,7 +476,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
         }
         n = attrs == null ? 0 : attrs.size();
         for (i = 0; i < n; ++i) {
-            mv.visitAttribute((Attribute) attrs.get(i));
+            mv.visitAttribute(attrs.get(i));
         }
         // visits the method's code
         if (instructions.size() > 0) {
@@ -484,14 +484,14 @@ public class MethodNode extends MemberNode implements MethodVisitor {
             // visits try catch blocks
             n = tryCatchBlocks == null ? 0 : tryCatchBlocks.size();
             for (i = 0; i < n; ++i) {
-                ((TryCatchBlockNode) tryCatchBlocks.get(i)).accept(mv);
+                tryCatchBlocks.get(i).accept(mv);
             }
             // visits instructions
             instructions.accept(mv);
             // visits local variables
             n = localVariables == null ? 0 : localVariables.size();
             for (i = 0; i < n; ++i) {
-                ((LocalVariableNode) localVariables.get(i)).accept(mv);
+                localVariables.get(i).accept(mv);
             }
             // visits maxs
             mv.visitMaxs(maxStack, maxLocals);

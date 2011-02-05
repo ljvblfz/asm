@@ -50,9 +50,9 @@ import org.objectweb.asm.tree.TypeInsnNode;
  * @author Eric Bruneton
  * @author Bing Ran
  */
-public class BasicInterpreter implements Opcodes, Interpreter {
+public class BasicInterpreter implements Opcodes, Interpreter<BasicValue> {
 
-    public Value newValue(final Type type) {
+    public BasicValue newValue(final Type type) {
         if (type == null) {
             return BasicValue.UNINITIALIZED_VALUE;
         }
@@ -79,7 +79,7 @@ public class BasicInterpreter implements Opcodes, Interpreter {
         }
     }
 
-    public Value newOperation(final AbstractInsnNode insn)
+    public BasicValue newOperation(final AbstractInsnNode insn)
             throws AnalyzerException
     {
         switch (insn.getOpcode()) {
@@ -136,13 +136,13 @@ public class BasicInterpreter implements Opcodes, Interpreter {
         }
     }
 
-    public Value copyOperation(final AbstractInsnNode insn, final Value value)
+    public BasicValue copyOperation(final AbstractInsnNode insn, final BasicValue value)
             throws AnalyzerException
     {
         return value;
     }
 
-    public Value unaryOperation(final AbstractInsnNode insn, final Value value)
+    public BasicValue unaryOperation(final AbstractInsnNode insn, final BasicValue value)
             throws AnalyzerException
     {
         switch (insn.getOpcode()) {
@@ -230,10 +230,10 @@ public class BasicInterpreter implements Opcodes, Interpreter {
         }
     }
 
-    public Value binaryOperation(
+    public BasicValue binaryOperation(
         final AbstractInsnNode insn,
-        final Value value1,
-        final Value value2) throws AnalyzerException
+        final BasicValue value1,
+        final BasicValue value2) throws AnalyzerException
     {
         switch (insn.getOpcode()) {
             case IALOAD:
@@ -302,16 +302,16 @@ public class BasicInterpreter implements Opcodes, Interpreter {
         }
     }
 
-    public Value ternaryOperation(
+    public BasicValue ternaryOperation(
         final AbstractInsnNode insn,
-        final Value value1,
-        final Value value2,
-        final Value value3) throws AnalyzerException
+        final BasicValue value1,
+        final BasicValue value2,
+        final BasicValue value3) throws AnalyzerException
     {
         return null;
     }
 
-    public Value naryOperation(final AbstractInsnNode insn, final List values)
+    public BasicValue naryOperation(final AbstractInsnNode insn, final List<? extends BasicValue> values)
             throws AnalyzerException
     {
         int opcode = insn.getOpcode();
@@ -326,12 +326,12 @@ public class BasicInterpreter implements Opcodes, Interpreter {
 
     public void returnOperation(
         final AbstractInsnNode insn,
-        final Value value,
-        final Value expected) throws AnalyzerException
+        final BasicValue value,
+        final BasicValue expected) throws AnalyzerException
     {
     }
 
-    public Value merge(final Value v, final Value w) {
+    public BasicValue merge(final BasicValue v, final BasicValue w) {
         if (!v.equals(w)) {
             return BasicValue.UNINITIALIZED_VALUE;
         }

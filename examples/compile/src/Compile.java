@@ -50,7 +50,7 @@ public class Compile extends ClassLoader {
         FileOutputStream fos = new FileOutputStream("Example.class");
         fos.write(b);
         fos.close();
-        Class expClass = main.defineClass("Example", b, 0, b.length);
+        Class<?> expClass = main.defineClass("Example", b, 0, b.length);
         // instantiates this compiled expression class...
         Expression iexp = (Expression) expClass.newInstance();
         // ... and uses it to evaluate exp(0) to exp(9)

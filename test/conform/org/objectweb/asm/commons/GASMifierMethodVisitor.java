@@ -62,26 +62,26 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
 
     int firstLocal;
 
-    Map locals;
+    Map<Integer, Integer> locals;
 
-    List localTypes;
+    List<String> localTypes;
 
     int lastOpcode = -1;
 
-    HashMap labelNames;
+    HashMap<Label, String> labelNames;
 
     public GASMifierMethodVisitor(final int access, final String desc) {
         super("mg");
         this.access = access;
-        this.labelNames = new HashMap();
+        this.labelNames = new HashMap<Label, String>();
         this.argumentTypes = Type.getArgumentTypes(desc);
         int nextLocal = (Opcodes.ACC_STATIC & access) != 0 ? 0 : 1;
         for (int i = 0; i < argumentTypes.length; i++) {
             nextLocal += argumentTypes[i].getSize();
         }
         this.firstLocal = nextLocal;
-        this.locals = new HashMap();
-        this.localTypes = new ArrayList();
+        this.locals = new HashMap<Integer, Integer>();
+        this.localTypes = new ArrayList<String>();
     }
 
     public AnnotationVisitor visitAnnotationDefault() {
@@ -614,7 +614,7 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
     }
 
     private int generateNewLocal(final int var, final String type) {
-        Integer i = (Integer) locals.get(new Integer(var));
+        Integer i = locals.get(new Integer(var));
         if (i == null) {
             int local = locals.size();
             locals.put(new Integer(var), new Integer(local));
@@ -1149,7 +1149,7 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
      * @param l a label.
      */
     private void declareLabel(final Label l) {
-        String name = (String) labelNames.get(l);
+        String name = labelNames.get(l);
         if (name == null) {
             name = "label" + labelNames.size();
             labelNames.put(l, name);
@@ -1165,6 +1165,6 @@ public class GASMifierMethodVisitor extends ASMifierAbstractVisitor implements
      * @param l a label.
      */
     private void appendLabel(final Label l) {
-        buf.append((String) labelNames.get(l));
+        buf.append(labelNames.get(l));
     }
 }

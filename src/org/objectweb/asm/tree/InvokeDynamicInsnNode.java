@@ -64,7 +64,6 @@ public class InvokeDynamicInsnNode extends AbstractInsnNode {
     /**
      * Constructs a new {@link InvokeDynamicInsnNode}.
      *
-
      * @param name invokedynamic name.
      * @param desc invokedynamic descriptor (see {@link org.objectweb.asm.Type}).
      * @param bsm the bootstrap method.
@@ -91,7 +90,7 @@ public class InvokeDynamicInsnNode extends AbstractInsnNode {
         mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
     }
 
-    public AbstractInsnNode clone(final Map labels) {
+    public AbstractInsnNode clone(final Map<LabelNode, LabelNode> labels) {
         return new InvokeDynamicInsnNode(name, desc, bsm, bsmArgs);
     }
 }

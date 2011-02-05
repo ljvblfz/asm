@@ -98,7 +98,7 @@ public class MethodInsnNode extends AbstractInsnNode {
         mv.visitMethodInsn(opcode, owner, name, desc);
     }
 
-    public AbstractInsnNode clone(final Map labels) {
+    public AbstractInsnNode clone(final Map<LabelNode, LabelNode> labels) {
         return new MethodInsnNode(opcode, owner, name, desc);
     }
 }

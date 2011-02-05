@@ -40,6 +40,7 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
+import org.objectweb.asm.tree.analysis.BasicValue;
 import org.objectweb.asm.tree.analysis.BasicVerifier;
 
 import java.io.PrintWriter;
@@ -90,7 +91,7 @@ public class CheckMethodAdapter extends MethodAdapter {
      * The already visited labels. This map associate Integer values to Label
      * keys.
      */
-    private final Map labels;
+    private final Map<Label, Integer> labels;
 
     /**
      * Code of the visit method to be used for each opcode.
@@ -333,7 +334,7 @@ public class CheckMethodAdapter extends MethodAdapter {
      * @param mv the method visitor to which this adapter must delegate calls.
      */
     public CheckMethodAdapter(final MethodVisitor mv) {
-        this(mv, new HashMap());
+        this(mv, new HashMap<Label, Integer>());
     }
 
     /**
@@ -344,7 +345,7 @@ public class CheckMethodAdapter extends MethodAdapter {
      * @param mv the method visitor to which this adapter must delegate calls.
      * @param labels a map of already visited labels (in other methods).
      */
-    public CheckMethodAdapter(final MethodVisitor mv, final Map labels) {
+    public CheckMethodAdapter(final MethodVisitor mv, final Map<Label, Integer> labels) {
         super(mv);
         this.labels = labels;
     }
@@ -366,11 +367,11 @@ public class CheckMethodAdapter extends MethodAdapter {
         final String name,
         final String desc,
         final MethodVisitor mv,
-        final Map labels)
+        final Map<Label, Integer> labels)
     {
         this(new MethodNode(access, name, desc, null, null) {
             public void visitEnd() {
-                Analyzer a = new Analyzer(new BasicVerifier());
+                Analyzer<BasicValue> a = new Analyzer<BasicValue>(new BasicVerifier());
                 try {
                     a.analyze("dummy", this);
                 } catch (Exception e) {
@@ -728,8 +729,8 @@ public class CheckMethodAdapter extends MethodAdapter {
         checkLabel(start, true, "start label");
         checkLabel(end, true, "end label");
         checkUnsignedShort(index, "Invalid variable index");
-        int s = ((Integer) labels.get(start)).intValue();
-        int e = ((Integer) labels.get(end)).intValue();
+        int s = labels.get(start).intValue();
+        int e = labels.get(end).intValue();
         if (e < s) {
             throw new IllegalArgumentException("Invalid start and end labels (end must be greater than start)");
         }

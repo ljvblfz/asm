@@ -56,7 +56,7 @@ public abstract class AbstractVisitor {
     
     /**
      * Tag for method handle constant of the
-     * {@link org.objectweb.asm.MethodVisitor#visitCstMHandleInsn(int, String, String, String)} method.
+     * {@link org.objectweb.asm.MethodVisitor#visitLdcInsn(Object)} method.
      */
     public static final String[] METHOD_HANDLE_TAG;
 
@@ -123,7 +123,7 @@ public abstract class AbstractVisitor {
      * string list that can contain other string lists, which can themselves
      * contain other string lists, and so on.
      */
-    public final List text;
+    public final List<Object> text;
 
     /**
      * A buffer that can be used to create strings.
@@ -134,7 +134,7 @@ public abstract class AbstractVisitor {
      * Constructs a new {@link AbstractVisitor}.
      */
     protected AbstractVisitor() {
-        this.text = new ArrayList();
+        this.text = new ArrayList<Object>();
         this.buf = new StringBuffer();
     }
 
@@ -143,7 +143,7 @@ public abstract class AbstractVisitor {
      * 
      * @return the text constructed by this visitor.
      */
-    public List getText() {
+    public List<Object> getText() {
         return text;
     }
 
@@ -198,11 +198,11 @@ public abstract class AbstractVisitor {
      * @param l a string tree, i.e., a string list that can contain other string
      *        lists, and so on recursively.
      */
-    static void printList(final PrintWriter pw, final List l) {
+    static void printList(final PrintWriter pw, final List<?> l) {
         for (int i = 0; i < l.size(); ++i) {
             Object o = l.get(i);
             if (o instanceof List) {
-                printList(pw, (List) o);
+                printList(pw, (List<?>) o);
             } else {
                 pw.print(o.toString());
             }

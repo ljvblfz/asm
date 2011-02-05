@@ -53,7 +53,7 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor implements
      */
     public ASMifierMethodVisitor() {
         super("mv");
-        this.labelNames = new HashMap();
+        this.labelNames = new HashMap<Label, String>();
     }
 
     public AnnotationVisitor visitAnnotationDefault() {
@@ -447,7 +447,7 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor implements
      * @param l a label.
      */
     private void declareLabel(final Label l) {
-        String name = (String) labelNames.get(l);
+        String name = labelNames.get(l);
         if (name == null) {
             name = "l" + labelNames.size();
             labelNames.put(l, name);
@@ -463,6 +463,6 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor implements
      * @param l a label.
      */
     private void appendLabel(final Label l) {
-        buf.append((String) labelNames.get(l));
+        buf.append(labelNames.get(l));
     }
 }

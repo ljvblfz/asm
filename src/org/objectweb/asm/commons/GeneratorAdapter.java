@@ -225,7 +225,7 @@ public class GeneratorAdapter extends LocalVariablesSorter {
     /**
      * Types of the local variables of the method visited by this adapter.
      */
-    private final List localTypes = new ArrayList();
+    private final List<Type> localTypes = new ArrayList<Type>();
 
     /**
      * Creates a new {@link GeneratorAdapter}.
@@ -594,7 +594,7 @@ public class GeneratorAdapter extends LocalVariablesSorter {
      * @return the type of the given local variable.
      */
     public Type getLocalType(final int local) {
-        return (Type) localTypes.get(local - firstLocal);
+        return localTypes.get(local - firstLocal);
     }
 
     protected void setLocalType(final int local, final Type type) {

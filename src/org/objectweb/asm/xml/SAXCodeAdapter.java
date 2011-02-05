@@ -62,7 +62,7 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
         "null",
         "uninitializedThis" };
 
-    private final Map labelNames;
+    private final Map<Label, String> labelNames;
 
     /**
      * Constructs a new {@link SAXCodeAdapter SAXCodeAdapter} object.
@@ -71,7 +71,7 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
      */
     public SAXCodeAdapter(final ContentHandler h, final int access) {
         super(h);
-        labelNames = new HashMap();
+        labelNames = new HashMap<Label, String>();
 
         if ((access & (Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE | Opcodes.ACC_NATIVE)) == 0)
         {
@@ -238,7 +238,7 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
         addElement(AbstractVisitor.OPCODES[Opcodes.LDC], getConstantAttribute(cst));
     }
 
-    private AttributesImpl getConstantAttribute(final Object cst) {
+    private static AttributesImpl getConstantAttribute(final Object cst) {
         AttributesImpl attrs = new AttributesImpl();
         attrs.addAttribute("",
                 "cst",
@@ -406,7 +406,7 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
     }
 
     private final String getLabel(final Label label) {
-        String name = (String) labelNames.get(label);
+        String name = labelNames.get(label);
         if (name == null) {
             name = Integer.toString(labelNames.size());
             labelNames.put(label, name);

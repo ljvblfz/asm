@@ -34,9 +34,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.AbstractMap;
+import java.util.AbstractSet;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
@@ -57,14 +61,20 @@ import org.objectweb.asm.commons.SimpleRemapper;
  */
 public class Shrinker {
 
-    static final Properties MAPPING = new Properties();
+    static final HashMap<String, String> MAPPING = new HashMap<String, String>();
 
     public static void main(final String[] args) throws IOException {
+        Properties properties = new Properties();
         int n = args.length - 1;
         for (int i = 0; i < n - 1; ++i) {
-            MAPPING.load(new FileInputStream(args[i]));
+            properties.load(new FileInputStream(args[i]));
+        } 
+        
+        for(Map.Entry<Object, Object> entry: properties.entrySet()) {
+            MAPPING.put((String)entry.getKey(), (String)entry.getValue());
         }
-        final Set unused = new HashSet(MAPPING.keySet());
+        
+        final Set<String> unused = new HashSet<String>(MAPPING.keySet());
 
         File f = new File(args[n - 1]);
         File d = new File(args[n]);
@@ -79,9 +89,9 @@ public class Shrinker {
             }
         });
 
-        Iterator i = unused.iterator();
+        Iterator<String> i = unused.iterator();
         while (i.hasNext()) {
-            String s = (String) i.next();
+            String s = i.next();
             if (!s.endsWith("/remove")) {
                 System.out.println("INFO: unused mapping " + s);
             }
@@ -104,19 +114,19 @@ public class Shrinker {
             ClassOptimizer co = new ClassOptimizer(ccc, remapper);
             cr.accept(co, ClassReader.SKIP_DEBUG);
 
-            Set constants = new TreeSet(new ConstantComparator());
+            Set<Constant> constants = new TreeSet<Constant>(new ConstantComparator());
             constants.addAll(cp.values());
 
             cr = new ClassReader(cw.toByteArray());
             cw = new ClassWriter(0);
-            Iterator i = constants.iterator();
+            Iterator<Constant> i = constants.iterator();
             while (i.hasNext()) {
-                Constant c = (Constant) i.next();
+                Constant c = i.next();
                 c.write(cw);
             }
             cr.accept(cw, ClassReader.SKIP_DEBUG);
 
-            if (MAPPING.getProperty(cr.getClassName() + "/remove") != null) {
+            if (MAPPING.get(cr.getClassName() + "/remove") != null) {
                 return;
             }
             String n = remapper.mapType(cr.getClassName());
@@ -130,11 +140,9 @@ public class Shrinker {
         }
     }
 
-    static class ConstantComparator implements Comparator {
+    static class ConstantComparator implements Comparator<Constant> {
 
-        public int compare(final Object o1, final Object o2) {
-            Constant c1 = (Constant) o1;
-            Constant c2 = (Constant) o2;
+        public int compare(final Constant c1, final Constant c2) {
             int d = getSort(c1) - getSort(c2);
             if (d == 0) {
                 switch (c1.type) {

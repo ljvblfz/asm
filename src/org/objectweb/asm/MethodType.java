@@ -70,7 +70,7 @@ public final class MethodType {
      * 
      * @param c a {@link Constructor Constructor} object.
      */
-    public MethodType(final Constructor c) {
+    public MethodType(final Constructor<?> c) {
         this.desc = Type.getConstructorDescriptor(c);
     }
 

@@ -208,7 +208,7 @@ public abstract class AbstractInsnNode {
      * @return a copy of this instruction. The returned instruction does not
      *         belong to any {@link InsnList}.
      */
-    public abstract AbstractInsnNode clone(final Map labels);
+    public abstract AbstractInsnNode clone(final Map<LabelNode, LabelNode> labels);
 
     /**
      * Returns the clone of the given label.
@@ -217,8 +217,8 @@ public abstract class AbstractInsnNode {
      * @param map a map from LabelNodes to cloned LabelNodes.
      * @return the clone of the given label.
      */
-    static LabelNode clone(final LabelNode label, final Map map) {
-        return (LabelNode) map.get(label);
+    static LabelNode clone(final LabelNode label, final Map<LabelNode, LabelNode> map) {
+        return map.get(label);
     }
 
     /**
@@ -228,10 +228,10 @@ public abstract class AbstractInsnNode {
      * @param map a map from LabelNodes to cloned LabelNodes.
      * @return the clones of the given labels.
      */
-    static LabelNode[] clone(final List labels, final Map map) {
+    static LabelNode[] clone(final List<LabelNode> labels, final Map<LabelNode, LabelNode> map) {
         LabelNode[] clones = new LabelNode[labels.size()];
         for (int i = 0; i < clones.length; ++i) {
-            clones[i] = (LabelNode) map.get(labels.get(i));
+            clones[i] = map.get(labels.get(i));
         }
         return clones;
     }

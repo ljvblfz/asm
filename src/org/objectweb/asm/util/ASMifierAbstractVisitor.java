@@ -31,6 +31,7 @@ package org.objectweb.asm.util;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodHandle;
 import org.objectweb.asm.MethodType;
 import org.objectweb.asm.Type;
@@ -53,7 +54,7 @@ public class ASMifierAbstractVisitor extends AbstractVisitor {
      * The label names. This map associates String values to Label keys. It is
      * used only in ASMifierMethodVisitor.
      */
-    Map labelNames;
+    Map<Label, String> labelNames;
 
     /**
      * Constructs a new {@link ASMifierAbstractVisitor}.

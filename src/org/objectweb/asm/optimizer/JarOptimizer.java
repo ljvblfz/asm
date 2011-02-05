@@ -59,8 +59,8 @@ import org.objectweb.asm.commons.EmptyVisitor;
  */
 public class JarOptimizer {
 
-    static final Set API= new HashSet();
-    static final Map HIERARCHY = new HashMap();
+    static final Set<String> API= new HashSet<String>();
+    static final Map<String, String> HIERARCHY = new HashMap<String, String>();
 
     public static void main(final String[] args) throws IOException {
         File f = new File(args[0]);
@@ -93,10 +93,10 @@ public class JarOptimizer {
             File g = new File(f.getParentFile(), f.getName() + ".new");
             ZipFile zf = new ZipFile(f);
             ZipOutputStream out = new ZipOutputStream(new FileOutputStream(g));
-            Enumeration e = zf.entries();
+            Enumeration<? extends ZipEntry> e = zf.entries();
             byte[] buf = new byte[10000];
             while (e.hasMoreElements()) {
-                ZipEntry ze = (ZipEntry) e.nextElement();
+                ZipEntry ze = e.nextElement();
                 if (ze.isDirectory()) {
                     continue;
                 }
@@ -220,7 +220,7 @@ public class JarOptimizer {
                     if (API.contains(o + ' ' + member)) {
                         return;
                     }
-                    o = (String) HIERARCHY.get(o);
+                    o = HIERARCHY.get(o);
                 }
                 System.out.println("WARNING: " + owner + ' ' + member
                         + " called in " + this.owner + ' ' + method

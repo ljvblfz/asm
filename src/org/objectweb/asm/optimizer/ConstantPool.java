@@ -41,7 +41,7 @@ import org.objectweb.asm.Type;
  *
  * @author Eric Bruneton
  */
-public class ConstantPool extends HashMap {
+public class ConstantPool extends HashMap<Constant, Constant> {
 
     private final Constant key1 = new Constant();
 
@@ -244,7 +244,7 @@ public class ConstantPool extends HashMap {
     }
 
     private Constant get(final Constant key) {
-        return (Constant) get((Object) key);
+        return get((Object) key);
     }
 
     private void put(final Constant cst) {

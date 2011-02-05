@@ -75,7 +75,7 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
     /**
      * The label names. This map associate String values to Label keys.
      */
-    protected final Map labelNames;
+    protected final Map<Label, String> labelNames;
 
     /**
      * Constructs a new {@link TraceMethodVisitor}.
@@ -91,7 +91,7 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
      *        calls. May be <tt>null</tt>.
      */
     public TraceMethodVisitor(final MethodVisitor mv) {
-        this.labelNames = new HashMap();
+        this.labelNames = new HashMap<Label, String>();
         this.mv = mv;
     }
 
@@ -589,7 +589,7 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
      * @param l a label.
      */
     protected void appendLabel(final Label l) {
-        String name = (String) labelNames.get(l);
+        String name = labelNames.get(l);
         if (name == null) {
             name = "L" + labelNames.size();
             labelNames.put(l, name);

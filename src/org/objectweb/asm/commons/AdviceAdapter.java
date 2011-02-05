@@ -68,8 +68,8 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
 
     private boolean constructor;
     private boolean superInitialized;
-    private List stackFrame;
-    private Map branches;
+    private List<Object> stackFrame;
+    private Map<Label, List<Object>> branches;
 
     /**
      * Creates a new {@link AdviceAdapter}.
@@ -95,8 +95,8 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
     public void visitCode() {
         mv.visitCode();
         if (constructor) {
-            stackFrame = new ArrayList();
-            branches = new HashMap();
+            stackFrame = new ArrayList<Object>();
+            branches = new HashMap<Label, List<Object>>();
         } else {
             superInitialized = true;
             onMethodEnter();
@@ -107,7 +107,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         mv.visitLabel(label);
 
         if (constructor && branches != null) {
-            List frame = (List) branches.get(label);
+            List<Object> frame = branches.get(label);
             if (frame != null) {
                 stackFrame = frame;
                 branches.remove(label);
@@ -570,7 +570,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes
         if (branches.containsKey(label)) {
             return;
         }
-        branches.put(label, new ArrayList(stackFrame));
+        branches.put(label, new ArrayList<Object>(stackFrame));
     }
 
     private Object popValue() {

@@ -61,6 +61,7 @@ public class JarOptimizer {
 
     static final Set<String> API= new HashSet<String>();
     static final Map<String, String> HIERARCHY = new HashMap<String, String>();
+    static boolean nodebug = false;
 
     public static void main(final String[] args) throws IOException {
         File f = new File(args[0]);
@@ -80,10 +81,21 @@ public class JarOptimizer {
                 break;
             }
         }
-        optimize(new File(args[1]));
+        
+        int argIndex = 1;
+        if (args[argIndex].equals("-nodebug")) {
+            nodebug = true;
+            argIndex++;
+        }
+        
+        optimize(new File(args[argIndex]));
     }
 
     static void optimize(final File f) throws IOException {
+        if (nodebug && f.getName().contains("debug")) {
+            return;
+        }
+        
         if (f.isDirectory()) {
             File[] files = f.listFiles();
             for (int i = 0; i < files.length; ++i) {

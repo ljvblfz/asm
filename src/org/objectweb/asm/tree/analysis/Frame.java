@@ -79,7 +79,7 @@ public class Frame<V extends Value> {
      * @param nStack the maximum stack size of the frame.
      */
     public Frame(final int nLocals, final int nStack) {
-        this.values = (V[])new Object[nLocals + nStack];
+        this.values = (V[])new Value[nLocals + nStack];
         this.locals = nLocals;
     }
 

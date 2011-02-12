@@ -74,9 +74,8 @@ abstract class Exp implements Opcodes {
      */
     byte[] compile(final String name) {
         // class header
-        String[] itfs = { Expression.class.getName() };
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        cw.visit(V1_1, ACC_PUBLIC, name, null, "java/lang/Object", itfs);
+        cw.visit(V1_1, ACC_PUBLIC, name, null, "java/lang/Object", new String[] { Expression.class.getName() });
 
         // default public constructor
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC,

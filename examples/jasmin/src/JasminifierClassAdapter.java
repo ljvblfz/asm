@@ -494,7 +494,7 @@ public class JasminifierClassAdapter extends ClassAdapter {
                             int min,
                             int max,
                             Label dflt,
-                            Label[] labels)
+                            Label... labels)
                         {
                             pw.print("tableswitch ");
                             pw.println(min);

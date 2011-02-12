@@ -29,7 +29,6 @@
  */
 package org.objectweb.asm.tree;
 
-import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.FieldVisitor;

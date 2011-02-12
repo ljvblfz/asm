@@ -128,7 +128,7 @@ public class MethodAdapter implements MethodVisitor {
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
         mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
     }
@@ -153,7 +153,7 @@ public class MethodAdapter implements MethodVisitor {
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
         mv.visitTableSwitchInsn(min, max, dflt, labels);
     }

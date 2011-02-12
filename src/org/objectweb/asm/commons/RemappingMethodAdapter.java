@@ -82,7 +82,7 @@ public class RemappingMethodAdapter extends LocalVariablesSorter {
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
         for(int i=0; i<bsmArgs.length; i++) {
             bsmArgs[i] = remapper.mapValue(bsmArgs[i]);

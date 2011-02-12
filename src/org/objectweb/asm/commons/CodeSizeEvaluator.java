@@ -138,7 +138,7 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
         minSize += 5;
         maxSize += 5;
@@ -189,7 +189,7 @@ public class CodeSizeEvaluator extends MethodAdapter implements Opcodes {
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
         minSize += 13 + labels.length * 4;
         maxSize += 16 + labels.length * 4;

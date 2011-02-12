@@ -1158,7 +1158,7 @@ public class ClassWriter implements ClassVisitor {
         final String name,
         final String desc,
         final MethodHandle bsm,
-        final Object[] bsmArgs)
+        final Object... bsmArgs)
     {
         // cache for performance
         ByteVector bootstrapMethods = this.bootstrapMethods;
@@ -1245,7 +1245,7 @@ public class ClassWriter implements ClassVisitor {
         final String name,
         final String desc,
         final MethodHandle bsm,
-        final Object[] bsmArgs)
+        final Object... bsmArgs)
     {
         return newInvokeDynamicItem(name, desc, bsm, bsmArgs).index;
     }

@@ -73,7 +73,7 @@ public class InvokeDynamicInsnNode extends AbstractInsnNode {
         final String name,
         final String desc,
         final MethodHandle bsm,
-        final Object[] bsmArgs)
+        final Object... bsmArgs)
     {
         super(Opcodes.INVOKEDYNAMIC);
         this.name = name;

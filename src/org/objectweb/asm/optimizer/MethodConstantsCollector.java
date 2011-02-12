@@ -120,7 +120,7 @@ public class MethodConstantsCollector extends MethodAdapter {
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
         cp.newInvokeDynamic(name, desc, bsm, bsmArgs);
         mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);

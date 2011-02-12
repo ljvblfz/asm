@@ -60,7 +60,7 @@ import java.util.Map;
  * method whose signature is <tt>void m ()</tt>, the invalid instruction
  * IRETURN, or the invalid sequence IADD L2I will be detected if the data flow
  * checks are enabled. These checks are enabled by using the {@link
- * CheckMethodAdapter(int,String,String,MethodVisitor,Map)} constructor. They
+ * #CheckMethodAdapter(int,String,String,MethodVisitor,Map)} constructor. They
  * are not performed if any other constructor is used.
  *
  * @author Eric Bruneton
@@ -329,7 +329,7 @@ public class CheckMethodAdapter extends MethodAdapter {
     /**
      * Constructs a new {@link CheckMethodAdapter} object. This method adapter
      * will not perform any data flow check (see {@link
-     * CheckMethodAdapter(int,String,String,MethodVisitor,Map)}).
+     * #CheckMethodAdapter(int,String,String,MethodVisitor,Map)}).
      *
      * @param mv the method visitor to which this adapter must delegate calls.
      */
@@ -340,7 +340,7 @@ public class CheckMethodAdapter extends MethodAdapter {
     /**
      * Constructs a new {@link CheckMethodAdapter} object. This method adapter
      * will not perform any data flow check (see {@link
-     * CheckMethodAdapter(int,String,String,MethodVisitor,Map)}).
+     * #CheckMethodAdapter(int,String,String,MethodVisitor,Map)}).
      *
      * @param mv the method visitor to which this adapter must delegate calls.
      * @param labels a map of already visited labels (in other methods).
@@ -576,7 +576,7 @@ public class CheckMethodAdapter extends MethodAdapter {
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
         checkStartCode();
         checkEndCode();
@@ -633,7 +633,7 @@ public class CheckMethodAdapter extends MethodAdapter {
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
         checkStartCode();
         checkEndCode();

@@ -205,7 +205,7 @@ public class DependencyVisitor implements
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
         addMethodDesc(desc);
         addConstant(bsm);
@@ -271,7 +271,7 @@ public class DependencyVisitor implements
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
     }
 

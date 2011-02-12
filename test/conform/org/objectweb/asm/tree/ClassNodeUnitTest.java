@@ -131,7 +131,7 @@ public class ClassNodeUnitTest extends TestCase implements Opcodes {
     }
 
     public void testTableSwitchInsnNode() {
-        TableSwitchInsnNode tsn = new TableSwitchInsnNode(0, 1, null, null);
+        TableSwitchInsnNode tsn = new TableSwitchInsnNode(0, 1, null, (LabelNode[])null);
         assertEquals(AbstractInsnNode.TABLESWITCH_INSN, tsn.getType());
     }
 

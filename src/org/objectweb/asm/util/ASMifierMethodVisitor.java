@@ -214,7 +214,7 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
         buf.setLength(0);
         buf.append("mv.visitInvokeDynamicInsn(");
@@ -274,7 +274,7 @@ public class ASMifierMethodVisitor extends ASMifierAbstractVisitor implements
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
         buf.setLength(0);
         for (int i = 0; i < labels.length; ++i) {

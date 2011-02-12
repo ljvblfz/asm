@@ -864,7 +864,7 @@ class MethodWriter implements MethodVisitor {
         final String name,
         final String desc,
         final MethodHandle bsm,
-        final Object[] bsmArgs)
+        final Object... bsmArgs)
     {
         Item i = cw.newInvokeDynamicItem(name, desc, bsm, bsmArgs);
         int argSize = i.intVal;
@@ -1108,7 +1108,7 @@ class MethodWriter implements MethodVisitor {
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
         // adds the instruction to the bytecode of the method
         int source = code.length;

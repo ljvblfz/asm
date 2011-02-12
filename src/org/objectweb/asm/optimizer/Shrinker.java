@@ -34,8 +34,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.AbstractMap;
-import java.util.AbstractSet;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -193,7 +191,7 @@ public class Shrinker {
             return d;
         }
 
-        private int compareMHandle(MethodHandle mh1, MethodHandle mh2) {
+        private static int compareMHandle(MethodHandle mh1, MethodHandle mh2) {
             int d = mh1.getTag() - mh2.getTag();
             if (d == 0) {
                 d = mh1.getOwner().compareTo(mh2.getOwner());
@@ -207,11 +205,11 @@ public class Shrinker {
             return d;
         }
 
-        private int compareMethodType(MethodType mtype1, MethodType mtype2) {
+        private static int compareMethodType(MethodType mtype1, MethodType mtype2) {
             return mtype1.getDescriptor().compareTo(mtype2.getDescriptor());
         }
 
-        private int compareObjects(Object[] objVals1, Object[] objVals2)
+        private static int compareObjects(Object[] objVals1, Object[] objVals2)
         {
             int length = objVals1.length;
             int d = length - objVals2.length;

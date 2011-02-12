@@ -326,7 +326,7 @@ public class AnalyzerAdapter extends MethodAdapter {
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
         if (mv != null) {
             mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
@@ -404,7 +404,7 @@ public class AnalyzerAdapter extends MethodAdapter {
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
         if (mv != null) {
             mv.visitTableSwitchInsn(min, max, dflt, labels);

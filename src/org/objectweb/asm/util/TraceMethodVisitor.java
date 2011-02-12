@@ -302,7 +302,7 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
         buf.setLength(0);
         buf.append(tab2).append("INVOKEDYNAMIC").append(' ');
@@ -390,7 +390,7 @@ public class TraceMethodVisitor extends TraceAbstractVisitor implements
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
         buf.setLength(0);
         buf.append(tab2).append("TABLESWITCH\n");

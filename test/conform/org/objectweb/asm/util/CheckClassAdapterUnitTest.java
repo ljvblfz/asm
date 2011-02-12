@@ -547,7 +547,7 @@ public class CheckClassAdapterUnitTest extends TestCase implements Opcodes {
         MethodVisitor mv = new CheckMethodAdapter(new EmptyVisitor());
         mv.visitCode();
         try {
-            mv.visitTableSwitchInsn(0, 1, new Label(), null);
+            mv.visitTableSwitchInsn(0, 1, new Label(), (Label[])null);
             fail();
         } catch (Exception e) {
         }

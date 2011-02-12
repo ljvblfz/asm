@@ -509,7 +509,7 @@ public class InstructionAdapter extends MethodAdapter {
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
        invokedynamic(name, desc, bsm, bsmArgs);
     }
@@ -625,7 +625,7 @@ public class InstructionAdapter extends MethodAdapter {
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
         tableswitch(min, max, dflt, labels);
     }
@@ -941,7 +941,7 @@ public class InstructionAdapter extends MethodAdapter {
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
         mv.visitTableSwitchInsn(min, max, dflt, labels);
     }

@@ -166,7 +166,7 @@ public class EmptyVisitor implements
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
     }
 
@@ -186,7 +186,7 @@ public class EmptyVisitor implements
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
     }
 

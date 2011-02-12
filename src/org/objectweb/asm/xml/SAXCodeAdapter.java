@@ -209,7 +209,7 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
         AttributesImpl attrs = new AttributesImpl();
         attrs.addAttribute("", "name", "name", "", name);
@@ -264,7 +264,7 @@ public final class SAXCodeAdapter extends SAXAdapter implements MethodVisitor {
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
         AttributesImpl attrs = new AttributesImpl();
         attrs.addAttribute("", "min", "min", "", Integer.toString(min));

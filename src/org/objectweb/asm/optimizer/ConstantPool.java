@@ -215,7 +215,7 @@ public class ConstantPool extends HashMap<Constant, Constant> {
         return result;
     }
 
-    public Constant newInvokeDynamic(String name, String desc, MethodHandle bsm, Object[] bsmArgs)
+    public Constant newInvokeDynamic(String name, String desc, MethodHandle bsm, Object... bsmArgs)
     {
         key5.set(name, desc, bsm, bsmArgs);
         Constant result = get(key5);

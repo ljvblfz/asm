@@ -260,7 +260,7 @@ public interface MethodVisitor {
      *        This method is allowed to modify the content of the array so
      *        a caller should expect that this array may change.
      */
-    void visitInvokeDynamicInsn(String name, String desc, MethodHandle bsm, Object[] bsmArgs);
+    void visitInvokeDynamicInsn(String name, String desc, MethodHandle bsm, Object... bsmArgs);
 
     /**
      * Visits a jump instruction. A jump instruction is an instruction that may
@@ -317,7 +317,7 @@ public interface MethodVisitor {
      * @param labels beginnings of the handler blocks. <tt>labels[i]</tt> is
      *        the beginning of the handler block for the <tt>min + i</tt> key.
      */
-    void visitTableSwitchInsn(int min, int max, Label dflt, Label[] labels);
+    void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels);
 
     /**
      * Visits a LOOKUPSWITCH instruction.

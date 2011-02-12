@@ -30,7 +30,6 @@
 package org.objectweb.asm.tree;
 
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodHandle;
 import org.objectweb.asm.MethodVisitor;
@@ -281,7 +280,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
         String name,
         String desc,
         MethodHandle bsm,
-        Object[] bsmArgs)
+        Object... bsmArgs)
     {
         instructions.add(new InvokeDynamicInsnNode(name, desc, bsm, bsmArgs));
     }
@@ -306,7 +305,7 @@ public class MethodNode extends MemberNode implements MethodVisitor {
         final int min,
         final int max,
         final Label dflt,
-        final Label[] labels)
+        final Label... labels)
     {
         instructions.add(new TableSwitchInsnNode(min,
                 max,

@@ -79,7 +79,7 @@ public class TableSwitchInsnNode extends AbstractInsnNode {
         final int min,
         final int max,
         final LabelNode dflt,
-        final LabelNode[] labels)
+        final LabelNode... labels)
     {
         super(Opcodes.TABLESWITCH);
         this.min = min;

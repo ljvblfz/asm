@@ -322,6 +322,7 @@ public class SerialVersionUIDAdder extends ClassAdapter {
      * <code>isHasSVUID</code> to determine if the class already had an SVUID.
      * 
      * @return Returns the serial version UID
+     * @throws IOException if an I/O error occurs
      */
     protected long computeSVUID() throws IOException {
         ByteArrayOutputStream bos;

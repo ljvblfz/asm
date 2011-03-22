@@ -180,6 +180,11 @@ public abstract class Remapper {
 
     /**
      * Map method name to the new name. Subclasses can override.
+     * 
+     * @param owner owner of the method.
+     * @param name name of the method.
+     * @param desc descriptor of the method.
+     * @return new name of the method
      */
     public String mapMethodName(String owner, String name, String desc) {
         return name;
@@ -187,6 +192,10 @@ public abstract class Remapper {
 
     /**
      * Map invokedynamic method name to the new name. Subclasses can override.
+     * 
+     * @param name name of the invokedynamic.
+     * @param desc descriptor of the invokedynamic.
+     * @return new invokdynamic name.
      */
     public String mapInvokeDynamicMethodName(String name, String desc) {
         return name;
@@ -194,6 +203,11 @@ public abstract class Remapper {
 
     /**
      * Map field name to the new name. Subclasses can override.
+     * 
+     * @param owner owner of the field.
+     * @param name name of the field
+     * @param desc descriptor of the field
+     * @return new name of the field.
      */
     public String mapFieldName(String owner, String name, String desc) {
         return name;
@@ -201,6 +215,7 @@ public abstract class Remapper {
 
     /**
      * Map type name to the new name. Subclasses can override.
+     * 
      */
     public String map(String typeName) {
         return typeName;

@@ -42,6 +42,8 @@ import org.objectweb.asm.tree.AbstractInsnNode;
  * various semantic interpreters, without needing to duplicate the code to
  * simulate the transfer of values.
  * 
+ * @param <V> type of the Value used for the analysis.
+ * 
  * @author Eric Bruneton
  */
 public interface Interpreter<V extends Value> {

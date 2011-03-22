@@ -177,9 +177,9 @@ public class SimpleVerifier extends BasicVerifier {
         throw new Error("Internal error");
     }
 
-    protected boolean isSubTypeOf(final Value value, final Value expected) {
-        Type expectedType = ((BasicValue) expected).getType();
-        Type type = ((BasicValue) value).getType();
+    protected boolean isSubTypeOf(final BasicValue value, final BasicValue expected) {
+        Type expectedType = expected.getType();
+        Type type = value.getType();
         switch (expectedType.getSort()) {
             case Type.INT:
             case Type.FLOAT:

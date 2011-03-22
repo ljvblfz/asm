@@ -433,7 +433,7 @@ public class BasicVerifier extends BasicInterpreter {
         return value.isReference();
     }
 
-    protected BasicValue getElementValue(final Value objectArrayValue)
+    protected BasicValue getElementValue(final BasicValue objectArrayValue)
             throws AnalyzerException
     {
         return BasicValue.REFERENCE_VALUE;

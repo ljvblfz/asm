@@ -764,6 +764,9 @@ public class ClassWriter implements ClassVisitor {
      * @return the bytecode of the class that was build with this class writer.
      */
     public byte[] toByteArray() {
+        if (index > Short.MAX_VALUE) {
+            throw new RuntimeException("Class file too large!");
+        }
         // computes the real size of the bytecode of this class
         int size = 24 + 2 * interfaceCount;
         int nbFields = 0;
@@ -1384,8 +1387,8 @@ public class ClassWriter implements ClassVisitor {
         if (result == null) {
             pool.putByte(LONG).putLong(value);
             result = new Item(index, key);
-            put(result);
             index += 2;
+            put(result);
         }
         return result;
     }
@@ -1403,8 +1406,8 @@ public class ClassWriter implements ClassVisitor {
         if (result == null) {
             pool.putByte(DOUBLE).putLong(key.longVal);
             result = new Item(index, key);
-            put(result);
             index += 2;
+            put(result);
         }
         return result;
     }
@@ -1608,7 +1611,7 @@ public class ClassWriter implements ClassVisitor {
      * @param i the item to be added to the constant pool's hash table.
      */
     private void put(final Item i) {
-        if (index > threshold) {
+        if (index + typeCount > threshold) {
             int ll = items.length;
             int nl = ll * 2 + 1;
             Item[] newItems = new Item[nl];

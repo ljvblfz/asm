@@ -903,11 +903,11 @@ final class Frame {
                         push(OBJECT | cw.addType("java/lang/String"));
                         break;
                     case ClassWriter.MTYPE:
-                        push(OBJECT | cw.addType("java/dyn/MethodType"));
+                        push(OBJECT | cw.addType("java/lang/invoke/MethodType"));
                         break;
                     // case ClassWriter.MHANDLE_BASE + [1..9]:
                     default:
-                        push(OBJECT | cw.addType("java/dyn/MethodHandle"));
+                        push(OBJECT | cw.addType("java/lang/invoke/MethodHandle"));
                 }
                 break;
             case Opcodes.ALOAD:

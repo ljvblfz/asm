@@ -119,9 +119,9 @@ public class BasicInterpreter implements Opcodes, Interpreter<BasicValue> {
                 } else if (cst instanceof Type) {
                     return newValue(Type.getObjectType("java/lang/Class"));
                 } else if (cst instanceof MethodType) {
-                    return newValue(Type.getObjectType("java/dyn/MethodType"));
+                    return newValue(Type.getObjectType("java/lang/invoke/MethodType"));
                 } else if (cst instanceof MethodHandle) {
-                    return newValue(Type.getObjectType("java/dyn/MethodHandle"));
+                    return newValue(Type.getObjectType("java/lang/invoke/MethodHandle"));
                 } else {
                     return newValue(Type.getType(cst.getClass()));
                 }

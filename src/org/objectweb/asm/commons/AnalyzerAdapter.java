@@ -384,9 +384,9 @@ public class AnalyzerAdapter extends MethodAdapter {
         } else if (cst instanceof Type) {
             push("java/lang/Class");
         } else if (cst instanceof MethodType) {
-            push("java/dyn/MethodType");
+            push("java/lang/invoke/MethodType");
         } else if (cst instanceof MethodHandle) {
-            push("java/dyn/MethodHandle");
+            push("java/lang/invoke/MethodHandle");
         } else {
             throw new IllegalArgumentException();
         }

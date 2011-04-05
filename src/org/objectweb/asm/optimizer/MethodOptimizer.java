@@ -122,7 +122,7 @@ public class MethodOptimizer extends RemappingMethodAdapter implements Opcodes {
                 fieldName, "Ljava/lang/Class;");
         fv.visitEnd();
 
-        if (classOptimizer.class$) {
+        if (!classOptimizer.class$) {
             MethodVisitor mv = classOptimizer.visitMethod(ACC_STATIC | ACC_SYNTHETIC,
                     "class$", "(Ljava/lang/String;)Ljava/lang/Class;", null, null);
             mv.visitCode();

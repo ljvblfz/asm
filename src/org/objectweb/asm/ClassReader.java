@@ -422,8 +422,8 @@ public class ClassReader {
                         hashCode ^= readConst(readUnsignedShort(u), buf).hashCode();
                         u += 2;
                     }
-                    Item item = new Item();
-                    item.set(x, hashCode & 0x7FFFFFFF);
+                    Item item = new Item(j);
+                    item.set(x - v - 8, hashCode & 0x7FFFFFFF);
 
                     int index2 = item.hashCode % items2.length;
                     item.next = items2[index2];

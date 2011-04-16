@@ -1190,7 +1190,7 @@ public class ClassWriter implements ClassVisitor {
         int length = (1 + 1 + argsLength) << 1; // (bsm + argCount + arguments)
         hashCode &= 0x7FFFFFFF;
         Item result = items[hashCode % items.length];
-        while (result != null) {
+        loop: while (result != null) {
             if (result.type != BSM || result.hashCode != hashCode) {
                 result = result.next;
                 continue;
@@ -1202,7 +1202,7 @@ public class ClassWriter implements ClassVisitor {
             for (int p = 0; p < length; p++) {
                 if (data[position + p] != data[resultPosition + p]) {
                     result = result.next;
-                    continue;
+                    continue loop;
                 }
             }
             break;

@@ -366,6 +366,11 @@ public class ClassWriter extends ClassVisitor {
     private int signature;
 
     /**
+     * Flags of the type variables of this class or null otherwise.
+     */
+    private int[] typeVariableMap;
+    
+    /**
      * The constant pool item that contains the internal name of the super class
      * of this class.
      */
@@ -605,7 +610,7 @@ public class ClassWriter extends ClassVisitor {
      *            {@link #COMPUTE_FRAMES}.
      */
     public ClassWriter(final int flags) {
-        super(Opcodes.ASM5);
+        super(Opcodes.ASM6);
         index = 1;
         pool = new ByteVector();
         items = new Item[256];
@@ -662,8 +667,8 @@ public class ClassWriter extends ClassVisitor {
 
     @Override
     public final void visit(final int version, final int access,
-            final String name, final String signature, final String superName,
-            final String[] interfaces) {
+            final String name, final String signature, final int[] typeVariableMap,
+            final String superName, final String[] interfaces) {
         this.version = version;
         this.access = access;
         this.name = newClass(name);
@@ -671,6 +676,7 @@ public class ClassWriter extends ClassVisitor {
         if (ClassReader.SIGNATURES && signature != null) {
             this.signature = newUTF8(signature);
         }
+        this.typeVariableMap = typeVariableMap;
         this.superName = superName == null ? 0 : newClass(superName);
         if (interfaces != null && interfaces.length > 0) {
             interfaceCount = interfaces.length;
@@ -789,9 +795,10 @@ public class ClassWriter extends ClassVisitor {
 
     @Override
     public final MethodVisitor visitMethod(final int access, final String name,
-            final String desc, final String signature, final String[] exceptions) {
+            final String desc, final String signature,
+            final int[] typeVariableMap, final String[] exceptions) {
         return new MethodWriter(this, access, name, desc, signature,
-                exceptions, computeMaxs, computeFrames);
+                typeVariableMap, exceptions, computeMaxs, computeFrames);
     }
 
     @Override
@@ -839,6 +846,11 @@ public class ClassWriter extends ClassVisitor {
             ++attributeCount;
             size += 8;
             newUTF8("Signature");
+        }
+        if (typeVariableMap != null) {
+            ++attributeCount;
+            size += 7 + typeVariableMap.length;
+            newUTF8("TypeVariableMap");
         }
         if (sourceFile != 0) {
             ++attributeCount;
@@ -932,6 +944,9 @@ public class ClassWriter extends ClassVisitor {
         if (ClassReader.SIGNATURES && signature != 0) {
             out.putShort(newUTF8("Signature")).putInt(2).putShort(signature);
         }
+        if (typeVariableMap != null) {
+            putTypeVariableMap(out, typeVariableMap);
+        }
         if (sourceFile != 0) {
             out.putShort(newUTF8("SourceFile")).putInt(2).putShort(sourceFile);
         }
@@ -997,6 +1012,17 @@ public class ClassWriter extends ClassVisitor {
         }
         return out.data;
     }
+    
+    void putTypeVariableMap(ByteVector out, int[] typeVariableMap) {
+        int length = typeVariableMap.length;
+        out.putShort(newUTF8("TypeVariableMap"))
+           .putInt(length + 1)
+           .putByte(length);
+        for(int i = 0; i < length; i++) {
+            out.putByte(typeVariableMap[i]);
+        }
+    }
+    
 
     // ------------------------------------------------------------------------
     // Utility methods: constant pool management

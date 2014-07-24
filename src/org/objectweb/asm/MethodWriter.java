@@ -37,7 +37,7 @@ package org.objectweb.asm;
  * @author Eric Bruneton
  * @author Eugene Kuleshov
  */
-class MethodWriter extends MethodVisitor {
+final class MethodWriter extends MethodVisitor {
 
     /**
      * Pseudo access flag used to denote constructors.
@@ -147,6 +147,11 @@ class MethodWriter extends MethodVisitor {
      * The signature of this method.
      */
     String signature;
+    
+    /**
+     * Flags of the type variables of this field or null otherwise.
+     */
+    final int[] typeVariableMap;
 
     /**
      * If not zero, indicates that the code of this method must be copied from
@@ -451,8 +456,8 @@ class MethodWriter extends MethodVisitor {
      */
     MethodWriter(final ClassWriter cw, final int access, final String name,
             final String desc, final String signature,
-            final String[] exceptions, final boolean computeMaxs,
-            final boolean computeFrames) {
+            final int[] typeVariableMap, final String[] exceptions,
+            final boolean computeMaxs, final boolean computeFrames) {
         super(Opcodes.ASM5);
         if (cw.firstMethod == null) {
             cw.firstMethod = this;
@@ -471,6 +476,7 @@ class MethodWriter extends MethodVisitor {
         if (ClassReader.SIGNATURES) {
             this.signature = signature;
         }
+        this.typeVariableMap = typeVariableMap;
         if (exceptions != null && exceptions.length > 0) {
             exceptionCount = exceptions.length;
             this.exceptions = new int[exceptionCount];
@@ -2087,6 +2093,10 @@ class MethodWriter extends MethodVisitor {
             cw.newUTF8(signature);
             size += 8;
         }
+        if (typeVariableMap != null) {
+            cw.newUTF8("TypeVariableMap");
+            size += 7 + typeVariableMap.length;
+        }
         if (methodParameters != null) {
             cw.newUTF8("MethodParameters");
             size += 7 + methodParameters.length;
@@ -2165,6 +2175,9 @@ class MethodWriter extends MethodVisitor {
             ++attributeCount;
         }
         if (ClassReader.SIGNATURES && signature != null) {
+            ++attributeCount;
+        }
+        if (typeVariableMap != null) {
             ++attributeCount;
         }
         if (methodParameters != null) {
@@ -2307,6 +2320,9 @@ class MethodWriter extends MethodVisitor {
         if (ClassReader.SIGNATURES && signature != null) {
             out.putShort(cw.newUTF8("Signature")).putInt(2)
                     .putShort(cw.newUTF8(signature));
+        }
+        if (typeVariableMap != null) {
+            cw.putTypeVariableMap(out, typeVariableMap);
         }
         if (methodParameters != null) {
             out.putShort(cw.newUTF8("MethodParameters"));

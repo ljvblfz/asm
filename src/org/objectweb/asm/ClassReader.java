@@ -31,6 +31,7 @@ package org.objectweb.asm;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 /**
  * A Java class parser to make a {@link ClassVisitor} visit an existing class.
@@ -555,6 +556,7 @@ public class ClassReader {
         String enclosingOwner = null;
         String enclosingName = null;
         String enclosingDesc = null;
+        int[] typeVariableMap = null;
         int anns = 0;
         int ianns = 0;
         int tanns = 0;
@@ -607,6 +609,8 @@ public class ClassReader {
                     v += 2 + readUnsignedShort(v + 2) << 1;
                 }
                 context.bootstrapMethods = bootstrapMethods;
+            } else if ("TypeVariablesMap".equals(attrName)) {
+                typeVariableMap = readTypeVariableMap(u + 8);
             } else {
                 Attribute attr = readAttribute(attrs, attrName, u + 8,
                         readInt(u + 4), c, -1, null);
@@ -620,7 +624,7 @@ public class ClassReader {
 
         // visits the class declaration
         classVisitor.visit(readInt(items[1] - 7), access, name, signature,
-                superClass, interfaces);
+                typeVariableMap, superClass, interfaces);
 
         // visits the source and debug info
         if ((flags & SKIP_DEBUG) == 0
@@ -840,6 +844,7 @@ public class ClassReader {
         int exception = 0;
         String[] exceptions = null;
         String signature = null;
+        int[] typeVariableMap = null;
         int methodParameters = 0;
         int anns = 0;
         int ianns = 0;
@@ -895,6 +900,8 @@ public class ClassReader {
                 impanns = u + 8;
             } else if ("MethodParameters".equals(attrName)) {
                 methodParameters = u + 8;
+            } else if ("TypeVariablesMap".equals(attrName)) {
+                typeVariableMap = readTypeVariableMap(u + 8);
             } else {
                 Attribute attr = readAttribute(context.attrs, attrName, u + 8,
                         readInt(u + 4), c, -1, null);
@@ -909,7 +916,8 @@ public class ClassReader {
 
         // visits the method declaration
         MethodVisitor mv = classVisitor.visitMethod(context.access,
-                context.name, context.desc, signature, exceptions);
+                context.name, context.desc, signature, typeVariableMap,
+                exceptions);
         if (mv == null) {
             return u;
         }
@@ -926,7 +934,8 @@ public class ClassReader {
          */
         if (WRITER && mv instanceof MethodWriter) {
             MethodWriter mw = (MethodWriter) mv;
-            if (mw.cw.cr == this && signature == mw.signature) {
+            if (mw.cw.cr == this && signature == mw.signature
+                                 && Arrays.equals(typeVariableMap, mw.typeVariableMap)) {
                 boolean sameExceptions = false;
                 if (exceptions == null) {
                     sameExceptions = mw.exceptionCount == 0;
@@ -1554,6 +1563,19 @@ public class ClassReader {
         mv.visitMaxs(maxStack, maxLocals);
     }
 
+    /**
+     * Parse type variable flags.
+     * 
+     * @param u the start offset of a type variable map.
+     */
+    private int[] readTypeVariableMap(int u) {
+        int[] typeVariableMap = new int[readByte(u++)]; 
+        for (int j = 0; j < typeVariableMap.length; j++) {
+            typeVariableMap[j] = readByte(u + j);
+        }
+        return typeVariableMap;
+    }
+    
     /**
      * Parses a type annotation table to find the labels, and to visit the try
      * catch block annotations.

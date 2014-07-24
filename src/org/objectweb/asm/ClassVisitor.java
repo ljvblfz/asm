@@ -75,13 +75,56 @@ public abstract class ClassVisitor {
      *            calls. May be null.
      */
     public ClassVisitor(final int api, final ClassVisitor cv) {
-        if (api != Opcodes.ASM4 && api != Opcodes.ASM5) {
+        if (api != Opcodes.ASM4 && api != Opcodes.ASM5 && api != Opcodes.ASM6) {
             throw new IllegalArgumentException();
         }
         this.api = api;
         this.cv = cv;
     }
 
+    /**
+     * Visits the header of the class.
+     * 
+     * @param version
+     *            the class version.
+     * @param access
+     *            the class's access flags (see {@link Opcodes}). This parameter
+     *            also indicates if the class is deprecated.
+     * @param name
+     *            the internal name of the class (see
+     *            {@link Type#getInternalName() getInternalName}).
+     * @param signature
+     *            the signature of this class. May be <tt>null</tt> if the class
+     *            is not a generic one, and does not extend or implement generic
+     *            classes or interfaces.
+     * @param typeVariableMap
+     *            the flags of the type variables declared by that class.
+     *            May be <tt>null</tt> if the class doesn't declare special
+     *            type variable flags.            
+     * @param superName
+     *            the internal of name of the super class (see
+     *            {@link Type#getInternalName() getInternalName}). For
+     *            interfaces, the super class is {@link Object}. May be
+     *            <tt>null</tt>, but only for the {@link Object} class.
+     * @param interfaces
+     *            the internal names of the class's interfaces (see
+     *            {@link Type#getInternalName() getInternalName}). May be
+     *            <tt>null</tt>.
+     */
+    public void visit(int version, int access, String name, String signature,
+            int[] typeVariableMap, String superName, String[] interfaces) {
+        if (api < Opcodes.ASM6) {
+            if (typeVariableMap != null) {
+                throw new IllegalArgumentException("TypeVariableMap require ASM 6");
+            }
+            visit(version, access, name, signature, superName, interfaces);
+            return;
+        }
+        if (cv != null) {
+            cv.visit(version, access, name, signature, typeVariableMap, superName, interfaces);
+        }
+    }
+    
     /**
      * Visits the header of the class.
      * 
@@ -107,8 +150,13 @@ public abstract class ClassVisitor {
      *            {@link Type#getInternalName() getInternalName}). May be
      *            <tt>null</tt>.
      */
+    @Deprecated
     public void visit(int version, int access, String name, String signature,
             String superName, String[] interfaces) {
+        if (api >= Opcodes.ASM6) {
+            visit(version, access, name, signature, null, superName, interfaces);
+            return;
+        }
         if (cv != null) {
             cv.visit(version, access, name, signature, superName, interfaces);
         }
@@ -238,7 +286,7 @@ public abstract class ClassVisitor {
             cv.visitInnerClass(name, outerName, innerName, access);
         }
     }
-
+    
     /**
      * Visits a field of the class.
      * 
@@ -291,6 +339,10 @@ public abstract class ClassVisitor {
      *            the method's signature. May be <tt>null</tt> if the method
      *            parameters, return type and exceptions do not use generic
      *            types.
+     * @param typeVariableMap
+     *            the flags of the type variables declared by that class.
+     *            May be <tt>null</tt> if the class doesn't declare special
+     *            type variable flags.
      * @param exceptions
      *            the internal names of the method's exception classes (see
      *            {@link Type#getInternalName() getInternalName}). May be
@@ -300,7 +352,50 @@ public abstract class ClassVisitor {
      *         this method.
      */
     public MethodVisitor visitMethod(int access, String name, String desc,
+            String signature, int[] typeVariableMap, String[] exceptions) {
+        if (api < Opcodes.ASM6) {
+            if (typeVariableMap != null) {
+                throw new IllegalArgumentException("TypeVariableMap require ASM 6");
+            }
+            return visitMethod(access, name, desc, signature, exceptions);
+        }
+        if (cv != null) {
+            return cv.visitMethod(access, name, desc, signature, typeVariableMap, exceptions);
+        }
+        return null;
+    }
+    
+    /**
+     * Visits a method of the class. This method <i>must</i> return a new
+     * {@link MethodVisitor} instance (or <tt>null</tt>) each time it is called,
+     * i.e., it should not return a previously returned visitor.
+     * 
+     * @param access
+     *            the method's access flags (see {@link Opcodes}). This
+     *            parameter also indicates if the method is synthetic and/or
+     *            deprecated.
+     * @param name
+     *            the method's name.
+     * @param desc
+     *            the method's descriptor (see {@link Type Type}).
+     * @param signature
+     *            the method's signature. May be <tt>null</tt> if the method
+     *            parameters, return type and exceptions do not use generic
+     *            types.
+     * @param exceptions
+     *            the internal names of the method's exception classes (see
+     *            {@link Type#getInternalName() getInternalName}). May be
+     *            <tt>null</tt>.
+     * @return an object to visit the byte code of the method, or <tt>null</tt>
+     *         if this class visitor is not interested in visiting the code of
+     *         this method.
+     */
+    @Deprecated
+    public MethodVisitor visitMethod(int access, String name, String desc,
             String signature, String[] exceptions) {
+        if (api >= Opcodes.ASM6) {
+            return visitMethod(access, name, desc, signature, null, exceptions);
+        }
         if (cv != null) {
             return cv.visitMethod(access, name, desc, signature, exceptions);
         }

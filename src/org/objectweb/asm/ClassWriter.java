@@ -368,7 +368,7 @@ public class ClassWriter extends ClassVisitor {
     /**
      * Flags of the type variables of this class or null otherwise.
      */
-    private int[] typeVariableMap;
+    private int[] typeVariablesMap;
     
     /**
      * The constant pool item that contains the internal name of the super class
@@ -667,7 +667,7 @@ public class ClassWriter extends ClassVisitor {
 
     @Override
     public final void visit(final int version, final int access,
-            final String name, final String signature, final int[] typeVariableMap,
+            final String name, final String signature, final int[] typeVariablesMap,
             final String superName, final String[] interfaces) {
         this.version = version;
         this.access = access;
@@ -676,7 +676,7 @@ public class ClassWriter extends ClassVisitor {
         if (ClassReader.SIGNATURES && signature != null) {
             this.signature = newUTF8(signature);
         }
-        this.typeVariableMap = typeVariableMap;
+        this.typeVariablesMap = typeVariablesMap;
         this.superName = superName == null ? 0 : newClass(superName);
         if (interfaces != null && interfaces.length > 0) {
             interfaceCount = interfaces.length;
@@ -796,9 +796,9 @@ public class ClassWriter extends ClassVisitor {
     @Override
     public final MethodVisitor visitMethod(final int access, final String name,
             final String desc, final String signature,
-            final int[] typeVariableMap, final String[] exceptions) {
+            final int[] typeVariablesMap, final String[] exceptions) {
         return new MethodWriter(this, access, name, desc, signature,
-                typeVariableMap, exceptions, computeMaxs, computeFrames);
+                typeVariablesMap, exceptions, computeMaxs, computeFrames);
     }
 
     @Override
@@ -847,10 +847,10 @@ public class ClassWriter extends ClassVisitor {
             size += 8;
             newUTF8("Signature");
         }
-        if (typeVariableMap != null) {
+        if (typeVariablesMap != null) {
             ++attributeCount;
-            size += 7 + typeVariableMap.length;
-            newUTF8("TypeVariableMap");
+            size += 7 + typeVariablesMap.length;
+            newUTF8("TypeVariablesMap");
         }
         if (sourceFile != 0) {
             ++attributeCount;
@@ -944,8 +944,8 @@ public class ClassWriter extends ClassVisitor {
         if (ClassReader.SIGNATURES && signature != 0) {
             out.putShort(newUTF8("Signature")).putInt(2).putShort(signature);
         }
-        if (typeVariableMap != null) {
-            putTypeVariableMap(out, typeVariableMap);
+        if (typeVariablesMap != null) {
+            putTypeVariablesMap(out, typeVariablesMap);
         }
         if (sourceFile != 0) {
             out.putShort(newUTF8("SourceFile")).putInt(2).putShort(sourceFile);
@@ -1013,13 +1013,13 @@ public class ClassWriter extends ClassVisitor {
         return out.data;
     }
     
-    void putTypeVariableMap(ByteVector out, int[] typeVariableMap) {
-        int length = typeVariableMap.length;
-        out.putShort(newUTF8("TypeVariableMap"))
+    void putTypeVariablesMap(ByteVector out, int[] typeVariablesMap) {
+        int length = typeVariablesMap.length;
+        out.putShort(newUTF8("TypeVariablesMap"))
            .putInt(length + 1)
            .putByte(length);
         for(int i = 0; i < length; i++) {
-            out.putByte(typeVariableMap[i]);
+            out.putByte(typeVariablesMap[i]);
         }
     }
     

@@ -151,7 +151,7 @@ final class MethodWriter extends MethodVisitor {
     /**
      * Flags of the type variables of this field or null otherwise.
      */
-    final int[] typeVariableMap;
+    final int[] typeVariablesMap;
 
     /**
      * If not zero, indicates that the code of this method must be copied from
@@ -444,6 +444,8 @@ final class MethodWriter extends MethodVisitor {
      *            the method's descriptor (see {@link Type}).
      * @param signature
      *            the method's signature. May be <tt>null</tt>.
+     * @param typeVariablesMap
+     *            the flags of the type variables. May be <tt>null</tt>.
      * @param exceptions
      *            the internal names of the method's exceptions. May be
      *            <tt>null</tt>.
@@ -456,7 +458,7 @@ final class MethodWriter extends MethodVisitor {
      */
     MethodWriter(final ClassWriter cw, final int access, final String name,
             final String desc, final String signature,
-            final int[] typeVariableMap, final String[] exceptions,
+            final int[] typeVariablesMap, final String[] exceptions,
             final boolean computeMaxs, final boolean computeFrames) {
         super(Opcodes.ASM5);
         if (cw.firstMethod == null) {
@@ -476,7 +478,7 @@ final class MethodWriter extends MethodVisitor {
         if (ClassReader.SIGNATURES) {
             this.signature = signature;
         }
-        this.typeVariableMap = typeVariableMap;
+        this.typeVariablesMap = typeVariablesMap;
         if (exceptions != null && exceptions.length > 0) {
             exceptionCount = exceptions.length;
             this.exceptions = new int[exceptionCount];
@@ -2093,9 +2095,9 @@ final class MethodWriter extends MethodVisitor {
             cw.newUTF8(signature);
             size += 8;
         }
-        if (typeVariableMap != null) {
-            cw.newUTF8("TypeVariableMap");
-            size += 7 + typeVariableMap.length;
+        if (typeVariablesMap != null) {
+            cw.newUTF8("TypeVariablesMap");
+            size += 7 + typeVariablesMap.length;
         }
         if (methodParameters != null) {
             cw.newUTF8("MethodParameters");
@@ -2177,7 +2179,7 @@ final class MethodWriter extends MethodVisitor {
         if (ClassReader.SIGNATURES && signature != null) {
             ++attributeCount;
         }
-        if (typeVariableMap != null) {
+        if (typeVariablesMap != null) {
             ++attributeCount;
         }
         if (methodParameters != null) {
@@ -2321,8 +2323,8 @@ final class MethodWriter extends MethodVisitor {
             out.putShort(cw.newUTF8("Signature")).putInt(2)
                     .putShort(cw.newUTF8(signature));
         }
-        if (typeVariableMap != null) {
-            cw.putTypeVariableMap(out, typeVariableMap);
+        if (typeVariablesMap != null) {
+            cw.putTypeVariablesMap(out, typeVariablesMap);
         }
         if (methodParameters != null) {
             out.putShort(cw.newUTF8("MethodParameters"));

@@ -97,7 +97,7 @@ public abstract class ClassVisitor {
      *            the signature of this class. May be <tt>null</tt> if the class
      *            is not a generic one, and does not extend or implement generic
      *            classes or interfaces.
-     * @param typeVariableMap
+     * @param typeVariablesMap
      *            the flags of the type variables declared by that class.
      *            May be <tt>null</tt> if the class doesn't declare special
      *            type variable flags.            
@@ -112,16 +112,16 @@ public abstract class ClassVisitor {
      *            <tt>null</tt>.
      */
     public void visit(int version, int access, String name, String signature,
-            int[] typeVariableMap, String superName, String[] interfaces) {
+            int[] typeVariablesMap, String superName, String[] interfaces) {
         if (api < Opcodes.ASM6) {
-            if (typeVariableMap != null) {
+            if (typeVariablesMap != null) {
                 throw new IllegalArgumentException("TypeVariableMap require ASM 6");
             }
             visit(version, access, name, signature, superName, interfaces);
             return;
         }
         if (cv != null) {
-            cv.visit(version, access, name, signature, typeVariableMap, superName, interfaces);
+            cv.visit(version, access, name, signature, typeVariablesMap, superName, interfaces);
         }
     }
     
@@ -339,7 +339,7 @@ public abstract class ClassVisitor {
      *            the method's signature. May be <tt>null</tt> if the method
      *            parameters, return type and exceptions do not use generic
      *            types.
-     * @param typeVariableMap
+     * @param typeVariablesMap
      *            the flags of the type variables declared by that class.
      *            May be <tt>null</tt> if the class doesn't declare special
      *            type variable flags.
@@ -352,15 +352,15 @@ public abstract class ClassVisitor {
      *         this method.
      */
     public MethodVisitor visitMethod(int access, String name, String desc,
-            String signature, int[] typeVariableMap, String[] exceptions) {
+            String signature, int[] typeVariablesMap, String[] exceptions) {
         if (api < Opcodes.ASM6) {
-            if (typeVariableMap != null) {
+            if (typeVariablesMap != null) {
                 throw new IllegalArgumentException("TypeVariableMap require ASM 6");
             }
             return visitMethod(access, name, desc, signature, exceptions);
         }
         if (cv != null) {
-            return cv.visitMethod(access, name, desc, signature, typeVariableMap, exceptions);
+            return cv.visitMethod(access, name, desc, signature, typeVariablesMap, exceptions);
         }
         return null;
     }

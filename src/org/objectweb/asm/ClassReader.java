@@ -610,7 +610,7 @@ public class ClassReader {
                 }
                 context.bootstrapMethods = bootstrapMethods;
             } else if ("TypeVariablesMap".equals(attrName)) {
-                typeVariableMap = readTypeVariableMap(u + 8);
+                typeVariableMap = readTypeVariablesMap(u + 8);
             } else {
                 Attribute attr = readAttribute(attrs, attrName, u + 8,
                         readInt(u + 4), c, -1, null);
@@ -844,7 +844,7 @@ public class ClassReader {
         int exception = 0;
         String[] exceptions = null;
         String signature = null;
-        int[] typeVariableMap = null;
+        int[] typeVariablesMap = null;
         int methodParameters = 0;
         int anns = 0;
         int ianns = 0;
@@ -901,7 +901,7 @@ public class ClassReader {
             } else if ("MethodParameters".equals(attrName)) {
                 methodParameters = u + 8;
             } else if ("TypeVariablesMap".equals(attrName)) {
-                typeVariableMap = readTypeVariableMap(u + 8);
+                typeVariablesMap = readTypeVariablesMap(u + 8);
             } else {
                 Attribute attr = readAttribute(context.attrs, attrName, u + 8,
                         readInt(u + 4), c, -1, null);
@@ -916,7 +916,7 @@ public class ClassReader {
 
         // visits the method declaration
         MethodVisitor mv = classVisitor.visitMethod(context.access,
-                context.name, context.desc, signature, typeVariableMap,
+                context.name, context.desc, signature, typeVariablesMap,
                 exceptions);
         if (mv == null) {
             return u;
@@ -935,7 +935,7 @@ public class ClassReader {
         if (WRITER && mv instanceof MethodWriter) {
             MethodWriter mw = (MethodWriter) mv;
             if (mw.cw.cr == this && signature == mw.signature
-                                 && Arrays.equals(typeVariableMap, mw.typeVariableMap)) {
+                                 && Arrays.equals(typeVariablesMap, mw.typeVariablesMap)) {
                 boolean sameExceptions = false;
                 if (exceptions == null) {
                     sameExceptions = mw.exceptionCount == 0;
@@ -1568,7 +1568,7 @@ public class ClassReader {
      * 
      * @param u the start offset of a type variable map.
      */
-    private int[] readTypeVariableMap(int u) {
+    private int[] readTypeVariablesMap(int u) {
         int[] typeVariableMap = new int[readByte(u++)]; 
         for (int j = 0; j < typeVariableMap.length; j++) {
             typeVariableMap[j] = readByte(u + j);

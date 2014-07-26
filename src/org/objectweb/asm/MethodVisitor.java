@@ -334,8 +334,50 @@ public abstract class MethodVisitor {
      *            LCMP, FCMPL, FCMPG, DCMPL, DCMPG, IRETURN, LRETURN, FRETURN,
      *            DRETURN, ARETURN, RETURN, ARRAYLENGTH, ATHROW, MONITORENTER,
      *            or MONITOREXIT.
+     *            
+     * @param signature
+     *             the unerased signature if the opcode is specializable,
+     *             null otherwise
      */
+    public void visitInsn(int opcode, String signature) {
+        if (api < Opcodes.ASM6) {
+            if (signature != null) {
+                throw new IllegalArgumentException("BytecodeMapping require ASM 6");
+            }
+            visitInsn(opcode);
+            return;
+        }
+        if (mv != null) {
+            mv.visitInsn(opcode, signature);
+        }
+    }
+    
+    /**
+     * Visits a zero operand instruction.
+     * 
+     * @param opcode
+     *            the opcode of the instruction to be visited. This opcode is
+     *            either NOP, ACONST_NULL, ICONST_M1, ICONST_0, ICONST_1,
+     *            ICONST_2, ICONST_3, ICONST_4, ICONST_5, LCONST_0, LCONST_1,
+     *            FCONST_0, FCONST_1, FCONST_2, DCONST_0, DCONST_1, IALOAD,
+     *            LALOAD, FALOAD, DALOAD, AALOAD, BALOAD, CALOAD, SALOAD,
+     *            IASTORE, LASTORE, FASTORE, DASTORE, AASTORE, BASTORE, CASTORE,
+     *            SASTORE, POP, POP2, DUP, DUP_X1, DUP_X2, DUP2, DUP2_X1,
+     *            DUP2_X2, SWAP, IADD, LADD, FADD, DADD, ISUB, LSUB, FSUB, DSUB,
+     *            IMUL, LMUL, FMUL, DMUL, IDIV, LDIV, FDIV, DDIV, IREM, LREM,
+     *            FREM, DREM, INEG, LNEG, FNEG, DNEG, ISHL, LSHL, ISHR, LSHR,
+     *            IUSHR, LUSHR, IAND, LAND, IOR, LOR, IXOR, LXOR, I2L, I2F, I2D,
+     *            L2I, L2F, L2D, F2I, F2L, F2D, D2I, D2L, D2F, I2B, I2C, I2S,
+     *            LCMP, FCMPL, FCMPG, DCMPL, DCMPG, IRETURN, LRETURN, FRETURN,
+     *            DRETURN, ARETURN, RETURN, ARRAYLENGTH, ATHROW, MONITORENTER,
+     *            or MONITOREXIT.
+     */
+    @Deprecated
     public void visitInsn(int opcode) {
+        if (api >= Opcodes.ASM6) {
+            visitInsn(opcode, null);
+            return;
+        }
         if (mv != null) {
             mv.visitInsn(opcode);
         }
@@ -407,7 +449,7 @@ public abstract class MethodVisitor {
      */
     @Deprecated
     public void visitVarInsn(int opcode, int var) {
-       if (api >= Opcodes.ASM6) {
+        if (api >= Opcodes.ASM6) {
             visitVarInsn(opcode, var, null);
             return;
         }
@@ -554,8 +596,43 @@ public abstract class MethodVisitor {
      *            the operand of the instruction to be visited. This operand is
      *            a label that designates the instruction to which the jump
      *            instruction may jump.
+     * @param signature
+     *             the unerased signature if the opcode is specializable,
+     *             null otherwise
      */
+    public void visitJumpInsn(int opcode, Label label, String signature) {
+        if (api < Opcodes.ASM6) {
+            if (signature != null) {
+                throw new IllegalArgumentException("BytecodeMapping require ASM 6");
+            }
+            visitJumpInsn(opcode, label);
+            return;
+        }
+        if (mv != null) {
+            mv.visitJumpInsn(opcode, label, signature);
+        }
+    }
+    
+    /**
+     * Visits a jump instruction. A jump instruction is an instruction that may
+     * jump to another instruction.
+     * 
+     * @param opcode
+     *            the opcode of the type instruction to be visited. This opcode
+     *            is either IFEQ, IFNE, IFLT, IFGE, IFGT, IFLE, IF_ICMPEQ,
+     *            IF_ICMPNE, IF_ICMPLT, IF_ICMPGE, IF_ICMPGT, IF_ICMPLE,
+     *            IF_ACMPEQ, IF_ACMPNE, GOTO, JSR, IFNULL or IFNONNULL.
+     * @param label
+     *            the operand of the instruction to be visited. This operand is
+     *            a label that designates the instruction to which the jump
+     *            instruction may jump.
+     */
+    @Deprecated
     public void visitJumpInsn(int opcode, Label label) {
+        if (api >= Opcodes.ASM6) {
+            visitJumpInsn(opcode, label, null);
+            return;
+        }
         if (mv != null) {
             mv.visitJumpInsn(opcode, label);
         }

@@ -719,10 +719,11 @@ final class MethodWriter extends MethodVisitor {
     }
 
     @Override
-    public void visitInsn(final int opcode) {
+    public void visitInsn(final int opcode, final String signature) {
         lastCodeOffset = code.length;
         // adds the instruction to the bytecode of the method
         code.putByte(opcode);
+        //FIXME add support of BytecodeMapping here !
         // update currentBlock
         // Label currentBlock = this.currentBlock;
         if (currentBlock != null) {
@@ -984,7 +985,8 @@ final class MethodWriter extends MethodVisitor {
     }
 
     @Override
-    public void visitJumpInsn(final int opcode, final Label label) {
+    public void visitJumpInsn(final int opcode, final Label label,
+                              final String signature) {
         lastCodeOffset = code.length;
         Label nextInsn = null;
         // Label currentBlock = this.currentBlock;
@@ -1060,6 +1062,7 @@ final class MethodWriter extends MethodVisitor {
             code.putByte(opcode);
             label.put(this, code, code.length - 1, false);
         }
+        //FIXME add support for BytecodeMapping here !
         if (currentBlock != null) {
             if (nextInsn != null) {
                 // if the jump instruction is not a GOTO, the next instruction

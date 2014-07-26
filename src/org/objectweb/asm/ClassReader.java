@@ -1351,7 +1351,7 @@ public class ClassReader {
             int opcode = b[u] & 0xFF;
             switch (ClassWriter.TYPE[opcode]) {
             case ClassWriter.NOARG_INSN:
-                mv.visitInsn(opcode);
+                mv.visitInsn(opcode, codeMappingSignature);
                 u += 1;
                 break;
             case ClassWriter.IMPLVAR_INSN:
@@ -1367,11 +1367,13 @@ public class ClassReader {
                 u += 1;
                 break;
             case ClassWriter.LABEL_INSN:
-                mv.visitJumpInsn(opcode, labels[offset + readShort(u + 1)]);
+                mv.visitJumpInsn(opcode, labels[offset + readShort(u + 1)],
+                        codeMappingSignature);
                 u += 3;
                 break;
             case ClassWriter.LABELW_INSN:
-                mv.visitJumpInsn(opcode - 33, labels[offset + readInt(u + 1)]);
+                mv.visitJumpInsn(opcode - 33, labels[offset + readInt(u + 1)],
+                        codeMappingSignature);
                 u += 5;
                 break;
             case ClassWriter.WIDE_INSN:

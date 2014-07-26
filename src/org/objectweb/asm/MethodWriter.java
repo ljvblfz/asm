@@ -338,7 +338,17 @@ final class MethodWriter extends MethodVisitor {
      * The LineNumberTable attribute.
      */
     private ByteVector lineNumber;
-
+    
+    /**
+     * Number of entries in the BytecodeMapping attribute.
+     */
+    private int bytecodeMappingCount;
+    
+    /**
+     * The BytecodeMapping attribute.
+     */
+    private ByteVector bytecodeMapping;
+    
     /**
      * The start offset of the last visited instruction.
      */
@@ -723,7 +733,10 @@ final class MethodWriter extends MethodVisitor {
         lastCodeOffset = code.length;
         // adds the instruction to the bytecode of the method
         code.putByte(opcode);
-        //FIXME add support of BytecodeMapping here !
+        // adds a BytecodeMapping if necessary
+        if (signature != null) {
+            addBytecodeMapping(lastCodeOffset, signature);
+        }
         // update currentBlock
         // Label currentBlock = this.currentBlock;
         if (currentBlock != null) {
@@ -824,7 +837,10 @@ final class MethodWriter extends MethodVisitor {
         } else {
             code.put11(opcode, var);
         }
-        //FIXME add support of BytecodeMapping here !
+        // adds a BytecodeMapping if necessary
+        if (signature != null) {
+            addBytecodeMapping(lastCodeOffset, signature);
+        }
         if (opcode >= Opcodes.ISTORE && compute == FRAMES && handlerCount > 0) {
             visitLabel(new Label());
         }
@@ -1062,7 +1078,10 @@ final class MethodWriter extends MethodVisitor {
             code.putByte(opcode);
             label.put(this, code, code.length - 1, false);
         }
-        //FIXME add support for BytecodeMapping here !
+        // adds a BytecodeMapping if necessary
+        if (signature != null) {
+            addBytecodeMapping(lastCodeOffset, signature);
+        }
         if (currentBlock != null) {
             if (nextInsn != null) {
                 // if the jump instruction is not a GOTO, the next instruction
@@ -1664,6 +1683,18 @@ final class MethodWriter extends MethodVisitor {
     }
 
     // ------------------------------------------------------------------------
+    // Utility method: bytecode mapping 
+    // ------------------------------------------------------------------------
+    
+    private void addBytecodeMapping(final int offset, final String signature) {
+        if (bytecodeMapping == null) {
+            bytecodeMapping = new ByteVector();
+        }
+        bytecodeMapping.putShort(offset).putShort(cw.newUTF8(signature));
+        bytecodeMappingCount++;
+    }
+    
+    // ------------------------------------------------------------------------
     // Utility methods: control flow analysis algorithm
     // ------------------------------------------------------------------------
 
@@ -2028,7 +2059,7 @@ final class MethodWriter extends MethodVisitor {
             stackMap.putByte(8).putShort(((Label) type).position);
         }
     }
-
+    
     // ------------------------------------------------------------------------
     // Utility methods: dump bytecode array
     // ------------------------------------------------------------------------
@@ -2060,6 +2091,10 @@ final class MethodWriter extends MethodVisitor {
             if (lineNumber != null) {
                 cw.newUTF8("LineNumberTable");
                 size += 8 + lineNumber.length;
+            }
+            if (bytecodeMapping != null) {
+                cw.newUTF8("BytecodeMapping");
+                size += 8 + bytecodeMapping.length;
             }
             if (stackMap != null) {
                 boolean zip = (cw.version & 0xFFFF) >= Opcodes.V1_6;
@@ -2225,6 +2260,9 @@ final class MethodWriter extends MethodVisitor {
             if (lineNumber != null) {
                 size += 8 + lineNumber.length;
             }
+            if (bytecodeMapping != null) {
+                size += 8 + bytecodeMapping.length;
+            }
             if (stackMap != null) {
                 size += 8 + stackMap.length;
             }
@@ -2260,6 +2298,9 @@ final class MethodWriter extends MethodVisitor {
             if (lineNumber != null) {
                 ++attributeCount;
             }
+            if (bytecodeMapping != null) {
+                ++attributeCount;
+            }
             if (stackMap != null) {
                 ++attributeCount;
             }
@@ -2287,6 +2328,11 @@ final class MethodWriter extends MethodVisitor {
                 out.putShort(cw.newUTF8("LineNumberTable"));
                 out.putInt(lineNumber.length + 2).putShort(lineNumberCount);
                 out.putByteArray(lineNumber.data, 0, lineNumber.length);
+            }
+            if (bytecodeMapping != null) {
+                out.putShort(cw.newUTF8("BytecodeMapping"));
+                out.putInt(bytecodeMapping.length + 2).putShort(bytecodeMappingCount);
+                out.putByteArray(bytecodeMapping.data, 0, bytecodeMapping.length);
             }
             if (stackMap != null) {
                 boolean zip = (cw.version & 0xFFFF) >= Opcodes.V1_6;
@@ -2762,7 +2808,8 @@ final class MethodWriter extends MethodVisitor {
             h = h.next;
         }
         // updates the instructions addresses in the
-        // local var and line number tables
+        // local var, local var type, line number tables
+        // and bytecode mapping table
         for (i = 0; i < 2; ++i) {
             ByteVector bv = i == 0 ? localVar : localVarType;
             if (bv != null) {
@@ -2782,14 +2829,22 @@ final class MethodWriter extends MethodVisitor {
         }
         if (lineNumber != null) {
             b = lineNumber.data;
-            u = 0;
-            while (u < lineNumber.length) {
+            for(u = 0; u < lineNumber.length; u += 4) {
                 writeShort(
                         b,
                         u,
                         getNewOffset(allIndexes, allSizes, 0,
                                 readUnsignedShort(b, u)));
-                u += 4;
+            }
+        }
+        if (bytecodeMapping != null) {
+            b = bytecodeMapping.data;
+            for(u = 0; u < bytecodeMapping.length; u += 4) {
+                writeShort(
+                        b,
+                        u,
+                        getNewOffset(allIndexes, allSizes, 0,
+                                readUnsignedShort(b, u)));
             }
         }
         // updates the labels of the other attributes

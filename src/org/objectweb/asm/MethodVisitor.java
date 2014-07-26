@@ -88,7 +88,7 @@ public abstract class MethodVisitor {
      *            calls. May be null.
      */
     public MethodVisitor(final int api, final MethodVisitor mv) {
-        if (api != Opcodes.ASM4 && api != Opcodes.ASM5) {
+        if (api != Opcodes.ASM4 && api != Opcodes.ASM5 && api != Opcodes.ASM6) {
             throw new IllegalArgumentException();
         }
         this.api = api;
@@ -376,8 +376,41 @@ public abstract class MethodVisitor {
      * @param var
      *            the operand of the instruction to be visited. This operand is
      *            the index of a local variable.
+     * @param signature
+     *             the unerased signature if the opcode is specializable,
+     *             null otherwise
      */
+    public void visitVarInsn(int opcode, int var, String signature) {
+        if (api < Opcodes.ASM6) {
+            if (signature != null) {
+                throw new IllegalArgumentException("BytecodeMapping require ASM 6");
+            }
+            visitVarInsn(opcode, var);
+            return;
+        }
+        if (mv != null) {
+            mv.visitVarInsn(opcode, var, signature);
+        }
+    }
+    
+    /**
+     * Visits a local variable instruction. A local variable instruction is an
+     * instruction that loads or stores the value of a local variable.
+     * 
+     * @param opcode
+     *            the opcode of the local variable instruction to be visited.
+     *            This opcode is either ILOAD, LLOAD, FLOAD, DLOAD, ALOAD,
+     *            ISTORE, LSTORE, FSTORE, DSTORE, ASTORE or RET.
+     * @param var
+     *            the operand of the instruction to be visited. This operand is
+     *            the index of a local variable.
+     */
+    @Deprecated
     public void visitVarInsn(int opcode, int var) {
+       if (api >= Opcodes.ASM6) {
+            visitVarInsn(opcode, var, null);
+            return;
+        }
         if (mv != null) {
             mv.visitVarInsn(opcode, var);
         }

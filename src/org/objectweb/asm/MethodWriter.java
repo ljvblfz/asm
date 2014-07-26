@@ -460,7 +460,7 @@ final class MethodWriter extends MethodVisitor {
             final String desc, final String signature,
             final int[] typeVariablesMap, final String[] exceptions,
             final boolean computeMaxs, final boolean computeFrames) {
-        super(Opcodes.ASM5);
+        super(Opcodes.ASM6);
         if (cw.firstMethod == null) {
             cw.firstMethod = this;
         } else {
@@ -770,7 +770,7 @@ final class MethodWriter extends MethodVisitor {
     }
 
     @Override
-    public void visitVarInsn(final int opcode, final int var) {
+    public void visitVarInsn(final int opcode, final int var, final String signature) {
         lastCodeOffset = code.length;
         // Label currentBlock = this.currentBlock;
         if (currentBlock != null) {
@@ -823,6 +823,7 @@ final class MethodWriter extends MethodVisitor {
         } else {
             code.put11(opcode, var);
         }
+        //FIXME add support of BytecodeMapping here !
         if (opcode >= Opcodes.ISTORE && compute == FRAMES && handlerCount > 0) {
             visitLabel(new Label());
         }

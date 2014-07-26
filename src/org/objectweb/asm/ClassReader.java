@@ -845,6 +845,7 @@ public class ClassReader {
         String[] exceptions = null;
         String signature = null;
         int[] typeVariablesMap = null;
+        int codeMapping = 0;
         int methodParameters = 0;
         int anns = 0;
         int ianns = 0;
@@ -902,6 +903,8 @@ public class ClassReader {
                 methodParameters = u + 8;
             } else if ("TypeVariablesMap".equals(attrName)) {
                 typeVariablesMap = readTypeVariablesMap(u + 8);
+            } else if ("BytecodeMapping".equals(attrName)) {
+                codeMapping = u + 8;
             } else {
                 Attribute attr = readAttribute(context.attrs, attrName, u + 8,
                         readInt(u + 4), c, -1, null);
@@ -1023,7 +1026,7 @@ public class ClassReader {
         // visits the method code
         if (code != 0) {
             mv.visitCode();
-            readCode(mv, context, code);
+            readCode(mv, context, code, codeMapping);
         }
 
         // visits the end of the method
@@ -1042,7 +1045,8 @@ public class ClassReader {
      * @param u
      *            the start offset of the code attribute in the class file.
      */
-    private void readCode(final MethodVisitor mv, final Context context, int u) {
+    private void readCode(final MethodVisitor mv, final Context context,
+                          int u, int codeMapping) {
         // reads the header
         byte[] b = this.b;
         char[] c = context.buffer;
@@ -1286,6 +1290,18 @@ public class ClassReader {
             }
         }
 
+        // get next BytecodeMapping offset if it exist
+        int codeMappingEnd = 0;
+        int codeMappingOffset = -1;
+        if (codeMapping != 0) {
+            int codeMappingCount = readUnsignedShort(codeMapping);
+            if (codeMappingCount != 0) {
+              codeMapping += 2;
+              codeMappingEnd = codeMapping + codeMappingCount << 2;  // each entry takes 4 bytes
+              codeMappingOffset = readUnsignedShort(codeMapping);
+            }
+        }
+        
         // visits the instructions
         u = codeStart;
         while (u < codeEnd) {
@@ -1321,7 +1337,16 @@ public class ClassReader {
                     frame = null;
                 }
             }
-
+            
+            // extract BytecodeMapping info
+            String codeMappingSignature = null;
+            if (codeMappingOffset == offset) {
+                codeMappingSignature = readUTF8(codeMapping + 2, c);
+                codeMapping += 4;
+                codeMappingOffset = (codeMapping == codeMappingEnd)? -1:
+                    readUnsignedShort(codeMapping);
+            }
+            
             // visits the instruction at this offset
             int opcode = b[u] & 0xFF;
             switch (ClassWriter.TYPE[opcode]) {
@@ -1333,10 +1358,11 @@ public class ClassReader {
                 if (opcode > Opcodes.ISTORE) {
                     opcode -= 59; // ISTORE_0
                     mv.visitVarInsn(Opcodes.ISTORE + (opcode >> 2),
-                            opcode & 0x3);
+                            opcode & 0x3, codeMappingSignature);
                 } else {
                     opcode -= 26; // ILOAD_0
-                    mv.visitVarInsn(Opcodes.ILOAD + (opcode >> 2), opcode & 0x3);
+                    mv.visitVarInsn(Opcodes.ILOAD + (opcode >> 2),
+                            opcode & 0x3, codeMappingSignature);
                 }
                 u += 1;
                 break;
@@ -1354,7 +1380,8 @@ public class ClassReader {
                     mv.visitIincInsn(readUnsignedShort(u + 2), readShort(u + 4));
                     u += 6;
                 } else {
-                    mv.visitVarInsn(opcode, readUnsignedShort(u + 2));
+                    mv.visitVarInsn(opcode, readUnsignedShort(u + 2),
+                            codeMappingSignature);
                     u += 4;
                 }
                 break;
@@ -1392,7 +1419,8 @@ public class ClassReader {
                 break;
             }
             case ClassWriter.VAR_INSN:
-                mv.visitVarInsn(opcode, b[u + 1] & 0xFF);
+                mv.visitVarInsn(opcode, b[u + 1] & 0xFF,
+                        codeMappingSignature);
                 u += 2;
                 break;
             case ClassWriter.SBYTE_INSN:

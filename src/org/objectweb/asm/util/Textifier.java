@@ -248,6 +248,9 @@ public class Textifier extends Printer {
         } else if ((access & Opcodes.ACC_INTERFACE) != 0) {
             buf.append("interface ");
         } else if ((access & Opcodes.ACC_ENUM) == 0) {
+            if ((access & Opcodes.ACC_VALUE) != 0) {
+                buf.append("value ");
+            }
             buf.append("class ");
         }
         appendDescriptor(INTERNAL_NAME, name);

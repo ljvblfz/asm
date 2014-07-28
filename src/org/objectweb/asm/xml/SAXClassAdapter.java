@@ -331,5 +331,8 @@ public final class SAXClassAdapter extends ClassVisitor {
         if ((access & Opcodes.ACC_MANDATED) != 0) {
             sb.append("mandated ");
         }
+        if ((access & Opcodes.ACC_VALUE) != 0) {
+            sb.append("value ");
+        }
     }
 }

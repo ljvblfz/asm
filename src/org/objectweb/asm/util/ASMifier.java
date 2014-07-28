@@ -1024,6 +1024,13 @@ public class ASMifier extends Printer {
             buf.append("ACC_NATIVE");
             first = false;
         }
+        if ((access & Opcodes.ACC_VALUE) != 0 && (access & ACCESS_CLASS) != 0) {
+            if (!first) {
+                buf.append(" + ");
+            }
+            buf.append("ACC_VALUE");
+            first = false;
+        }
         if ((access & Opcodes.ACC_ENUM) != 0
                 && ((access & ACCESS_CLASS) != 0
                         || (access & ACCESS_FIELD) != 0 || (access & ACCESS_INNER) != 0)) {

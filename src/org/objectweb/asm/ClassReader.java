@@ -1450,9 +1450,11 @@ public class ClassReader {
                 String iname = readUTF8(cpIndex, c);
                 String idesc = readUTF8(cpIndex + 2, c);
                 if (opcode < Opcodes.INVOKEVIRTUAL) {
-                    mv.visitFieldInsn(opcode, iowner, iname, idesc);
+                    mv.visitFieldInsn(opcode, iowner, iname, idesc,
+                            codeMappingSignature);
                 } else {
-                    mv.visitMethodInsn(opcode, iowner, iname, idesc, itf);
+                    mv.visitMethodInsn(opcode, iowner, iname, idesc,
+                            codeMappingSignature, itf);
                 }
                 if (opcode == Opcodes.INVOKEINTERFACE) {
                     u += 5;
@@ -1475,7 +1477,8 @@ public class ClassReader {
                 cpIndex = items[readUnsignedShort(cpIndex + 2)];
                 String iname = readUTF8(cpIndex, c);
                 String idesc = readUTF8(cpIndex + 2, c);
-                mv.visitInvokeDynamicInsn(iname, idesc, bsm, bsmArgs);
+                mv.visitInvokeDynamicInsn(iname, idesc, codeMappingSignature,
+                        bsm, bsmArgs);
                 u += 5;
                 break;
             }

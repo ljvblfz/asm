@@ -870,7 +870,8 @@ final class MethodWriter extends MethodVisitor {
 
     @Override
     public void visitFieldInsn(final int opcode, final String owner,
-            final String name, final String desc) {
+            final String name, final String desc,
+            final String signature) {
         lastCodeOffset = code.length;
         Item i = cw.newFieldItem(owner, name, desc);
         // Label currentBlock = this.currentBlock;
@@ -905,11 +906,16 @@ final class MethodWriter extends MethodVisitor {
         }
         // adds the instruction to the bytecode of the method
         code.put12(opcode, i.index);
+        // adds a BytecodeMapping if necessary
+        if (signature != null) {
+            addBytecodeMapping(lastCodeOffset, signature);
+        }
     }
 
     @Override
     public void visitMethodInsn(final int opcode, final String owner,
-            final String name, final String desc, final boolean itf) {
+            final String name, final String desc, final String signature,
+            final boolean itf) {
         lastCodeOffset = code.length;
         Item i = cw.newMethodItem(owner, name, desc, itf);
         int argSize = i.intVal;
@@ -957,11 +963,15 @@ final class MethodWriter extends MethodVisitor {
         } else {
             code.put12(opcode, i.index);
         }
+        // adds a BytecodeMapping if necessary
+        if (signature != null) {
+            addBytecodeMapping(lastCodeOffset, signature);
+        }
     }
 
     @Override
     public void visitInvokeDynamicInsn(final String name, final String desc,
-            final Handle bsm, final Object... bsmArgs) {
+            final String signature, final Handle bsm, final Object... bsmArgs) {
         lastCodeOffset = code.length;
         Item i = cw.newInvokeDynamicItem(name, desc, bsm, bsmArgs);
         int argSize = i.intVal;
@@ -998,6 +1008,10 @@ final class MethodWriter extends MethodVisitor {
         // adds the instruction to the bytecode of the method
         code.put12(Opcodes.INVOKEDYNAMIC, i.index);
         code.putShort(0);
+        // adds a BytecodeMapping if necessary
+        if (signature != null) {
+            addBytecodeMapping(lastCodeOffset, signature);
+        }
     }
 
     @Override

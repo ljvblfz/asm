@@ -490,14 +490,124 @@ public abstract class MethodVisitor {
      *            the field's name.
      * @param desc
      *            the field's descriptor (see {@link Type Type}).
+     * @param signature
+     *            the unerased signature if the opcode is specializable,
+     *            null otherwise
      */
     public void visitFieldInsn(int opcode, String owner, String name,
+            String desc, String signature) {
+        if (api < Opcodes.ASM6) {
+            if (signature != null) {
+                throw new IllegalArgumentException("BytecodeMapping require ASM 6");
+            }
+            visitFieldInsn(opcode, owner, name, desc);
+            return;
+        }
+        if (mv != null) {
+            mv.visitFieldInsn(opcode, owner, name, desc, signature);
+        }
+    }
+    
+    /**
+     * Visits a field instruction. A field instruction is an instruction that
+     * loads or stores the value of a field of an object.
+     * 
+     * @param opcode
+     *            the opcode of the type instruction to be visited. This opcode
+     *            is either GETSTATIC, PUTSTATIC, GETFIELD or PUTFIELD.
+     * @param owner
+     *            the internal name of the field's owner class (see
+     *            {@link Type#getInternalName() getInternalName}).
+     * @param name
+     *            the field's name.
+     * @param desc
+     *            the field's descriptor (see {@link Type Type}).
+     */
+    @Deprecated
+    public void visitFieldInsn(int opcode, String owner, String name,
             String desc) {
+        if (api >= Opcodes.ASM6) {
+            visitFieldInsn(opcode,owner, name, desc, null);
+            return;
+        }
         if (mv != null) {
             mv.visitFieldInsn(opcode, owner, name, desc);
         }
     }
 
+    /**
+     * Visits a method instruction. A method instruction is an instruction that
+     * invokes a method.
+     * 
+     * @param opcode
+     *            the opcode of the type instruction to be visited. This opcode
+     *            is either INVOKEVIRTUAL, INVOKESPECIAL, INVOKESTATIC or
+     *            INVOKEINTERFACE.
+     * @param owner
+     *            the internal name of the method's owner class (see
+     *            {@link Type#getInternalName() getInternalName}).
+     * @param name
+     *            the method's name.
+     * @param desc
+     *            the method's descriptor (see {@link Type Type}).
+     * @param signature
+     *            the unerased signature if the opcode is specializable,
+     *            null otherwise
+     * @param itf
+     *            if the method's owner class is an interface.
+     */
+    public void visitMethodInsn(int opcode, String owner, String name,
+            String desc, String signature, boolean itf) {
+        if (api < Opcodes.ASM6) {
+            if (signature != null) {
+                throw new IllegalArgumentException("BytecodeMapping require ASM 6");
+            }
+            visitMethodInsn(opcode, owner, name, desc, itf);
+            return;
+        }
+        if (mv != null) {
+            mv.visitMethodInsn(opcode, owner, name, desc, signature, itf);
+        }
+    }
+
+    /**
+     * Visits a method instruction. A method instruction is an instruction that
+     * invokes a method.
+     * 
+     * @param opcode
+     *            the opcode of the type instruction to be visited. This opcode
+     *            is either INVOKEVIRTUAL, INVOKESPECIAL, INVOKESTATIC or
+     *            INVOKEINTERFACE.
+     * @param owner
+     *            the internal name of the method's owner class (see
+     *            {@link Type#getInternalName() getInternalName}).
+     * @param name
+     *            the method's name.
+     * @param desc
+     *            the method's descriptor (see {@link Type Type}).
+     * @param itf
+     *            if the method's owner class is an interface.
+     */
+    @Deprecated
+    public void visitMethodInsn(int opcode, String owner, String name,
+            String desc, boolean itf) {
+        if (api >= Opcodes.ASM6) {
+            visitMethodInsn(opcode,owner, name, desc, null, itf);
+            return;
+        }
+        if (api < Opcodes.ASM5) {
+            if (itf != (opcode == Opcodes.INVOKEINTERFACE)) {
+                throw new IllegalArgumentException(
+                        "INVOKESPECIAL/STATIC on interfaces require ASM 5");
+            }
+            visitMethodInsn(opcode, owner, name, desc);
+            return;
+        }
+        if (mv != null) {
+            mv.visitMethodInsn(opcode, owner, name, desc, itf);
+        }
+    }
+    
     /**
      * Visits a method instruction. A method instruction is an instruction that
      * invokes a method.
@@ -528,38 +638,38 @@ public abstract class MethodVisitor {
     }
 
     /**
-     * Visits a method instruction. A method instruction is an instruction that
-     * invokes a method.
+     * Visits an invokedynamic instruction.
      * 
-     * @param opcode
-     *            the opcode of the type instruction to be visited. This opcode
-     *            is either INVOKEVIRTUAL, INVOKESPECIAL, INVOKESTATIC or
-     *            INVOKEINTERFACE.
-     * @param owner
-     *            the internal name of the method's owner class (see
-     *            {@link Type#getInternalName() getInternalName}).
      * @param name
      *            the method's name.
      * @param desc
      *            the method's descriptor (see {@link Type Type}).
-     * @param itf
-     *            if the method's owner class is an interface.
+     * @param signature
+     *            the unerased signature if the opcode is specializable,
+     *            null otherwise
+     * @param bsm
+     *            the bootstrap method.
+     * @param bsmArgs
+     *            the bootstrap method constant arguments. Each argument must be
+     *            an {@link Integer}, {@link Float}, {@link Long},
+     *            {@link Double}, {@link String}, {@link Type} or {@link Handle}
+     *            value. This method is allowed to modify the content of the
+     *            array so a caller should expect that this array may change.
      */
-    public void visitMethodInsn(int opcode, String owner, String name,
-            String desc, boolean itf) {
-        if (api < Opcodes.ASM5) {
-            if (itf != (opcode == Opcodes.INVOKEINTERFACE)) {
-                throw new IllegalArgumentException(
-                        "INVOKESPECIAL/STATIC on interfaces require ASM 5");
+    public void visitInvokeDynamicInsn(String name, String desc, String signature,
+            Handle bsm, Object... bsmArgs) {
+        if (api < Opcodes.ASM6) {
+            if (signature != null) {
+                throw new IllegalArgumentException("BytecodeMapping require ASM 6");
             }
-            visitMethodInsn(opcode, owner, name, desc);
+            visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
             return;
         }
         if (mv != null) {
-            mv.visitMethodInsn(opcode, owner, name, desc, itf);
+            mv.visitInvokeDynamicInsn(name, desc, signature, bsm, bsmArgs);
         }
     }
-
+    
     /**
      * Visits an invokedynamic instruction.
      * 
@@ -576,8 +686,13 @@ public abstract class MethodVisitor {
      *            value. This method is allowed to modify the content of the
      *            array so a caller should expect that this array may change.
      */
+    @Deprecated
     public void visitInvokeDynamicInsn(String name, String desc, Handle bsm,
             Object... bsmArgs) {
+        if (api >= Opcodes.ASM6) {
+            visitInvokeDynamicInsn(name, desc, null, bsm, bsmArgs);
+            return;
+        }
         if (mv != null) {
             mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
         }

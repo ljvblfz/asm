@@ -202,7 +202,16 @@ public abstract class SignatureVisitor {
      */
     public void visitClassType(String name) {
     }
-
+    
+    /**
+     * Starts the visit of a signature corresponding to a value type.
+     * 
+     * @param name
+     *            the internal name of the value type.
+     */
+    public void visitValueType(String name) {
+    }
+    
     /**
      * Visits an inner class.
      * 

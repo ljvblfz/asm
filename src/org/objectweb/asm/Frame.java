@@ -70,7 +70,7 @@ final class Frame {
      * stack types. VALUE depends on KIND. For LOCAL types, it is an index in
      * the input local variable types. For STACK types, it is a position
      * relatively to the top of input frame stack. For BASE types, it is either
-     * one of the constants defined below, or for OBJECT and UNINITIALIZED
+     * one of the constants defined below, or for OBJECT, VALUE and UNINITIALIZED
      * types, a tag and an index in the type table.
      * 
      * Output frames can contain types of any kind and with a positive or
@@ -155,6 +155,8 @@ final class Frame {
      * instruction offset and an internal class name).
      */
     static final int UNINITIALIZED = BASE | 0x800000;
+    
+    
 
     /**
      * Kind of the types that are relative to the local variable types of an
@@ -640,6 +642,7 @@ final class Frame {
         case 'D':
             return DOUBLE;
         case 'L':
+        case 'Q': // FIXME revisit value type support
             // stores the internal name, not the descriptor!
             t = desc.substring(index + 1, desc.length() - 1);
             return OBJECT | cw.addType(t);
@@ -677,6 +680,7 @@ final class Frame {
                 data = DOUBLE;
                 break;
             // case 'L':
+            // case 'Q':  //FXIME revisit to support value type
             default:
                 // stores the internal name, not the descriptor
                 t = desc.substring(dims + 1, desc.length() - 1);

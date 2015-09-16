@@ -64,6 +64,12 @@ public class SignatureRemapper extends SignatureVisitor {
         classNames.push(name);
         v.visitClassType(remapper.mapType(name));
     }
+    
+    @Override
+    public void visitValueType(String name) {
+        classNames.push(name);
+        v.visitValueType(remapper.mapType(name));
+    }
 
     @Override
     public void visitInnerClassType(String name) {

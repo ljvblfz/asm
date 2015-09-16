@@ -166,7 +166,7 @@ public class Method {
      * @throws IllegalArgumentException
      *             if <code>method</code> could not get parsed.
      */
-    public static Method getMethod(final String method,
+    public static Method getMethod(final String method,   //FIXME doesn't support value type
             final boolean defaultPackage) throws IllegalArgumentException {
         int space = method.indexOf(' ');
         int start = method.indexOf('(', space) + 1;

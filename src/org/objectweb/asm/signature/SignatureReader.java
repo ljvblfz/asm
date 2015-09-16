@@ -83,7 +83,7 @@ public class SignatureReader {
                 pos = end + 1;
 
                 c = signature.charAt(pos);
-                if (c == 'L' || c == '[' || c == 'T') {
+                if (c == 'L' || c == 'Q' || c == '[' || c == 'T') {  // support for value type
                     pos = parseType(signature, pos, v.visitClassBound());
                 }
 
@@ -169,7 +169,7 @@ public class SignatureReader {
             v.visitTypeVariable(signature.substring(pos, end));
             return end + 1;
 
-        default: // case 'L':
+        default: // case 'L': or case 'Q':
             start = pos;
             visited = false;
             inner = false;
@@ -182,7 +182,11 @@ public class SignatureReader {
                         if (inner) {
                             v.visitInnerClassType(name);
                         } else {
-                            v.visitClassType(name);
+                            if (c == 'L') {
+                                v.visitClassType(name);
+                            }  else {
+                                v.visitValueType(name);   // support value type
+                            }
                         }
                     }
                     if (c == ';') {

@@ -95,11 +95,16 @@ public class Type {
      * The sort of object reference types. See {@link #getSort getSort}.
      */
     public static final int OBJECT = 10;
-
+    
     /**
      * The sort of method types. See {@link #getSort getSort}.
      */
     public static final int METHOD = 11;
+    
+    /**
+     * The sort of value types. See {@link #getSort getSort}.
+     */
+    public static final int VALUE = 12;
 
     /**
      * The <tt>void</tt> type.
@@ -226,7 +231,7 @@ public class Type {
      */
     public static Type getObjectType(final String internalName) {
         char[] buf = internalName.toCharArray();
-        return new Type(buf[0] == '[' ? ARRAY : OBJECT, buf, 0, buf.length);
+        return new Type(buf[0] == '[' ? ARRAY : buf[0] == 'L' ? OBJECT: VALUE, buf, 0, buf.length);  // support value type
     }
 
     /**
@@ -329,7 +334,7 @@ public class Type {
             char car = buf[off++];
             if (car == ')') {
                 break;
-            } else if (car == 'L') {
+            } else if (car == 'L' || car == 'Q') {  // support value type
                 while (buf[off++] != ';') {
                 }
                 ++size;
@@ -342,7 +347,7 @@ public class Type {
         size = 0;
         while (buf[off] != ')') {
             args[size] = getType(buf, off);
-            off += args[size].len + (args[size].sort == OBJECT ? 2 : 0);
+            off += args[size].len + ((args[size].sort == OBJECT  || args[size].sort == VALUE) ? 2 : 0);  // support value type
             size += 1;
         }
         return args;
@@ -413,7 +418,7 @@ public class Type {
                 car = desc.charAt(c);
                 return n << 2
                         | (car == 'V' ? 0 : (car == 'D' || car == 'J' ? 2 : 1));
-            } else if (car == 'L') {
+            } else if (car == 'L' || car == 'Q') {  // support value type
                 while (desc.charAt(c++) != ';') {
                 }
                 n += 1;
@@ -477,11 +482,12 @@ public class Type {
             }
             return new Type(ARRAY, buf, off, len + 1);
         case 'L':
+        case 'Q':
             len = 1;
             while (buf[off + len] != ';') {
                 ++len;
             }
-            return new Type(OBJECT, buf, off + 1, len - 1);
+            return new Type(buf[off] == 'L'? OBJECT: VALUE, buf, off + 1, len - 1);   // support value type
             // case '(':
         default:
             return new Type(METHOD, buf, off, buf.length - off);
@@ -498,8 +504,8 @@ public class Type {
      * @return {@link #VOID VOID}, {@link #BOOLEAN BOOLEAN}, {@link #CHAR CHAR},
      *         {@link #BYTE BYTE}, {@link #SHORT SHORT}, {@link #INT INT},
      *         {@link #FLOAT FLOAT}, {@link #LONG LONG}, {@link #DOUBLE DOUBLE},
-     *         {@link #ARRAY ARRAY}, {@link #OBJECT OBJECT} or {@link #METHOD
-     *         METHOD}.
+     *         {@link #ARRAY ARRAY}, {@link #OBJECT OBJECT}, {@link #VALUE VALUE}
+     *         or {@link #METHOD METHOD}.
      */
     public int getSort() {
         return sort;
@@ -562,6 +568,7 @@ public class Type {
             }
             return sb.toString();
         case OBJECT:
+        case VALUE:  // support value type
             return new String(buf, off, len).replace('/', '.');
         default:
             return null;
@@ -665,8 +672,8 @@ public class Type {
             // descriptor is in byte 3 of 'off' for primitive types (buf ==
             // null)
             buf.append((char) ((off & 0xFF000000) >>> 24));
-        } else if (sort == OBJECT) {
-            buf.append('L');
+        } else if (sort == OBJECT || sort == VALUE) {
+            buf.append((sort == OBJECT)? 'L': 'Q');   // support value type
             buf.append(this.buf, off, len);
             buf.append(';');
         } else { // sort == ARRAY || sort == METHOD
@@ -779,7 +786,8 @@ public class Type {
                 buf.append('[');
                 d = d.getComponentType();
             } else {
-                buf.append('L');
+                //FIXME add support for value type, something like c.isValueType ?
+                buf.append('L');   
                 String name = d.getName();
                 int len = name.length();
                 for (int i = 0; i < len; ++i) {

@@ -1787,7 +1787,7 @@ class MethodWriter extends MethodVisitor {
                 while (descriptor.charAt(i) == '[') {
                     ++i;
                 }
-                if (descriptor.charAt(i) == 'L') {
+                if (descriptor.charAt(i) == 'L' || descriptor.charAt(i) == 'Q') {   // support value type
                     ++i;
                     while (descriptor.charAt(i) != ';') {
                         ++i;
@@ -1797,6 +1797,7 @@ class MethodWriter extends MethodVisitor {
                         | cw.addType(descriptor.substring(j, ++i));
                 break;
             case 'L':
+            case 'Q':   // support value type
                 while (descriptor.charAt(i) != ';') {
                     ++i;
                 }
@@ -1972,7 +1973,7 @@ class MethodWriter extends MethodVisitor {
                     sb.append('[');
                 }
                 if ((t & Frame.BASE_KIND) == Frame.OBJECT) {
-                    sb.append('L');
+                    sb.append('L');    //FIXME bug !, we should either store the kind (L or Q) or have two type FRAME.OBJECT, FRAME.STRUCT
                     sb.append(cw.typeTable[t & Frame.BASE_VALUE].strVal1);
                     sb.append(';');
                 } else {

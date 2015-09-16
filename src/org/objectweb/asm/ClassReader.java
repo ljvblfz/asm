@@ -2005,7 +2005,7 @@ public class ClassReader {
                 while (desc.charAt(i) == '[') {
                     ++i;
                 }
-                if (desc.charAt(i) == 'L') {
+                if (desc.charAt(i) == 'L' || desc.charAt(i) == 'Q') { // value type support
                     ++i;
                     while (desc.charAt(i) != ';') {
                         ++i;
@@ -2014,6 +2014,7 @@ public class ClassReader {
                 locals[local++] = desc.substring(j, ++i);
                 break;
             case 'L':
+            case 'Q':  // value type support
                 while (desc.charAt(i) != ';') {
                     ++i;
                 }

@@ -65,6 +65,11 @@ public class RemappingSignatureAdapter extends SignatureVisitor {
         className = name;
         v.visitClassType(remapper.mapType(name));
     }
+    
+    @Override
+    public void visitValueType(String name) {
+        throw new UnsupportedOperationException("value type not supported");  // support for value type 
+    }
 
     @Override
     public void visitInnerClassType(String name) {

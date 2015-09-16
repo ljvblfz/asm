@@ -1421,6 +1421,7 @@ public class CheckMethodAdapter extends MethodVisitor {
                         + desc);
             }
         case 'L':
+        case 'Q': // value type support
             index = desc.indexOf(';', start);
             if (index == -1 || index - start < 2) {
                 throw new IllegalArgumentException("Invalid descriptor: "

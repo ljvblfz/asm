@@ -630,7 +630,7 @@ public class CheckClassAdapter extends ClassVisitor {
             pos = checkFormalTypeParameters(signature, pos);
         }
         pos = checkClassTypeSignature(signature, pos);
-        while (getChar(signature, pos) == 'L') {
+        while (getChar(signature, pos) == 'L') {    // FIXME revisit for value type
             pos = checkClassTypeSignature(signature, pos);
         }
         if (pos != signature.length()) {
@@ -666,7 +666,7 @@ public class CheckClassAdapter extends ClassVisitor {
         }
         while (getChar(signature, pos) == '^') {
             ++pos;
-            if (getChar(signature, pos) == 'L') {
+            if (getChar(signature, pos) == 'L') {   //FIXME revisit for value type
                 pos = checkClassTypeSignature(signature, pos);
             } else {
                 pos = checkTypeVariableSignature(signature, pos);
@@ -826,6 +826,7 @@ public class CheckClassAdapter extends ClassVisitor {
 
         switch (getChar(signature, pos)) {
         case 'L':
+        case 'Q':   // support value type
             return checkClassTypeSignature(signature, pos);
         case '[':
             return checkTypeSignature(signature, pos + 1);
@@ -848,7 +849,7 @@ public class CheckClassAdapter extends ClassVisitor {
         // L Identifier ( / Identifier )* TypeArguments? ( . Identifier
         // TypeArguments? )* ;
 
-        pos = checkChar('L', signature, pos);
+        pos = checkChar('L', signature, pos);   //FIXME revisit for value type support
         pos = checkIdentifier(signature, pos);
         while (getChar(signature, pos) == '/') {
             pos = checkIdentifier(signature, pos + 1);

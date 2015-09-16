@@ -283,6 +283,18 @@ public class CheckSignatureAdapter extends SignatureVisitor {
             sv.visitClassType(name);
         }
     }
+    
+    @Override
+    public void visitValueType(final String name) {   // support value type
+        if (type != TYPE_SIGNATURE || state != EMPTY) {
+            throw new IllegalStateException();
+        }
+        CheckMethodAdapter.checkInternalName(name, "value class name");
+        state = CLASS_TYPE;   //FIXME revisit
+        if (sv != null) {
+            sv.visitValueType(name);
+        }
+    }
 
     @Override
     public void visitInnerClassType(final String name) {

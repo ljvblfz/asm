@@ -155,6 +155,13 @@ public class SignatureWriter extends SignatureVisitor {
         buf.append(name);
         argumentStack *= 2;
     }
+    
+    @Override
+    public void visitValueType(final String name) {
+        buf.append('Q');
+        buf.append(name);
+        argumentStack *= 2;
+    }
 
     @Override
     public void visitInnerClassType(final String name) {

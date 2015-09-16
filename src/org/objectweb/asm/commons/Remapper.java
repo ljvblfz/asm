@@ -60,9 +60,10 @@ public abstract class Remapper {
             }
             return s;
         case Type.OBJECT:
+        case Type.VALUE:
             String newType = map(t.getInternalName());
             if (newType != null) {
-                return 'L' + newType + ';';
+                return ((t.getSort() == Type.OBJECT)?'L' : 'Q') + newType + ';';
             }
         }
         return desc;
@@ -77,6 +78,7 @@ public abstract class Remapper {
             }
             return Type.getType(s);
         case Type.OBJECT:
+        case Type.VALUE:
             s = map(t.getInternalName());
             return s != null ? Type.getObjectType(s) : t;
         case Type.METHOD:

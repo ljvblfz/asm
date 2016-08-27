@@ -56,6 +56,22 @@ public final class TraceModuleVisitor extends ModuleVisitor {
         p.visitVersion(version);
         super.visitVersion(version);
     }
+    @Override
+    public void visitMainClass(String mainClass) {
+        p.visitMainClass(mainClass);
+        super.visitMainClass(mainClass);
+    }
+    @Override
+    public void visitTargetPlatform(String osName, String osArch,
+            String osVersion) {
+        p.visitTargetPlatform(osName, osArch, osVersion);
+        super.visitTargetPlatform(osName, osArch, osVersion);
+    }
+    @Override
+    public void visitConcealedPackage(String packaze) {
+        p.visitConcealedPackage(packaze);
+        super.visitConcealedPackage(packaze);
+    }
     
     @Override
     public void visitRequire(String module, int access) {

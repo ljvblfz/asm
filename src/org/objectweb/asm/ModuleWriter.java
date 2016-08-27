@@ -61,6 +61,37 @@ final class ModuleWriter extends ModuleVisitor {
     private int version;
     
     /**
+     * module main class index in the constant pool or 0
+     */
+    private int mainClass;
+    
+    /**
+     * module platform target OS name index in the constant pool or 0
+     */
+    private int osName;
+    
+    /**
+     * module platform target OS architecture index in the constant pool or 0
+     */
+    private int osArch;
+    
+    /**
+     * module platform target OS version index in the constant pool or 0
+     */
+    private int osVersion;
+    
+    /**
+     * number of concealed packages
+     */
+    private int concealedPackageCount;
+    
+    /**
+     * The concealed packages in bytecode form. This byte vector only contains
+     * the items themselves, the number of items is store in concealedPackageCount
+     */
+    private ByteVector concealedPackages;
+    
+    /**
      * number of requires items
      */
     private int requireCount;
@@ -118,6 +149,49 @@ final class ModuleWriter extends ModuleVisitor {
             attributesSize += 8;    
         }
         this.version = cw.newUTF8(version);
+    }
+    @Override
+    public void visitMainClass(String mainClass) {
+        if (this.mainClass == 0) { // protect against several calls to visitMainClass
+            cw.newUTF8("MainClass");
+            attributeCount++;
+            attributesSize += 8;
+        }
+        this.mainClass = cw.newClass(mainClass);
+    }
+    @Override
+    public void visitTargetPlatform(String osName, String osArch,
+            String osVersion) {
+        if (osName == null && osArch == null && osVersion == null) {
+            return;
+        }
+        if (this.osName == 0 && this.osArch == 0 && this.osVersion == 0) {
+            // protect against several calls to visitTargetPlatform
+            cw.newUTF8("TargetPlatform");
+            attributeCount++;
+            attributesSize += 12;
+        }
+        if (osName != null) {
+            this.osName = cw.newUTF8(osName);
+        }
+        if (osArch != null) {
+            this.osArch = cw.newUTF8(osArch);
+        }
+        if (osVersion != null) {
+            this.osVersion = cw.newUTF8(osVersion);
+        }
+    }
+    @Override
+    public void visitConcealedPackage(String packaze) {
+        if (concealedPackages == null) {
+            cw.newUTF8("ConcealedPackages");
+            concealedPackages = new ByteVector();
+            attributeCount++;
+            attributesSize += 8;
+        }
+        concealedPackages.putShort(cw.newUTF8(packaze));
+        concealedPackageCount++;
+        attributesSize += 2;
     }
     
     @Override
@@ -177,6 +251,22 @@ final class ModuleWriter extends ModuleVisitor {
     void putAttributes(ByteVector out) {
         if (version != 0) {
             out.putShort(cw.newUTF8("Version")).putInt(2).putShort(version);
+        }
+        if (mainClass != 0) {
+            out.putShort(cw.newUTF8("MainClass")).putInt(2).putShort(mainClass);
+        }
+        if (osName != 0 || osArch != 0 || osVersion != 0) {
+            out.putShort(cw.newUTF8("TargetPlatform"))
+               .putInt(6)
+               .putShort(osName)
+               .putShort(osArch)
+               .putShort(osVersion);
+        }
+        if (concealedPackages != null) {
+            out.putShort(cw.newUTF8("ConcealedPackages"))
+               .putInt(2 + 2 * concealedPackageCount)
+               .putShort(concealedPackageCount)
+               .putByteArray(concealedPackages.data, 0, concealedPackages.length);
         }
     }
 

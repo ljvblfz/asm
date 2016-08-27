@@ -555,12 +555,15 @@ public class ClassReader {
         String enclosingName = null;
         String enclosingDesc = null;
         String moduleVersion = null;
+        String moduleMainClass = null;
         int anns = 0;
         int ianns = 0;
         int tanns = 0;
         int itanns = 0;
         int innerClasses = 0;
         int module = 0;
+        int targetPlatform = 0;
+        int concealedPackages = 0;
         Attribute attributes = null;
 
         u = getAttributes();
@@ -605,6 +608,12 @@ public class ClassReader {
                 module = u + 8;
             } else if ("Version".equals(attrName)) {
                 moduleVersion = readUTF8(u + 8, c);
+            } else if ("MainClass".equals(attrName)) {
+                moduleMainClass = readClass(u + 8, c);
+            } else if ("TargetPlatform".equals(attrName)) {
+                targetPlatform = u + 8;
+            } else if ("ConcealedPackages".equals(attrName)) {
+                concealedPackages = u + 10;
             } else if ("BootstrapMethods".equals(attrName)) {
                 int[] bootstrapMethods = new int[readUnsignedShort(u + 8)];
                 for (int j = 0, v = u + 10; j < bootstrapMethods.length; j++) {
@@ -633,9 +642,11 @@ public class ClassReader {
             classVisitor.visitSource(sourceFile, sourceDebug);
         }
 
-        // visits the module info
+        // visits the module info and associated attributes
         if (module != 0) {
-            readModule(classVisitor, context, module, moduleVersion);
+            readModule(classVisitor, context, module,
+                    moduleVersion, moduleMainClass,
+                    targetPlatform, concealedPackages);
         }
         
         // visits the outer class
@@ -715,22 +726,47 @@ public class ClassReader {
      * @param context
      *           information about the class being parsed.
      * @param u
-     *           the start offset of the module attribute in the class file.
+     *           start offset of the module attribute in the class file.
      * @param version 
      *           the version of the module or null.
+     * @param mainClass
+     *           name of the main class of a module or null.
+     * @param targetPlatform
+     *           start offset of the target platform attribute.
+     * @param concealedPackages
+     *           start offset of the concealed package attribute.
      * @return
      */
     private void readModule(final ClassVisitor classVisitor,
-            final Context context, int u, final String version) {
+            final Context context, int u, final String version,
+            final String mainClass, final int targetPlatform,
+            int concealedPackages) {
         ModuleVisitor mv = classVisitor.visitModule();
         if (mv == null) {
             return;
         }
         char[] buffer = context.buffer;
         
-        // module attributes
+        // module attributes (version, main class,
+        // target platform, concealed packages)
         if (version != null) {
             mv.visitVersion(version);
+        }
+        if (mainClass != null) {
+            mv.visitMainClass(mainClass);
+        }
+        if (targetPlatform != 0) {
+            mv.visitTargetPlatform(
+                    readUTF8(targetPlatform, buffer),
+                    readUTF8(targetPlatform + 2, buffer),
+                    readUTF8(targetPlatform + 4, buffer));
+        }
+        if (concealedPackages != 0) {
+            for (int i = readUnsignedShort(concealedPackages - 2); i > 0; --i) {
+                String packaze = readUTF8(concealedPackages, buffer);
+                mv.visitConcealedPackage(packaze);
+                concealedPackages += 2;
+            }
         }
         
         // reads requires

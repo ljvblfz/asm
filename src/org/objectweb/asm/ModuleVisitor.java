@@ -32,8 +32,9 @@ package org.objectweb.asm;
 
 /**
  * A visitor to visit a Java module. The methods of this class must be called in
- * the following order: ( <tt>visitRequire</tt> | <tt>visitExport</tt> |
- * <tt>visitUse</tt> | <tt>visitProvide</tt> )* <tt>visitEnd</tt>.
+ * the following order: <tt>visitVersion</tt> | <tt>visitMainClass</tt> |
+ * <tt>visitTargetPlatform</tt> | ( <tt>visitConcealedPackage</tt> | <tt>visitRequire</tt> |
+ * <tt>visitExport</tt> | <tt>visitUse</tt> | <tt>visitProvide</tt> )* <tt>visitEnd</tt>.
  * 
  * @author Remi Forax
  */
@@ -80,6 +81,41 @@ public abstract class ModuleVisitor {
     public void visitVersion(String version) {
         if (mv != null) {
             mv.visitVersion(version);
+        }
+    }
+    
+    /**
+     * Visit the main class of the current module.
+     * 
+     * @param mainClass the main class of the current module.
+     */
+    public void visitMainClass(String mainClass) {
+        if (mv != null) {
+            mv.visitMainClass(mainClass);
+        }
+    }
+    
+    /**
+     * Visit the target platform of the current module.
+     * 
+     * @param osName an OS name or null
+     * @param osArch an OS architecture or null
+     * @param osVersion an OS version or null
+     */
+    public void visitTargetPlatform(String osName, String osArch, String osVersion) {
+        if (mv != null) {
+            mv.visitTargetPlatform(osName, osArch, osVersion);
+        }
+    }
+    
+    /**
+     * Visit a concealed package of the current module.
+     * 
+     * @param packaze name of a concealed package
+     */
+    public void visitConcealedPackage(String packaze) {
+        if (mv != null) {
+            mv.visitConcealedPackage(packaze);
         }
     }
     

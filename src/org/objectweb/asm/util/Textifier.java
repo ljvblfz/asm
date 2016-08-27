@@ -474,6 +474,29 @@ public class Textifier extends Printer {
         buf.append("  // version ").append(version).append('\n');
         text.add(buf.toString());
     }
+    @Override
+    public void visitMainClass(String mainClass) {
+        buf.setLength(0);
+        buf.append("  // main class ").append(mainClass).append('\n');
+        text.add(buf.toString());
+    }
+    @Override
+    public void visitTargetPlatform(String osName, String osArch,
+            String osVersion) {
+        buf.setLength(0);
+        buf.append("  // target platform ")
+           .append(osName == null ? "<no name>": osName).append(" ")
+           .append(osArch == null ? "<no name>": osArch).append(" ")
+           .append(osVersion == null ? "<no name>": osVersion)
+           .append('\n');
+        text.add(buf.toString());
+    }
+    @Override
+    public void visitConcealedPackage(String packaze) {
+        buf.setLength(0);
+        buf.append("  // concealed ").append(packaze).append('\n');
+        text.add(buf.toString());
+    }
     
     @Override
     public void visitRequire(String require, int access) {

@@ -2,8 +2,6 @@ package org.objectweb.asm.optimizer;
 
 import java.io.PrintWriter;
 
-import org.objectweb.asm.Attribute;
-import org.objectweb.asm.ByteVector;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.ModuleVisitor;

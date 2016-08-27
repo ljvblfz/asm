@@ -53,6 +53,27 @@ public final class SAXModuleAdapter extends ModuleVisitor {
         att.addAttribute("", "value", "value", "", version);
         sa.addElement("version", att);
     }
+    @Override
+    public void visitMainClass(String mainClass) {
+        AttributesImpl att = new AttributesImpl();
+        att.addAttribute("", "name", "name", "", mainClass);
+        sa.addElement("main-class", att);
+    }
+    @Override
+    public void visitTargetPlatform(String osName, String osArch,
+            String osVersion) {
+        AttributesImpl att = new AttributesImpl();
+        att.addAttribute("", "osName", "osName", "", osName);
+        att.addAttribute("", "osArch", "osArch", "", osName);
+        att.addAttribute("", "osVersion", "osVersion", "", osName);
+        sa.addElement("target-platform", att);
+    }
+    @Override
+    public void visitConcealedPackage(String packaze) {
+        AttributesImpl att = new AttributesImpl();
+        att.addAttribute("", "name", "name", "", packaze);
+        sa.addElement("concealed-package", att);
+    }
     
     @Override
     public void visitRequire(String module, int access) {

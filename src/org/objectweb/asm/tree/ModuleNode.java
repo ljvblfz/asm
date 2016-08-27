@@ -44,8 +44,39 @@ import org.objectweb.asm.Opcodes;
 public class ModuleNode extends ModuleVisitor {
     /**
      * Version of the module.
+     * May be <tt>null</tt>.
      */
     public String version;
+    
+    /**
+     * Name of the main class in internal form
+     * May be <tt>null</tt>.
+     */
+    public String mainClass;
+    
+    /**
+     * Name of OS of the targeted platform.
+     * May be <tt>null</tt>.
+     */
+    public String osName;
+    
+    /**
+     * Architecture of the OS of the targeted platform.
+     * May be <tt>null</tt>.
+     */
+    public String osArch;
+    
+    /**
+     * Version of the OS of the targeted platform.
+     * May be <tt>null</tt>.
+     */
+    public String osVersion;
+    
+    /**
+     * A list of packages that are declared concealed by the current module.
+     * May be <tt>null</tt>.
+     */
+    public List<String> concealedPackages;
     
     /**
      * A list of modules can are required by the current module.
@@ -93,6 +124,24 @@ public class ModuleNode extends ModuleVisitor {
     @Override
     public void visitVersion(String version) {
         this.version = version;
+    }
+    @Override
+    public void visitMainClass(String mainClass) {
+        this.mainClass = mainClass;
+    }
+    @Override
+    public void visitTargetPlatform(String osName, String osArch,
+            String osVersion) {
+        this.osName = osName;
+        this.osArch = osArch;
+        this.osVersion = osVersion;
+    }
+    @Override
+    public void visitConcealedPackage(String packaze) {
+        if (concealedPackages == null) {
+            concealedPackages = new ArrayList<String>(5);
+        }
+        concealedPackages.add(packaze);
     }
     
     @Override
@@ -146,6 +195,18 @@ public class ModuleNode extends ModuleVisitor {
         if (version != null) {
             mv.visitVersion(version);
         }
+        if (mainClass != null) {
+            mv.visitMainClass(mainClass);
+        }
+        if (osName != null || osArch != null || osVersion != null) {
+            mv.visitTargetPlatform(osName, osArch, osVersion);
+        }
+        if (concealedPackages != null) {
+            for(int i = 0; i < concealedPackages.size(); i++) {
+                mv.visitConcealedPackage(concealedPackages.get(i));
+            }
+        }
+        
         if (requires != null) {
             for(int i = 0; i < requires.size(); i++) {
                 requires.get(i).accept(mv);

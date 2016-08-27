@@ -387,6 +387,35 @@ public class ASMifier extends Printer {
         buf.append(");\n");
         text.add(buf.toString());
     }
+    @Override
+    public void visitMainClass(String mainClass) {
+        buf.setLength(0);
+        buf.append("mdv.visitMainClass(");
+        appendConstant(buf, mainClass);
+        buf.append(");\n");
+        text.add(buf.toString());
+    }
+    @Override
+    public void visitTargetPlatform(String osName, String osArch,
+            String osVersion) {
+        buf.setLength(0);
+        buf.append("mdv.visitTargetPlatform(");
+        appendConstant(buf, osName);
+        buf.append(", ");
+        appendConstant(buf, osArch);
+        buf.append(", ");
+        appendConstant(buf, osVersion);
+        buf.append(");\n");
+        text.add(buf.toString());
+    }
+    @Override
+    public void visitConcealedPackage(String packaze) {
+        buf.setLength(0);
+        buf.append("mdv.visitConcealedPackage(");
+        appendConstant(buf, packaze);
+        buf.append(");\n");
+        text.add(buf.toString());
+    }
     
     @Override
     public void visitRequire(String module, int access) {

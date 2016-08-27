@@ -52,6 +52,16 @@ public class ModuleRemapper extends ModuleVisitor {
     }
 
     @Override
+    public void visitMainClass(String mainClass) {
+        super.visitMainClass(remapper.mapType(mainClass));
+    }
+    
+    @Override
+    public void visitConcealedPackage(String packaze) {
+        super.visitConcealedPackage(remapper.mapPackageName(packaze));
+    }
+    
+    @Override
     public void visitRequire(String module, int access) {
         super.visitRequire(remapper.mapModuleName(module), access);
     }

@@ -358,6 +358,16 @@ public abstract class Printer {
     public void visitVersion(String version) {
         throw new RuntimeException("Must be overriden");
     }
+    public void visitMainClass(String mainClass) {
+        throw new RuntimeException("Must be overriden");
+    }
+    public void visitTargetPlatform(String osName, String osArch,
+            String osVersion) {
+        throw new RuntimeException("Must be overriden");
+    }
+    public void visitConcealedPackage(String packaze) {
+        throw new RuntimeException("Must be overriden");
+    }
     
     public void visitRequire(String module, int access) {
         throw new RuntimeException("Must be overriden");

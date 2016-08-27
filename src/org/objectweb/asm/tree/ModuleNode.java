@@ -43,6 +43,11 @@ import org.objectweb.asm.Opcodes;
  */
 public class ModuleNode extends ModuleVisitor {
     /**
+     * Version of the module.
+     */
+    public String version;
+    
+    /**
      * A list of modules can are required by the current module.
      * May be <tt>null</tt>.
      */
@@ -83,6 +88,11 @@ public class ModuleNode extends ModuleVisitor {
         if (getClass() != ModuleNode.class) {
             throw new IllegalStateException();
         }
+    }
+    
+    @Override
+    public void visitVersion(String version) {
+        this.version = version;
     }
     
     @Override
@@ -132,6 +142,9 @@ public class ModuleNode extends ModuleVisitor {
         ModuleVisitor mv = cv.visitModule();
         if (mv == null) {
             return;
+        }
+        if (version != null) {
+            mv.visitVersion(version);
         }
         if (requires != null) {
             for(int i = 0; i < requires.size(); i++) {

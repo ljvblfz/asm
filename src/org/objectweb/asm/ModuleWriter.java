@@ -40,9 +40,25 @@ final class ModuleWriter extends ModuleVisitor {
     private final ClassWriter cw;
     
     /**
-     * size in byte of the corresponding Module attribute.
+     * size in byte of the Module attribute.
      */
-    private int size;
+    int size;
+    
+    /**
+     * Number of attributes associated with the current module
+     * (Version, ConcealPackages, etc) 
+     */
+    int attributeCount;
+    
+    /**
+     * Size in bytes of the attributes associated with the current module
+     */
+    int attributesSize;
+    
+    /**
+     * module version index in the constant pool or 0
+     */
+    private int version;
     
     /**
      * number of requires items
@@ -92,6 +108,16 @@ final class ModuleWriter extends ModuleVisitor {
         super(Opcodes.ASM6);
         this.cw = cw;
         this.size = 8;
+    }
+    
+    @Override
+    public void visitVersion(String version) {
+        if (this.version == 0) {  // protect against several calls to visitVersion
+            cw.newUTF8("Version");
+            attributeCount++;
+            attributesSize += 8;    
+        }
+        this.version = cw.newUTF8(version);
     }
     
     @Override
@@ -148,8 +174,10 @@ final class ModuleWriter extends ModuleVisitor {
         // empty
     }
 
-    int getSize() {
-        return size;
+    void putAttributes(ByteVector out) {
+        if (version != 0) {
+            out.putShort(cw.newUTF8("Version")).putInt(2).putShort(version);
+        }
     }
 
     void put(ByteVector out) {
@@ -170,5 +198,5 @@ final class ModuleWriter extends ModuleVisitor {
         if (provides != null) {
             out.putByteArray(provides.data, 0, provides.length);
         }
-    }
+    }    
 }

@@ -380,6 +380,15 @@ public class ASMifier extends Printer {
     // ------------------------------------------------------------------------
     
     @Override
+    public void visitVersion(String version) {
+        buf.setLength(0);
+        buf.append("mdv.visitVersion(");
+        appendConstant(buf, version);
+        buf.append(");\n");
+        text.add(buf.toString());
+    }
+    
+    @Override
     public void visitRequire(String module, int access) {
         buf.setLength(0);
         buf.append("mdv.visitRequire(");

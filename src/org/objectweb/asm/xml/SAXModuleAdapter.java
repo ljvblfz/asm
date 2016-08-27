@@ -48,6 +48,13 @@ public final class SAXModuleAdapter extends ModuleVisitor {
     }
 
     @Override
+    public void visitVersion(String version) {
+        AttributesImpl att = new AttributesImpl();
+        att.addAttribute("", "value", "value", "", version);
+        sa.addElement("version", att);
+    }
+    
+    @Override
     public void visitRequire(String module, int access) {
         AttributesImpl att = new AttributesImpl();
         StringBuilder sb = new StringBuilder();

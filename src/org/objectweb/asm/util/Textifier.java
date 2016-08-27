@@ -469,6 +469,13 @@ public class Textifier extends Printer {
     // ------------------------------------------------------------------------
     
     @Override
+    public void visitVersion(String version) {
+        buf.setLength(0);
+        buf.append("  // version ").append(version).append('\n');
+        text.add(buf.toString());
+    }
+    
+    @Override
     public void visitRequire(String require, int access) {
         buf.setLength(0);
         buf.append(tab).append("requires ");

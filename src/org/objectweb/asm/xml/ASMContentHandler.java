@@ -94,6 +94,7 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         
         ModuleRule moduleRule = new ModuleRule();
         RULES.add(BASE + "/module", moduleRule);
+        RULES.add(BASE + "/module/version", moduleRule);
         RULES.add(BASE + "/module/requires", moduleRule);
         RULES.add(BASE + "/module/exports", moduleRule);
         RULES.add(BASE + "/module/exports/to", moduleRule);
@@ -769,6 +770,9 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
                 throws SAXException {
             if ("module".equals(element)) {
                 push(cv.visitModule());
+            } else if ("version".equals(element)) {
+                ModuleVisitor mv = (ModuleVisitor) peek();
+                mv.visitVersion(attrs.getValue("value"));
             } else if ("requires".equals(element)) {
                 ModuleVisitor mv = (ModuleVisitor) peek();
                 int access = getAccess(attrs.getValue("access"));

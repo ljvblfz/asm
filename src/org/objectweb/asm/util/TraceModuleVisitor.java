@@ -52,6 +52,12 @@ public final class TraceModuleVisitor extends ModuleVisitor {
     }
 
     @Override
+    public void visitVersion(String version) {
+        p.visitVersion(version);
+        super.visitVersion(version);
+    }
+    
+    @Override
     public void visitRequire(String module, int access) {
         p.visitRequire(module, access);
         super.visitRequire(module, access);

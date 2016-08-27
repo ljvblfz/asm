@@ -73,6 +73,17 @@ public abstract class ModuleVisitor {
     }
     
     /**
+     * Visit the version of the current module.
+     * 
+     * @param version the version of the current module.
+     */
+    public void visitVersion(String version) {
+        if (mv != null) {
+            mv.visitVersion(version);
+        }
+    }
+    
+    /**
      * Visits a dependence of the current module.
      * 
      * @param module the module name of the dependence

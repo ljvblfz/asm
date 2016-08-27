@@ -554,6 +554,7 @@ public class ClassReader {
         String enclosingOwner = null;
         String enclosingName = null;
         String enclosingDesc = null;
+        String moduleVersion = null;
         int anns = 0;
         int ianns = 0;
         int tanns = 0;
@@ -602,6 +603,8 @@ public class ClassReader {
                 itanns = u + 8;
             } else if ("Module".equals(attrName)) {
                 module = u + 8;
+            } else if ("Version".equals(attrName)) {
+                moduleVersion = readUTF8(u + 8, c);
             } else if ("BootstrapMethods".equals(attrName)) {
                 int[] bootstrapMethods = new int[readUnsignedShort(u + 8)];
                 for (int j = 0, v = u + 10; j < bootstrapMethods.length; j++) {
@@ -632,7 +635,7 @@ public class ClassReader {
 
         // visits the module info
         if (module != 0) {
-            readModule(classVisitor, context, module);
+            readModule(classVisitor, context, module, moduleVersion);
         }
         
         // visits the outer class
@@ -711,17 +714,24 @@ public class ClassReader {
      *           the current class visitor
      * @param context
      *           information about the class being parsed.
-     * @param moduleOffset
+     * @param u
      *           the start offset of the module attribute in the class file.
+     * @param version 
+     *           the version of the module or null.
      * @return
      */
     private void readModule(final ClassVisitor classVisitor,
-            final Context context, int u) {
+            final Context context, int u, final String version) {
         ModuleVisitor mv = classVisitor.visitModule();
         if (mv == null) {
             return;
         }
         char[] buffer = context.buffer;
+        
+        // module attributes
+        if (version != null) {
+            mv.visitVersion(version);
+        }
         
         // reads requires
         u += 2;

@@ -48,6 +48,13 @@ public class ModuleConstantsCollector extends ModuleVisitor {
     }
 
     @Override
+    public void visitVersion(String version) {
+        cp.newUTF8("Version");
+        cp.newUTF8(version);
+        mv.visitVersion(version);
+    }
+    
+    @Override
     public void visitRequire(String module, int access) {
         cp.newUTF8(module);
         mv.visitRequire(module, access);

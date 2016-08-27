@@ -355,6 +355,10 @@ public abstract class Printer {
     // Module
     // ------------------------------------------------------------------------
     
+    public void visitVersion(String version) {
+        throw new RuntimeException("Must be overriden");
+    }
+    
     public void visitRequire(String module, int access) {
         throw new RuntimeException("Must be overriden");
     }

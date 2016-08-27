@@ -904,8 +904,8 @@ public class ClassWriter extends ClassVisitor {
             newUTF8("RuntimeInvisibleTypeAnnotations");
         }
         if (moduleWriter != null) {
-            ++attributeCount;
-            size += 6 + moduleWriter.getSize();
+            attributeCount += 1 + moduleWriter.attributeCount;
+            size += 6 + moduleWriter.size + moduleWriter.attributesSize;
             newUTF8("Module");
         }
         if (attrs != null) {
@@ -958,6 +958,7 @@ public class ClassWriter extends ClassVisitor {
         if (moduleWriter != null) {
             out.putShort(newUTF8("Module"));
             moduleWriter.put(out);
+            moduleWriter.putAttributes(out);
         }
         if (enclosingMethodOwner != 0) {
             out.putShort(newUTF8("EnclosingMethod")).putInt(4);

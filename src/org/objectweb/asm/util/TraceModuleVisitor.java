@@ -58,9 +58,9 @@ public final class TraceModuleVisitor extends ModuleVisitor {
     }
     
     @Override
-    public void visitExport(String packaze, String... modules) {
-        p.visitExport(packaze, modules);
-        super.visitExport(packaze, modules);
+    public void visitExport(String packaze, int access, String... modules) {
+        p.visitExport(packaze, access, modules);
+        super.visitExport(packaze, access, modules);
     }
     
     @Override

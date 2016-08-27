@@ -57,7 +57,7 @@ public class ModuleRemapper extends ModuleVisitor {
     }
     
     @Override
-    public void visitExport(String packaze, String... modules) {
+    public void visitExport(String packaze, int access, String... modules) {
         String[] newTos = null;
         if (modules != null) {
             newTos = new String[modules.length];
@@ -65,7 +65,7 @@ public class ModuleRemapper extends ModuleVisitor {
                 newTos[i] = remapper.mapModuleName(modules[i]);
             }
         }
-        super.visitExport(remapper.mapPackageName(packaze), newTos);
+        super.visitExport(remapper.mapPackageName(packaze), access, newTos);
     }
     
     @Override

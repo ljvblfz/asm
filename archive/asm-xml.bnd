@@ -49,8 +49,8 @@ Import-Package: \
   org.xml.sax.*;resolution:="optional"
 
 Module-Requires: \
-  java.xml;public=true,\
-  org.objectweb.asm;public=true
+  java.xml;transitive=true,\
+  org.objectweb.asm;transitive=true
 
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 

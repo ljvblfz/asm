@@ -94,7 +94,7 @@ public class ModuleNode extends ModuleVisitor {
     }
     
     @Override
-    public void visitExport(String packaze, String... modules) {
+    public void visitExport(String packaze, int access, String... modules) {
         if (exports == null) {
             exports = new ArrayList<ModuleExportNode>(5);
         }
@@ -105,7 +105,7 @@ public class ModuleNode extends ModuleVisitor {
                 moduleList.add(modules[i]);
             }
         }
-        exports.add(new ModuleExportNode(packaze, moduleList));
+        exports.add(new ModuleExportNode(packaze, access, moduleList));
     }
     
     @Override

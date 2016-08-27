@@ -77,7 +77,8 @@ public abstract class ModuleVisitor {
      * 
      * @param module the module name of the dependence
      * @param access the access flag of the dependence among
-     *        ACC_PUBLIC, ACC_SYNTHETIC and ACC_MANDATED.
+     *        ACC_TRANSITIVE, ACC_STATIC_PHASE, ACC_SYNTHETIC
+     *        and ACC_MANDATED.
      */
     public void visitRequire(String module, int access) {
         if (mv != null) {
@@ -89,13 +90,15 @@ public abstract class ModuleVisitor {
      * Visit an exported package of the current module.
      * 
      * @param packaze the name of the exported package.
+     * @param access the access flag of the exported package,
+     *        0 or ACC_DYNAMIC_PHASE.
      * @param modules names of the modules that can access to
      *        the public classes of the exported package or
      *        <tt>null</tt>.
      */
-    public void visitExport(String packaze, String... modules) {
+    public void visitExport(String packaze, int access, String... modules) {
         if (mv != null) {
-            mv.visitExport(packaze, modules);
+            mv.visitExport(packaze, access, modules);
         }
     }
     

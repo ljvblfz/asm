@@ -472,8 +472,11 @@ public class Textifier extends Printer {
     public void visitRequire(String require, int access) {
         buf.setLength(0);
         buf.append(tab).append("requires ");
-        if ((access & Opcodes.ACC_PUBLIC) != 0) {
+        if ((access & Opcodes.ACC_TRANSITIVE) != 0) {
             buf.append("public ");
+        }
+        if ((access & Opcodes.ACC_STATIC_PHASE) != 0) {
+            buf.append("static ");
         }
         buf.append(require)
            .append(";  // access flags 0x")
@@ -483,17 +486,27 @@ public class Textifier extends Printer {
     }
     
     @Override
-    public void visitExport(String export, String... tos) {
+    public void visitExport(String export, int access, String... tos) {
         buf.setLength(0);
-        buf.append(tab).append("exports ").append(export);
+        buf.append(tab).append("exports ");
+        if ((access & Opcodes.ACC_DYNAMIC_PHASE) != 0) {
+            buf.append("dynamic ");
+        }
+        buf.append(export);
         if (tos != null && tos.length > 0) {
-            buf.append(" to\n");
+            buf.append(" to");
+        } else {
+            buf.append(';');
+        }
+        buf.append("  // access flags 0x")
+           .append(Integer.toHexString(access).toUpperCase())
+           .append('\n');
+        if (tos != null && tos.length > 0) {
             for (int i = 0; i < tos.length; ++i) {
                 buf.append(tab2).append(tos[i]);
-                buf.append(i != tos.length - 1 ? ",\n": "");
+                buf.append(i != tos.length - 1 ? ",\n": ";\n");
             }
         }
-        buf.append(";\n");
         text.add(buf.toString());
     }
     

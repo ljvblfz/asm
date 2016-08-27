@@ -54,14 +54,14 @@ public class ModuleConstantsCollector extends ModuleVisitor {
     }
     
     @Override
-    public void visitExport(String packaze, String... modules) {
+    public void visitExport(String packaze, int access, String... modules) {
         cp.newUTF8(packaze);
         if (modules != null && modules.length > 0) {
             for(String to: modules) {
                 cp.newUTF8(to);
             }
         }
-        mv.visitExport(packaze, modules);
+        mv.visitExport(packaze, access, modules);
     }
 
     @Override

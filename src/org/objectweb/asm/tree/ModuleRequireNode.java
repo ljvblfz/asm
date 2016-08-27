@@ -44,8 +44,8 @@ public class ModuleRequireNode {
 
     /**
      * The access flags (see {@link org.objectweb.asm.Opcodes}).
-     * Valid values are <tt>ACC_PUBLIC</tt>, <tt>ACC_SYNTHETIC</tt> and
-     * <tt>ACC_MANDATED</tt>.
+     * Valid values are <tt>ACC_TRANSITIVE</tt>, <tt>ACC_STATIC_PHASE</tt>,
+     *        <tt>ACC_SYNTHETIC</tt> and <tt>ACC_MANDATED</tt>.
      */
     public int access;
 
@@ -56,8 +56,9 @@ public class ModuleRequireNode {
      *            the name of the required module.
      * @param access
      *            The access flags. Valid values are
-     *            <tt>ACC_PUBLIC</tt>, <tt>ACC_SYNTHETIC</tt> or/and
-     *            <tt>ACC_MANDATED</tt> (see {@link org.objectweb.asm.Opcodes}).
+     *            <tt>ACC_TRANSITIVE</tt>, <tt>ACC_STATIC_PHASE</tt>,
+     *            <tt>ACC_SYNTHETIC</tt> and <tt>ACC_MANDATED</tt>
+     *            (see {@link org.objectweb.asm.Opcodes}).
      */
     public ModuleRequireNode(final String module, final int access) {
         this.module = module;

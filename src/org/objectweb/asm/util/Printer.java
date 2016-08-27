@@ -359,7 +359,7 @@ public abstract class Printer {
         throw new RuntimeException("Must be overriden");
     }
     
-    public void visitExport(String packaze, String... modules) {
+    public void visitExport(String packaze, int access, String... modules) {
         throw new RuntimeException("Must be overriden");
     }
     

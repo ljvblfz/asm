@@ -99,30 +99,26 @@ final class ModuleWriter extends ModuleVisitor {
         if (requires == null) {
             requires = new ByteVector();
         }
-        //FIXME fix bad ACC_PUBLIC value (0x0020)
-        if ((access & Opcodes.ACC_PUBLIC) != 0) {
-            access = access & ~ Opcodes.ACC_PUBLIC | 0x0020;
-        }
         requires.putShort(cw.newUTF8(module)).putShort(access);
         requireCount++;
         size += 4;
     }
     
     @Override
-    public void visitExport(String packaze, String... modules) {
+    public void visitExport(String packaze, int access, String... modules) {
         if (exports == null) {
             exports = new ByteVector();
         }
-        exports.putShort(cw.newUTF8(packaze));
+        exports.putShort(cw.newUTF8(packaze)).putShort(access);
         if (modules == null) {
             exports.putShort(0);
-            size += 4;
+            size += 6;
         } else {
             exports.putShort(modules.length);
             for(String to: modules) {
                 exports.putShort(cw.newUTF8(to));
             }    
-            size += 4 + 2 * modules.length; 
+            size += 6 + 2 * modules.length; 
         }
         exportCount++;
     }

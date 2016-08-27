@@ -51,16 +51,19 @@ public final class SAXModuleAdapter extends ModuleVisitor {
     public void visitRequire(String module, int access) {
         AttributesImpl att = new AttributesImpl();
         StringBuilder sb = new StringBuilder();
-        SAXClassAdapter.appendAccess(access, sb);
+        SAXClassAdapter.appendAccess(access | SAXClassAdapter.ACCESS_MODULE, sb);
         att.addAttribute("", "module", "module", "", module);
         att.addAttribute("", "access", "access", "", sb.toString());
         sa.addElement("requires", att);
     }
     
     @Override
-    public void visitExport(String packaze, String... modules) {
+    public void visitExport(String packaze, int access, String... modules) {
         AttributesImpl att = new AttributesImpl();
+        StringBuilder sb = new StringBuilder();
+        SAXClassAdapter.appendAccess(access | SAXClassAdapter.ACCESS_MODULE, sb);
         att.addAttribute("", "name", "name", "", packaze);
+        att.addAttribute("", "access", "access", "", sb.toString());
         sa.addStart("exports", att);
         if (modules != null && modules.length > 0) {
             for(String to: modules) {

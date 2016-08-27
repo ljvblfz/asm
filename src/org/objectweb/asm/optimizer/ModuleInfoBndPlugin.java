@@ -44,13 +44,13 @@ public class ModuleInfoBndPlugin implements AnalyzerPlugin {
     ModuleVisitor mv = writer.visitModule();
     
     // requires
-    mv.visitRequire("java.base", Opcodes.ACC_PUBLIC|Opcodes.ACC_MANDATED);
+    mv.visitRequire("java.base", Opcodes.ACC_MANDATED);
     if (requireModules != null) {
       Parameters requireParams = analyzer.parseHeader(requireModules);
       for(String requireName: requireParams.keySet()) {
         Attrs attrs = requireParams.get(requireName);
-        boolean isPublic = attrs.containsKey("public");
-        mv.visitRequire(requireName, isPublic? Opcodes.ACC_PUBLIC: 0);
+        boolean isTransitive = attrs.containsKey("transitive");
+        mv.visitRequire(requireName, isTransitive? Opcodes.ACC_TRANSITIVE: 0);
       }
     }
     
@@ -61,7 +61,7 @@ public class ModuleInfoBndPlugin implements AnalyzerPlugin {
         if (packageName.endsWith("*")) {
             throw new IllegalStateException("unsupported wildcard packages " + packageName);
         }
-        mv.visitExport(packageName.replace('.', '/'));
+        mv.visitExport(packageName.replace('.', '/'), 0);
       }
     }
     

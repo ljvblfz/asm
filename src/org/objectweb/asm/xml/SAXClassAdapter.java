@@ -70,6 +70,11 @@ public final class SAXClassAdapter extends ClassVisitor {
      * Pseudo access flag used to distinguish inner class flags.
      */
     private static final int ACCESS_INNER = 1048576;
+    
+    /**
+     * Pseudo access flag used to distinguish module requires/exports flags.
+     */
+    static final int ACCESS_MODULE = 2097152;
 
     /**
      * Constructs a new {@link SAXClassAdapter SAXClassAdapter} object.
@@ -286,14 +291,22 @@ public final class SAXClassAdapter extends ClassVisitor {
             sb.append("protected ");
         }
         if ((access & Opcodes.ACC_FINAL) != 0) {
-            sb.append("final ");
+            if ((access & ACCESS_MODULE) == 0) {
+                sb.append("final ");
+            } else {
+                sb.append("transitive ");
+            }
         }
         if ((access & Opcodes.ACC_STATIC) != 0) {
             sb.append("static ");
         }
         if ((access & Opcodes.ACC_SUPER) != 0) {
             if ((access & ACCESS_CLASS) == 0) {
-                sb.append("synchronized ");
+                if ((access & ACCESS_MODULE) == 0) {
+                    sb.append("synchronized ");
+                } else {
+                    sb.append("static ");
+                }
             } else {
                 sb.append("super ");
             }
@@ -302,7 +315,11 @@ public final class SAXClassAdapter extends ClassVisitor {
             if ((access & ACCESS_FIELD) == 0) {
                 sb.append("bridge ");
             } else {
-                sb.append("volatile ");
+                if ((access & ACCESS_MODULE) == 0) {
+                    sb.append("volatile ");
+                } else {
+                    sb.append("dynamic ");
+                }
             }
         }
         if ((access & Opcodes.ACC_TRANSIENT) != 0) {
@@ -336,7 +353,7 @@ public final class SAXClassAdapter extends ClassVisitor {
         if ((access & Opcodes.ACC_DEPRECATED) != 0) {
             sb.append("deprecated ");
         }
-        if ((access & (Opcodes.ACC_MANDATED|Opcodes.ACC_MODULE)) != 0) {
+        if ((access & Opcodes.ACC_MANDATED) != 0) {
             if ((access & ACCESS_CLASS) == 0) {
                 sb.append("module ");
             } else {

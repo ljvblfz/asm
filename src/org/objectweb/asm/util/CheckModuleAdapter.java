@@ -52,19 +52,19 @@ public final class CheckModuleAdapter extends ModuleVisitor {
     }
     
     @Override
-    public void visitExport(String packaze, String... modules) {
+    public void visitExport(String packaze, int access, String... modules) {
         checkEnd();
         if (packaze == null) {
-            throw new IllegalArgumentException("require cannot be null");
+            throw new IllegalArgumentException("packaze cannot be null");
         }
         if (modules != null) {
             for(int i = 0; i < modules.length; i++) {
                 if (modules[i] == null) {
-                    throw new IllegalArgumentException("to at index " + i + " cannot be null");
+                    throw new IllegalArgumentException("module at index " + i + " cannot be null");
                 }
             }
         }
-        super.visitExport(packaze, modules);
+        super.visitExport(packaze, access, modules);
     }
     
     @Override

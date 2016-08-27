@@ -726,12 +726,8 @@ public class ClassReader {
         // reads requires
         u += 2;
         for (int i = readUnsignedShort(u - 2); i > 0; --i) {
-            //FIXME emulate ACC_PUBLIC wrong value (0x0020)
             String module = readUTF8(u, buffer);
             int access = readUnsignedShort(u + 2);
-            if ((access & 0x0020) != 0) {
-                access = access & ~ 0x0020 | Opcodes.ACC_PUBLIC;
-            }
             mv.visitRequire(module, access);
             u += 4;
         }
@@ -740,8 +736,9 @@ public class ClassReader {
         u += 2;
         for (int i = readUnsignedShort(u - 2); i > 0; --i) {
             String export = readUTF8(u, buffer);
-            int exportToCount = readUnsignedShort(u + 2);
-            u += 4;
+            int access = readUnsignedShort(u + 2);
+            int exportToCount = readUnsignedShort(u + 4);
+            u += 6;
             String[] tos = null;
             if (exportToCount != 0) {
                 tos = new String[exportToCount];
@@ -750,7 +747,7 @@ public class ClassReader {
                     u += 2;
                 }
             }
-            mv.visitExport(export, tos);
+            mv.visitExport(export, access, tos);
         }
         
         // read uses

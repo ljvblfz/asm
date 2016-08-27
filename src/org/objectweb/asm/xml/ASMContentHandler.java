@@ -688,6 +688,9 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
             if (s.indexOf("module") != -1) {
                 access |= ACC_MODULE;
             }
+            if (s.indexOf("dynamic") != -1) {
+                access |= ACC_DYNAMIC_PHASE;
+            }
             return access;
         }
     }
@@ -768,12 +771,18 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
                 push(cv.visitModule());
             } else if ("requires".equals(element)) {
                 ModuleVisitor mv = (ModuleVisitor) peek();
-                mv.visitRequire(attrs.getValue("module"),
-                        getAccess(attrs.getValue("access")));
+                int access = getAccess(attrs.getValue("access"));
+                if ((access & Opcodes.ACC_PUBLIC) != 0) {
+                    access = access & ~Opcodes.ACC_PUBLIC | Opcodes.ACC_TRANSITIVE;
+                }
+                if ((access & Opcodes.ACC_STATIC) != 0) {
+                    access = access & ~Opcodes.ACC_STATIC | Opcodes.ACC_STATIC_PHASE;
+                }
+                mv.visitRequire(attrs.getValue("module"), access);
             } else if ("exports".equals(element)) {
-                // encode the name of the exported package as the first item
+                push(attrs.getValue("name"));
+                push(getAccess(attrs.getValue("access")));
                 ArrayList<String> list = new ArrayList<String>();
-                list.add(attrs.getValue("name"));
                 push(list);
             } else if ("to".equals(element)) {
                 @SuppressWarnings("unchecked")
@@ -793,13 +802,14 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
             if ("exports".equals(element)) {
                 @SuppressWarnings("unchecked")
                 ArrayList<String> list = (ArrayList<String>) pop();
-                String export = list.remove(0);  // name of the exported package
+                int access = (Integer) pop();
+                String export = (String) pop();
                 String[] tos = null;
                 if (!list.isEmpty()) {
                     tos = list.toArray(new String[list.size()]);
                 }
                 ModuleVisitor mv = (ModuleVisitor) peek();
-                mv.visitExport(export, tos);
+                mv.visitExport(export, access, tos);
             } else if ("module".equals(element)) {
                 ((ModuleVisitor) pop()).visitEnd();
             }

@@ -79,6 +79,11 @@ public class ASMifier extends Printer {
      * Pseudo access flag used to distinguish inner class flags.
      */
     private static final int ACCESS_INNER = 1048576;
+    
+    /**
+     * Pseudo access flag used to distinguish module requires/exports flags.
+     */
+    private static final int ACCESS_MODULE = 2097152;
 
     /**
      * Constructs a new {@link ASMifier}. <i>Subclasses must not use this
@@ -380,16 +385,18 @@ public class ASMifier extends Printer {
         buf.append("mdv.visitRequire(");
         appendConstant(buf, module);
         buf.append(", ");
-        appendAccess(access);
+        appendAccess(access | ACCESS_MODULE);
         buf.append(");\n");
         text.add(buf.toString());
     }
     
     @Override
-    public void visitExport(String packaze, String... modules) {
+    public void visitExport(String packaze, int access, String... modules) {
         buf.setLength(0);
         buf.append("mdv.visitExport(");
         appendConstant(buf, packaze);
+        buf.append(", ");
+        appendAccess(access | ACCESS_MODULE);
         if (modules != null && modules.length > 0) {
             buf.append(", new String[] {");
             for (int i = 0; i < modules.length; ++i) {
@@ -1039,11 +1046,15 @@ public class ASMifier extends Printer {
             buf.append("ACC_PROTECTED");
             first = false;
         }
-        if ((access & Opcodes.ACC_FINAL) != 0) {
+        if ((access & (Opcodes.ACC_FINAL | Opcodes.ACC_TRANSITIVE)) != 0) {
             if (!first) {
                 buf.append(" + ");
             }
-            buf.append("ACC_FINAL");
+            if ((access & ACCESS_MODULE) == 0) {
+                buf.append("ACC_FINAL");
+            } else {
+                buf.append("ACC_TRANSITIVE");
+            }
             first = false;
         }
         if ((access & Opcodes.ACC_STATIC) != 0) {
@@ -1053,31 +1064,35 @@ public class ASMifier extends Printer {
             buf.append("ACC_STATIC");
             first = false;
         }
-        if ((access & Opcodes.ACC_SYNCHRONIZED) != 0) {
+        if ((access & (Opcodes.ACC_SYNCHRONIZED | Opcodes.ACC_SUPER | Opcodes.ACC_STATIC_PHASE)) != 0) {
             if (!first) {
                 buf.append(" + ");
             }
             if ((access & ACCESS_CLASS) == 0) {
-                buf.append("ACC_SYNCHRONIZED");
+                if ((access & ACCESS_MODULE) == 0) {
+                    buf.append("ACC_SYNCHRONIZED");
+                } else {
+                    buf.append("ACC_STATIC_PHASE");
+                }
             } else {
                 buf.append("ACC_SUPER");
             }
             first = false;
         }
-        if ((access & Opcodes.ACC_VOLATILE) != 0
-                && (access & ACCESS_FIELD) != 0) {
+        if ((access & (Opcodes.ACC_VOLATILE | Opcodes.ACC_BRIDGE | Opcodes.ACC_DYNAMIC_PHASE)) != 0) {
             if (!first) {
                 buf.append(" + ");
             }
-            buf.append("ACC_VOLATILE");
-            first = false;
-        }
-        if ((access & Opcodes.ACC_BRIDGE) != 0 && (access & ACCESS_CLASS) == 0
-                && (access & ACCESS_FIELD) == 0) {
-            if (!first) {
-                buf.append(" + ");
+            if ((access & ACCESS_FIELD) != 0) {
+                buf.append("ACC_VOLATILE");    
+            } else {
+                if ((access & ACCESS_MODULE) == 0) {
+                    buf.append("ACC_BRIDGE");
+                } else {
+                    buf.append("ACC_DYNAMIC_PHASE");
+                }
             }
-            buf.append("ACC_BRIDGE");
+            
             first = false;
         }
         if ((access & Opcodes.ACC_VARARGS) != 0 && (access & ACCESS_CLASS) == 0

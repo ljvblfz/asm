@@ -46,8 +46,8 @@ Import-Package: \
   org.objectweb.asm.*;version="[${product.artifact},${product.artifact}]"
 
 Module-Requires: \
-  org.objectweb.asm;public=true, \
-  org.objectweb.asm.tree;public=true
+  org.objectweb.asm;transitive=true, \
+  org.objectweb.asm.tree;transitive=true
 
 Bundle-RequiredExecutionEnvironment: J2SE-1.4
 

@@ -43,6 +43,11 @@ public class ModuleInfoBndPlugin implements AnalyzerPlugin {
     
     ModuleVisitor mv = writer.visitModule();
     
+    // version
+    if (moduleVersion != null) {
+        mv.visitVersion(moduleVersion);
+    }
+    
     // requires
     mv.visitRequire("java.base", Opcodes.ACC_MANDATED);
     if (requireModules != null) {
@@ -69,18 +74,6 @@ public class ModuleInfoBndPlugin implements AnalyzerPlugin {
     //mv.visitProvide("org/objectweb/asm/FunInterface", "org/objectweb/asm/FunImpl");
     
     mv.visitEnd();
-    
-    if (moduleVersion != null) {
-        final String version = moduleVersion;
-        writer.visitAttribute(new Attribute("Version") {
-            @Override
-            protected ByteVector write(ClassWriter cw, byte[] code, int len, int maxStack, int maxLocals) {
-                ByteVector bv = new ByteVector();
-                bv.putShort(cw.newUTF8(version));
-                return bv;
-            }
-        });
-    }
     
     writer.visitEnd();
     byte[] bytecode = writer.toByteArray();

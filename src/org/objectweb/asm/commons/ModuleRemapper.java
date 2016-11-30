@@ -68,14 +68,26 @@ public class ModuleRemapper extends ModuleVisitor {
     
     @Override
     public void visitExport(String packaze, int access, String... modules) {
-        String[] newTos = null;
+        String[] newModules = null;
         if (modules != null) {
-            newTos = new String[modules.length];
+            newModules = new String[modules.length];
             for(int i = 0 ; i < modules.length; i++) {
-                newTos[i] = remapper.mapModuleName(modules[i]);
+                newModules[i] = remapper.mapModuleName(modules[i]);
             }
         }
-        super.visitExport(remapper.mapPackageName(packaze), access, newTos);
+        super.visitExport(remapper.mapPackageName(packaze), access, newModules);
+    }
+    
+    @Override
+    public void visitOpen(String packaze, int access, String... modules) {
+        String[] newModules = null;
+        if (modules != null) {
+            newModules = new String[modules.length];
+            for(int i = 0 ; i < modules.length; i++) {
+                newModules[i] = remapper.mapModuleName(modules[i]);
+            }
+        }
+        super.visitOpen(remapper.mapPackageName(packaze), access, newModules);
     }
     
     @Override
@@ -84,7 +96,11 @@ public class ModuleRemapper extends ModuleVisitor {
     }
     
     @Override
-    public void visitProvide(String service, String impl) {
-        super.visitProvide(remapper.mapType(service), remapper.mapType(impl));
+    public void visitProvide(String service, String... providers) {
+        String[] newProviders = new String[providers.length];
+        for(int i = 0 ; i < providers.length; i++) {
+            newProviders[i] = remapper.mapType(providers[i]);
+        }
+        super.visitProvide(remapper.mapType(service), newProviders);
     }
 }

@@ -671,7 +671,7 @@ public class ClassWriter extends ClassVisitor {
             final String[] interfaces) {
         this.version = version;
         this.access = access;
-        this.name = newClass(name);
+        this.name = name == null? 0: newClass(name);
         thisName = name;
         if (ClassReader.SIGNATURES && signature != null) {
             this.signature = newUTF8(signature);
@@ -698,8 +698,8 @@ public class ClassWriter extends ClassVisitor {
     }
 
     @Override
-    public final ModuleVisitor visitModule() {
-        return moduleWriter = new ModuleWriter(this); 
+    public final ModuleVisitor visitModule(String name, int access) {
+        return moduleWriter = new ModuleWriter(this, newUTF8(name), access); 
     }
     
     @Override

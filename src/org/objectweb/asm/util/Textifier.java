@@ -249,8 +249,8 @@ public class Textifier extends Printer {
         } else if ((access & Opcodes.ACC_INTERFACE) != 0) {
             buf.append("interface ");
         } else if ((access & Opcodes.ACC_MODULE) != 0) {
-            buf.append("module ");
-            internalName = name.substring(0, name.length() - "/module-info".length());
+            // visitModule will print the module
+            return;
         } else if ((access & Opcodes.ACC_ENUM) == 0) {
             buf.append("class ");
         }
@@ -290,7 +290,13 @@ public class Textifier extends Printer {
     }
     
     @Override
-    public Printer visitModule() {
+    public Printer visitModule(final String name, final int access) {
+        buf.setLength(0);
+        if ((access & Opcodes.ACC_OPEN) != 0) {
+            buf.append("open ");
+        }
+        buf.append("module ").append(name).append(" {\n\n");
+        text.add(buf.toString());
         Textifier t = createTextifier();
         text.add(t.getText());
         return t;
@@ -503,7 +509,7 @@ public class Textifier extends Printer {
         buf.setLength(0);
         buf.append(tab).append("requires ");
         if ((access & Opcodes.ACC_TRANSITIVE) != 0) {
-            buf.append("public ");
+            buf.append("transitive ");
         }
         if ((access & Opcodes.ACC_STATIC_PHASE) != 0) {
             buf.append("static ");
@@ -516,14 +522,11 @@ public class Textifier extends Printer {
     }
     
     @Override
-    public void visitExport(String export, int access, String... tos) {
+    public void visitExport(String export, int access, String... modules) {
         buf.setLength(0);
         buf.append(tab).append("exports ");
-        if ((access & Opcodes.ACC_DYNAMIC_PHASE) != 0) {
-            buf.append("dynamic ");
-        }
         buf.append(export);
-        if (tos != null && tos.length > 0) {
+        if (modules != null && modules.length > 0) {
             buf.append(" to");
         } else {
             buf.append(';');
@@ -531,10 +534,32 @@ public class Textifier extends Printer {
         buf.append("  // access flags 0x")
            .append(Integer.toHexString(access).toUpperCase())
            .append('\n');
-        if (tos != null && tos.length > 0) {
-            for (int i = 0; i < tos.length; ++i) {
-                buf.append(tab2).append(tos[i]);
-                buf.append(i != tos.length - 1 ? ",\n": ";\n");
+        if (modules != null && modules.length > 0) {
+            for (int i = 0; i < modules.length; ++i) {
+                buf.append(tab2).append(modules[i]);
+                buf.append(i != modules.length - 1 ? ",\n": ";\n");
+            }
+        }
+        text.add(buf.toString());
+    }
+    
+    @Override
+    public void visitOpen(String export, int access, String... modules) {
+        buf.setLength(0);
+        buf.append(tab).append("opens ");
+        buf.append(export);
+        if (modules != null && modules.length > 0) {
+            buf.append(" to");
+        } else {
+            buf.append(';');
+        }
+        buf.append("  // access flags 0x")
+           .append(Integer.toHexString(access).toUpperCase())
+           .append('\n');
+        if (modules != null && modules.length > 0) {
+            for (int i = 0; i < modules.length; ++i) {
+                buf.append(tab2).append(modules[i]);
+                buf.append(i != modules.length - 1 ? ",\n": ";\n");
             }
         }
         text.add(buf.toString());
@@ -550,13 +575,16 @@ public class Textifier extends Printer {
     }
     
     @Override
-    public void visitProvide(String provide, String with) {
+    public void visitProvide(String provide, String... providers) {
         buf.setLength(0);
         buf.append(tab).append("provides ");
         appendDescriptor(INTERNAL_NAME, provide);
-        buf.append(" with\n").append(tab2);
-        appendDescriptor(INTERNAL_NAME, with);
-        buf.append(";\n");
+        buf.append(" with\n");
+        for (int i = 0; i < providers.length; ++i) {
+            buf.append(tab2);
+            appendDescriptor(INTERNAL_NAME, providers[i]);
+            buf.append(i != providers.length - 1 ? ",\n": ";\n");
+        }
         text.add(buf.toString());
     }
     

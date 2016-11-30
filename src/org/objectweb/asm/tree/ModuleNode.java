@@ -43,6 +43,17 @@ import org.objectweb.asm.Opcodes;
  */
 public class ModuleNode extends ModuleVisitor {
     /**
+     * Module name
+     */
+    public String name;
+    
+    /**
+     * Module access flags, among {@code ACC_OPEN}, {@code ACC_SYNTHETIC}
+     *            and {@code ACC_MANDATED}.
+     */
+    public int access;
+    
+    /**
      * Version of the module.
      * May be <tt>null</tt>.
      */
@@ -91,6 +102,12 @@ public class ModuleNode extends ModuleVisitor {
     public List<ModuleExportNode> exports;
     
     /**
+     * A list of packages that are opened by the current module.
+     * May be <tt>null</tt>.
+     */
+    public List<ModuleOpenNode> opens;
+    
+    /**
      * A list of classes in their internal forms that are used
      * as a service by the current module. May be <tt>null</tt>.
      */
@@ -102,18 +119,26 @@ public class ModuleNode extends ModuleVisitor {
      */
     public List<ModuleProvideNode> provides;
 
-    public ModuleNode() {
+    public ModuleNode(final String name, final int access) {
         super(Opcodes.ASM6);
+        this.name = name;
+        this.access = access;
     }
     
     public ModuleNode(final int api,
-      List<ModuleRequireNode> requires,
-      List<ModuleExportNode> exports,
-      List<String> uses,
-      List<ModuleProvideNode> provides) {
-        super(Opcodes.ASM6);
+      final String name,
+      final int access,
+      final List<ModuleRequireNode> requires,
+      final List<ModuleExportNode> exports,
+      final List<ModuleOpenNode> opens,
+      final List<String> uses,
+      final List<ModuleProvideNode> provides) {
+        super(api);
+        this.name = name;
+        this.access = access;
         this.requires = requires;
         this.exports = exports;
+        this.opens = opens;
         this.uses = uses;
         this.provides = provides;
         if (getClass() != ModuleNode.class) {
@@ -168,6 +193,21 @@ public class ModuleNode extends ModuleVisitor {
     }
     
     @Override
+    public void visitOpen(String packaze, int access, String... modules) {
+        if (opens == null) {
+            opens = new ArrayList<ModuleOpenNode>(5);
+        }
+        List<String> moduleList = null;
+        if (modules != null) {
+            moduleList = new ArrayList<String>(modules.length);
+            for(int i = 0; i < modules.length; i++) {
+                moduleList.add(modules[i]);
+            }
+        }
+        opens.add(new ModuleOpenNode(packaze, access, moduleList));
+    }
+    
+    @Override
     public void visitUse(String service) {
         if (uses == null) {
             uses = new ArrayList<String>(5);
@@ -176,11 +216,16 @@ public class ModuleNode extends ModuleVisitor {
     }
     
     @Override
-    public void visitProvide(String service, String impl) {
+    public void visitProvide(String service, String... providers) {
         if (provides == null) {
             provides = new ArrayList<ModuleProvideNode>(5);
         }
-        provides.add(new ModuleProvideNode(service, impl));
+        ArrayList<String> providerList =
+                new ArrayList<String>(providers.length);
+        for(int i = 0; i < providers.length; i++) {
+                providerList.add(providers[i]);
+        }
+        provides.add(new ModuleProvideNode(service, providerList));
     }
     
     @Override
@@ -188,7 +233,7 @@ public class ModuleNode extends ModuleVisitor {
     }
     
     public void accept(final ClassVisitor cv) {
-        ModuleVisitor mv = cv.visitModule();
+        ModuleVisitor mv = cv.visitModule(name, access);
         if (mv == null) {
             return;
         }
@@ -215,6 +260,11 @@ public class ModuleNode extends ModuleVisitor {
         if (exports != null) {
             for(int i = 0; i < exports.size(); i++) {
                 exports.get(i).accept(mv);
+            }
+        }
+        if (opens != null) {
+            for(int i = 0; i < opens.size(); i++) {
+                opens.get(i).accept(mv);
             }
         }
         if (uses != null) {

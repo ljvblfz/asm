@@ -86,15 +86,21 @@ public final class TraceModuleVisitor extends ModuleVisitor {
     }
     
     @Override
+    public void visitOpen(String packaze, int access, String... modules) {
+        p.visitOpen(packaze, access, modules);
+        super.visitOpen(packaze, access, modules);
+    }
+    
+    @Override
     public void visitUse(String use) {
         p.visitUse(use);
         super.visitUse(use);
     }
     
     @Override
-    public void visitProvide(String service, String impl) {
-        p.visitProvide(service, impl);
-        super.visitProvide(service, impl);
+    public void visitProvide(String service, String... providers) {
+        p.visitProvide(service, providers);
+        super.visitProvide(service, providers);
     }
 
     @Override

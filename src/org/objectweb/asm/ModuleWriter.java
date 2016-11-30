@@ -56,6 +56,16 @@ final class ModuleWriter extends ModuleVisitor {
     int attributesSize;
     
     /**
+     * module name index in the constant pool
+     */
+    private int name;
+    
+    /**
+     * module access flags
+     */
+    private int access;
+    
+    /**
      * module version index in the constant pool or 0
      */
     private int version;
@@ -114,6 +124,17 @@ final class ModuleWriter extends ModuleVisitor {
     private ByteVector exports;
     
     /**
+     * number of opens items
+     */
+    private int openCount;
+    
+    /**
+     * The opens items in bytecode form. This byte vector only contains
+     * the items themselves, the number of items is store in openCount
+     */
+    private ByteVector opens;
+    
+    /**
      * number of uses items
      */
     private int useCount;
@@ -135,10 +156,12 @@ final class ModuleWriter extends ModuleVisitor {
      */
     private ByteVector provides;
     
-    ModuleWriter(final ClassWriter cw) {
+    ModuleWriter(final ClassWriter cw, int name, int access) {
         super(Opcodes.ASM6);
         this.cw = cw;
-        this.size = 8;
+        this.size = 14;  // name + access + 5 counts
+        this.name = name;
+        this.access = access;
     }
     
     @Override
@@ -183,7 +206,8 @@ final class ModuleWriter extends ModuleVisitor {
     }
     @Override
     public void visitConcealedPackage(String packaze) {
-        if (concealedPackages == null) {
+        if (concealedPackages == null) { 
+            // protect against several calls to visitConcealedPackages
             cw.newUTF8("ConcealedPackages");
             concealedPackages = new ByteVector();
             attributeCount++;
@@ -215,12 +239,31 @@ final class ModuleWriter extends ModuleVisitor {
             size += 6;
         } else {
             exports.putShort(modules.length);
-            for(String to: modules) {
-                exports.putShort(cw.newUTF8(to));
+            for(String module: modules) {
+                exports.putShort(cw.newUTF8(module));
             }    
             size += 6 + 2 * modules.length; 
         }
         exportCount++;
+    }
+    
+    @Override
+    public void visitOpen(String packaze, int access, String... modules) {
+        if (opens == null) {
+            opens = new ByteVector();
+        }
+        opens.putShort(cw.newUTF8(packaze)).putShort(access);
+        if (modules == null) {
+            opens.putShort(0);
+            size += 6;
+        } else {
+            opens.putShort(modules.length);
+            for(String module: modules) {
+                opens.putShort(cw.newUTF8(module));
+            }    
+            size += 6 + 2 * modules.length; 
+        }
+        openCount++;
     }
     
     @Override
@@ -234,13 +277,17 @@ final class ModuleWriter extends ModuleVisitor {
     }
     
     @Override
-    public void visitProvide(String service, String impl) {
+    public void visitProvide(String service, String... providers) {
         if (provides == null) {
             provides = new ByteVector();
         }
-        provides.putShort(cw.newClass(service)).putShort(cw.newClass(impl));
+        provides.putShort(cw.newClass(service));
+        provides.putShort(providers.length);
+        for(String provider: providers) {
+            provides.putShort(cw.newClass(provider));
+        }
         provideCount++;
-        size += 4;
+        size += 4 + 2 * providers.length; 
     }
     
     @Override
@@ -272,6 +319,7 @@ final class ModuleWriter extends ModuleVisitor {
 
     void put(ByteVector out) {
         out.putInt(size);
+        out.putShort(name).putShort(access);
         out.putShort(requireCount);
         if (requires != null) {
             out.putByteArray(requires.data, 0, requires.length);
@@ -279,6 +327,10 @@ final class ModuleWriter extends ModuleVisitor {
         out.putShort(exportCount);
         if (exports != null) {
             out.putByteArray(exports.data, 0, exports.length);
+        }
+        out.putShort(openCount);
+        if (opens != null) {
+            out.putByteArray(opens.data, 0, opens.length);
         }
         out.putShort(useCount);
         if (uses != null) {

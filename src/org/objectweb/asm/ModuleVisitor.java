@@ -138,7 +138,8 @@ public abstract class ModuleVisitor {
      * 
      * @param packaze the name of the exported package.
      * @param access the access flag of the exported package,
-     *        0 or ACC_DYNAMIC_PHASE.
+     *        valid values are among {@code ACC_SYNTHETIC} and
+     *        {@code ACC_MANDATED}.
      * @param modules names of the modules that can access to
      *        the public classes of the exported package or
      *        <tt>null</tt>.
@@ -146,6 +147,23 @@ public abstract class ModuleVisitor {
     public void visitExport(String packaze, int access, String... modules) {
         if (mv != null) {
             mv.visitExport(packaze, access, modules);
+        }
+    }
+    
+    /**
+     * Visit an open package of the current module.
+     * 
+     * @param packaze the name of the opened package.
+     * @param access the access flag of the opened package,
+     *        valid values are among {@code ACC_SYNTHETIC} and
+     *        {@code ACC_MANDATED}.
+     * @param modules names of the modules that can use deep
+     *        reflection to the classes of the open package or
+     *        <tt>null</tt>.
+     */
+    public void visitOpen(String packaze, int access, String... modules) {
+        if (mv != null) {
+            mv.visitOpen(packaze, access, modules);
         }
     }
     
@@ -166,12 +184,12 @@ public abstract class ModuleVisitor {
      * Visit an implementation of a service.
      * 
      * @param service the internal name of the service
-     * @param impl the internal name of the implementation
-     *        of the service
+     * @param providers the internal names of the implementations
+     *        of the service (there is at least one provider).
      */
-    public void visitProvide(String service, String impl) {
+    public void visitProvide(String service, String... providers) {
         if (mv != null) {
-            mv.visitProvide(service, impl);
+            mv.visitProvide(service, providers);
         }
     }
     

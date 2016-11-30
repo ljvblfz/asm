@@ -36,10 +36,9 @@ public class ModuleInfoBndPlugin implements AnalyzerPlugin {
     //System.out.println(exportPackages);
     
     ClassWriter writer = new ClassWriter(0);
-    String moduleInternalName = moduleName.replace('.', '/');
-    writer.visit(Opcodes.V1_9, Opcodes.ACC_MODULE, moduleInternalName + "/module-info", null, null, null);
+    writer.visit(Opcodes.V1_9, Opcodes.ACC_MODULE, null, null, null, null);
     
-    ModuleVisitor mv = writer.visitModule();
+    ModuleVisitor mv = writer.visitModule(moduleName, Opcodes.ACC_OPEN);
     
     // version
     if (moduleVersion != null) {
@@ -53,7 +52,8 @@ public class ModuleInfoBndPlugin implements AnalyzerPlugin {
       for(String requireName: requireParams.keySet()) {
         Attrs attrs = requireParams.get(requireName);
         boolean isTransitive = attrs.containsKey("transitive");
-        mv.visitRequire(requireName, isTransitive? Opcodes.ACC_TRANSITIVE: 0);
+        boolean isStatic = attrs.containsKey("static");
+        mv.visitRequire(requireName, (isTransitive? Opcodes.ACC_TRANSITIVE: 0) | (isStatic? Opcodes.ACC_STATIC_PHASE: 0));
       }
     }
     
@@ -67,9 +67,6 @@ public class ModuleInfoBndPlugin implements AnalyzerPlugin {
         mv.visitExport(packageName.replace('.', '/'), 0);
       }
     }
-    
-    //mv.visitUse("org/objectweb/asm/FunInterface");
-    //mv.visitProvide("org/objectweb/asm/FunInterface", "org/objectweb/asm/FunImpl");
     
     mv.visitEnd();
     

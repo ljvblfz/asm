@@ -72,9 +72,14 @@ public final class SAXClassAdapter extends ClassVisitor {
     private static final int ACCESS_INNER = 1048576;
     
     /**
-     * Pseudo access flag used to distinguish module requires/exports flags.
+     * Pseudo access flag used to distinguish module flags.
      */
     static final int ACCESS_MODULE = 2097152;
+    
+    /**
+     * Pseudo access flag used to distinguish module requires flags.
+     */
+    static final int ACCESS_MODULE_REQUIRES = 4194304;
 
     /**
      * Constructs a new {@link SAXClassAdapter SAXClassAdapter} object.
@@ -109,8 +114,13 @@ public final class SAXClassAdapter extends ClassVisitor {
     }
     
     @Override
-    public ModuleVisitor visitModule() {
+    public ModuleVisitor visitModule(final String name, final int access) {
         AttributesImpl att = new AttributesImpl();
+        att.addAttribute("", "name", "name", "", name);
+        StringBuilder sb = new StringBuilder();
+        appendAccess(access | ACCESS_MODULE, sb);
+        att.addAttribute("", "access", "access", "", sb.toString());
+        
         sa.addStart("module", att);
         return new SAXModuleAdapter(sa);
     }
@@ -302,10 +312,14 @@ public final class SAXClassAdapter extends ClassVisitor {
         }
         if ((access & Opcodes.ACC_SUPER) != 0) {
             if ((access & ACCESS_CLASS) == 0) {
-                if ((access & ACCESS_MODULE) == 0) {
-                    sb.append("synchronized ");
+                if ((access & ACCESS_MODULE_REQUIRES) != 0) {
+                    sb.append("transitive ");
                 } else {
-                    sb.append("static ");
+                    if ((access & ACCESS_MODULE) == 0) {
+                        sb.append("synchronized ");
+                    } else {
+                        sb.append("open ");
+                    }
                 }
             } else {
                 sb.append("super ");
@@ -315,10 +329,10 @@ public final class SAXClassAdapter extends ClassVisitor {
             if ((access & ACCESS_FIELD) == 0) {
                 sb.append("bridge ");
             } else {
-                if ((access & ACCESS_MODULE) == 0) {
+                if ((access & ACCESS_MODULE_REQUIRES) == 0) {
                     sb.append("volatile ");
                 } else {
-                    sb.append("dynamic ");
+                    sb.append("static ");
                 }
             }
         }

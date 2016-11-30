@@ -198,7 +198,18 @@ public abstract class Printer {
     public abstract void visitSource(final String source, final String debug);
 
     
-    public Printer visitModule() {
+    /**
+     * Module.
+     * See {@link org.objectweb.asm.ClassVisitor#visitModule(String, int)}.
+     * 
+     * @param name 
+     *            module name.
+     * @param access
+     *            module flags, among {@code ACC_OPEN}, {@code ACC_SYNTHETIC}
+     *            and {@code ACC_MANDATED}.
+     * @return
+     */
+    public Printer visitModule(String name, int access) {
         throw new RuntimeException("Must be overriden");
     }
     
@@ -377,11 +388,15 @@ public abstract class Printer {
         throw new RuntimeException("Must be overriden");
     }
     
+    public void visitOpen(String packaze, int access, String... modules) {
+        throw new RuntimeException("Must be overriden");
+    }
+    
     public void visitUse(String service) {
         throw new RuntimeException("Must be overriden");
     }
     
-    public void visitProvide(String service, String impl) {
+    public void visitProvide(String service, String... providers) {
         throw new RuntimeException("Must be overriden");
     }
     

@@ -563,7 +563,7 @@ public class ClassReader {
         int innerClasses = 0;
         int module = 0;
         int targetPlatform = 0;
-        int concealedPackages = 0;
+        int packages = 0;
         Attribute attributes = null;
 
         u = getAttributes();
@@ -613,7 +613,7 @@ public class ClassReader {
             } else if ("TargetPlatform".equals(attrName)) {
                 targetPlatform = u + 8;
             } else if ("ConcealedPackages".equals(attrName)) {
-                concealedPackages = u + 10;
+                packages = u + 10;
             } else if ("BootstrapMethods".equals(attrName)) {
                 int[] bootstrapMethods = new int[readUnsignedShort(u + 8)];
                 for (int j = 0, v = u + 10; j < bootstrapMethods.length; j++) {
@@ -646,7 +646,7 @@ public class ClassReader {
         if (module != 0) {
             readModule(classVisitor, context, module,
                     moduleVersion, moduleMainClass,
-                    targetPlatform, concealedPackages);
+                    targetPlatform, packages);
         }
         
         // visits the outer class
@@ -733,22 +733,29 @@ public class ClassReader {
      *           name of the main class of a module or null.
      * @param targetPlatform
      *           start offset of the target platform attribute.
-     * @param concealedPackages
+     * @param packages
      *           start offset of the concealed package attribute.
      * @return
      */
     private void readModule(final ClassVisitor classVisitor,
             final Context context, int u, final String version,
             final String mainClass, final int targetPlatform,
-            int concealedPackages) {
-        ModuleVisitor mv = classVisitor.visitModule();
+            int packages) {
+    
+        char[] buffer = context.buffer;
+        
+        // reads module name and flags
+        String name = readUTF8(u, buffer);
+        int flags = readUnsignedShort(u + 2);
+        u += 4;
+    
+        ModuleVisitor mv = classVisitor.visitModule(name, flags);
         if (mv == null) {
             return;
         }
-        char[] buffer = context.buffer;
         
         // module attributes (version, main class,
-        // target platform, concealed packages)
+        // target platform, packages)
         if (version != null) {
             mv.visitVersion(version);
         }
@@ -761,11 +768,11 @@ public class ClassReader {
                     readUTF8(targetPlatform + 2, buffer),
                     readUTF8(targetPlatform + 4, buffer));
         }
-        if (concealedPackages != 0) {
-            for (int i = readUnsignedShort(concealedPackages - 2); i > 0; --i) {
-                String packaze = readUTF8(concealedPackages, buffer);
+        if (packages != 0) {
+            for (int i = readUnsignedShort(packages - 2); i > 0; --i) {
+                String packaze = readUTF8(packages, buffer);
                 mv.visitConcealedPackage(packaze);
-                concealedPackages += 2;
+                packages += 2;
             }
         }
         
@@ -796,6 +803,24 @@ public class ClassReader {
             mv.visitExport(export, access, tos);
         }
         
+        // reads opens
+        u += 2;
+        for (int i = readUnsignedShort(u - 2); i > 0; --i) {
+            String open = readUTF8(u, buffer);
+            int access = readUnsignedShort(u + 2);
+            int openToCount = readUnsignedShort(u + 4);
+            u += 6;
+            String[] tos = null;
+            if (openToCount != 0) {
+                tos = new String[openToCount];
+                for (int j = 0; j < tos.length; ++j) {
+                    tos[j] = readUTF8(u, buffer);
+                    u += 2;
+                }
+            }
+            mv.visitOpen(open, access, tos);
+        }
+        
         // read uses
         u += 2;
         for (int i = readUnsignedShort(u - 2); i > 0; --i) {
@@ -806,8 +831,15 @@ public class ClassReader {
         // read provides
         u += 2;
         for (int i = readUnsignedShort(u - 2); i > 0; --i) {
-            mv.visitProvide(readClass(u, buffer), readClass(u + 2, buffer));
+            String service = readClass(u, buffer);
+            int provideWithCount = readUnsignedShort(u + 2);
             u += 4;
+            String[] withs = new String[provideWithCount];
+            for (int j = 0; j < withs.length; ++j) {
+                withs[j] = readClass(u, buffer);
+                u += 2;
+            }
+            mv.visitProvide(service, withs);
         }
         
         mv.visitEnd();

@@ -34,11 +34,11 @@ import java.util.List;
 import org.objectweb.asm.ModuleVisitor;
 
 /**
- * A node that represents an exported package with its name and the module that can access to it.
+ * A node that represents an opened package with its name and the module that can access to it.
  * 
  * @author Remi Forax
  */
-public class ModuleExportNode {
+public class ModuleOpenNode {
     /**
      * The package name.
      */
@@ -57,21 +57,21 @@ public class ModuleExportNode {
     public List<String> modules;
 
     /**
-     * Constructs a new {@link ModuleExportNode}.
+     * Constructs a new {@link ModuleOpenNode}.
      * 
      * @param packaze
      *            the parameter's name.
      * @param modules
-     *            a list of modules that can access to this exported package.
+     *            a list of modules that can access to this open package.
      */
-    public ModuleExportNode(final String packaze, final int access, final List<String> modules) {
+    public ModuleOpenNode(final String packaze, final int access, final List<String> modules) {
         this.packaze = packaze;
         this.access = access;
         this.modules = modules;
     }
 
     /**
-     * Makes the given module visitor visit this export declaration.
+     * Makes the given module visitor visit this open declaration.
      * 
      * @param mv
      *            a module visitor.

@@ -172,13 +172,17 @@ public class ASMifier extends Printer {
             final String signature, final String superName,
             final String[] interfaces) {
         String simpleName;
-        int n = name.lastIndexOf('/');
-        if (n == -1) {
-            simpleName = name;
+        if (name == null) {
+            simpleName = "module-info";
         } else {
-            text.add("package asm." + name.substring(0, n).replace('/', '.')
-                    + ";\n");
-            simpleName = name.substring(n + 1).replace('-', '_');
+            int n = name.lastIndexOf('/');
+            if (n == -1) {
+                simpleName = name;
+            } else {
+                text.add("package asm." + name.substring(0, n).replace('/', '.')
+                        + ";\n");
+                simpleName = name.substring(n + 1).replace('-', '_');
+            }
         }
         text.add("import java.util.*;\n");
         text.add("import org.objectweb.asm.*;\n");
@@ -258,10 +262,17 @@ public class ASMifier extends Printer {
     }
     
     @Override
-    public Printer visitModule() {
+    public Printer visitModule(final String name, final int flags) {
+        buf.setLength(0);
+        buf.append("ModuleVisitor mdv = cw.visitModule(");
+        appendConstant(name);
+        buf.append(", ");
+        appendAccess(flags | ACCESS_MODULE);
+        buf.append(");\n\n");
+        text.add(buf.toString());
         ASMifier a = createASMifier("mdv", 0);
-        text.add("ModuleVisitor mdv = cw.visitModule();\n");
         text.add(a.getText());
+        text.add("}\n");
         return a;
     }
 
@@ -448,6 +459,25 @@ public class ASMifier extends Printer {
     }
     
     @Override
+    public void visitOpen(String packaze, int access, String... modules) {
+        buf.setLength(0);
+        buf.append("mdv.visitOpen(");
+        appendConstant(buf, packaze);
+        buf.append(", ");
+        appendAccess(access | ACCESS_MODULE);
+        if (modules != null && modules.length > 0) {
+            buf.append(", new String[] {");
+            for (int i = 0; i < modules.length; ++i) {
+                buf.append(i == 0 ? " " : ", ");
+                appendConstant(modules[i]);
+            }
+            buf.append(" }");
+        }
+        buf.append(");\n");
+        text.add(buf.toString());
+    }
+    
+    @Override
     public void visitUse(String service) {
         buf.setLength(0);
         buf.append("mdv.visitUse(");
@@ -457,13 +487,16 @@ public class ASMifier extends Printer {
     }
     
     @Override
-    public void visitProvide(String service, String impl) {
+    public void visitProvide(String service, String... providers) {
         buf.setLength(0);
         buf.append("mdv.visitProvide(");
         appendConstant(buf, service);
-        buf.append(", ");
-        appendConstant(buf, impl);
-        buf.append(");\n");
+        buf.append(",  new String[] {");
+        for (int i = 0; i < providers.length; ++i) {
+                buf.append(i == 0 ? " " : ", ");
+                appendConstant(providers[i]);
+        }
+        buf.append(" });\n");
         text.add(buf.toString());
     }
     
@@ -1084,7 +1117,7 @@ public class ASMifier extends Printer {
             buf.append("ACC_PROTECTED");
             first = false;
         }
-        if ((access & (Opcodes.ACC_FINAL | Opcodes.ACC_TRANSITIVE)) != 0) {
+        if ((access & (Opcodes.ACC_FINAL)) != 0) {
             if (!first) {
                 buf.append(" + ");
             }
@@ -1102,7 +1135,7 @@ public class ASMifier extends Printer {
             buf.append("ACC_STATIC");
             first = false;
         }
-        if ((access & (Opcodes.ACC_SYNCHRONIZED | Opcodes.ACC_SUPER | Opcodes.ACC_STATIC_PHASE)) != 0) {
+        if ((access & (Opcodes.ACC_SYNCHRONIZED | Opcodes.ACC_SUPER | Opcodes.ACC_TRANSITIVE)) != 0) {
             if (!first) {
                 buf.append(" + ");
             }
@@ -1110,25 +1143,25 @@ public class ASMifier extends Printer {
                 if ((access & ACCESS_MODULE) == 0) {
                     buf.append("ACC_SYNCHRONIZED");
                 } else {
-                    buf.append("ACC_STATIC_PHASE");
+                    buf.append("ACC_TRANSITIVE");
                 }
             } else {
                 buf.append("ACC_SUPER");
             }
             first = false;
         }
-        if ((access & (Opcodes.ACC_VOLATILE | Opcodes.ACC_BRIDGE | Opcodes.ACC_DYNAMIC_PHASE)) != 0) {
+        if ((access & (Opcodes.ACC_VOLATILE | Opcodes.ACC_BRIDGE | Opcodes.ACC_STATIC_PHASE)) != 0) {
             if (!first) {
                 buf.append(" + ");
             }
-            if ((access & ACCESS_FIELD) != 0) {
-                buf.append("ACC_VOLATILE");    
-            } else {
+            if ((access & ACCESS_FIELD) == 0) {
                 if ((access & ACCESS_MODULE) == 0) {
                     buf.append("ACC_BRIDGE");
                 } else {
-                    buf.append("ACC_DYNAMIC_PHASE");
-                }
+                    buf.append("ACC_STATIC_PHASE");
+                } 
+            } else {
+                buf.append("ACC_VOLATILE"); 
             }
             
             first = false;

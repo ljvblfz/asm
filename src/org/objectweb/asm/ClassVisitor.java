@@ -133,15 +133,20 @@ public abstract class ClassVisitor {
     
     /**
      * Visit the module corresponding to the class.
+     * @param name
+     *            module name
+     * @param access
+     *            module flags, among {@code ACC_OPEN}, {@code ACC_SYNTHETIC}
+     *            and {@code ACC_MANDATED}.
      * @return a visitor to visit the module values, or <tt>null</tt> if
      *         this visitor is not interested in visiting this module.
      */
-    public ModuleVisitor visitModule() {
+    public ModuleVisitor visitModule(String name, int access) {
         if (api < Opcodes.ASM6) {
             throw new RuntimeException();
         }
         if (cv != null) {
-            return cv.visitModule();
+            return cv.visitModule(name, access);
         }
         return null;
     }

@@ -92,9 +92,10 @@ public class ClassConstantsCollector extends ClassVisitor {
     }
 
     @Override
-    public ModuleVisitor visitModule() {
+    public ModuleVisitor visitModule(final String name, final int access) {
         cp.newUTF8("Module");
-        return new ModuleConstantsCollector(cv.visitModule(), cp);
+        cp.newUTF8(name);
+        return new ModuleConstantsCollector(cv.visitModule(name, access), cp);
     }
     
     @Override

@@ -692,8 +692,11 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
             if (s.indexOf("module") != -1) {
                 access |= ACC_MODULE;
             }
-            if (s.indexOf("dynamic") != -1) {
-                access |= ACC_DYNAMIC_PHASE;
+            if (s.indexOf("open") != -1) {
+                access |= ACC_OPEN;
+            }
+            if (s.indexOf("transitive") != -1) {
+                access |= ACC_TRANSITIVE;
             }
             return access;
         }
@@ -772,7 +775,7 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         public final void begin(final String element, final Attributes attrs)
                 throws SAXException {
             if ("module".equals(element)) {
-                push(cv.visitModule());
+                push(cv.visitModule(attrs.getValue("name"), getAccess(attrs.getValue("access"))));
             } else if ("version".equals(element)) {
                 ModuleVisitor mv = (ModuleVisitor) peek();
                 mv.visitVersion(attrs.getValue("value"));
@@ -790,14 +793,16 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
             } else if ("requires".equals(element)) {
                 ModuleVisitor mv = (ModuleVisitor) peek();
                 int access = getAccess(attrs.getValue("access"));
-                if ((access & Opcodes.ACC_PUBLIC) != 0) {
-                    access = access & ~Opcodes.ACC_PUBLIC | Opcodes.ACC_TRANSITIVE;
-                }
                 if ((access & Opcodes.ACC_STATIC) != 0) {
                     access = access & ~Opcodes.ACC_STATIC | Opcodes.ACC_STATIC_PHASE;
                 }
                 mv.visitRequire(attrs.getValue("module"), access);
             } else if ("exports".equals(element)) {
+                push(attrs.getValue("name"));
+                push(getAccess(attrs.getValue("access")));
+                ArrayList<String> list = new ArrayList<String>();
+                push(list);
+            } else if ("opens".equals(element)) {
                 push(attrs.getValue("name"));
                 push(getAccess(attrs.getValue("access")));
                 ArrayList<String> list = new ArrayList<String>();
@@ -810,24 +815,41 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
                 ModuleVisitor mv = (ModuleVisitor) peek();
                 mv.visitUse(attrs.getValue("service"));
             }  else if ("provides".equals(element)) {
-                ModuleVisitor mv = (ModuleVisitor) peek();
-                mv.visitProvide(attrs.getValue("service"), attrs.getValue("impl"));
-            }
+                push(attrs.getValue("service"));
+                push(0);  // see end() below
+                ArrayList<String> list = new ArrayList<String>();
+                push(list);
+            }  else if ("with".equals(element)) {
+                @SuppressWarnings("unchecked")
+                ArrayList<String> list = (ArrayList<String>) peek();
+                list.add(attrs.getValue("provider"));
+            }  
         }
 
         @Override
         public void end(final String element) {
-            if ("exports".equals(element)) {
+            boolean exports = "exports".equals(element);
+            boolean opens = "opens".equals(element);
+            boolean provides = "provides".equals(element);
+            if (exports | opens | provides) {
                 @SuppressWarnings("unchecked")
                 ArrayList<String> list = (ArrayList<String>) pop();
                 int access = (Integer) pop();
-                String export = (String) pop();
+                String name = (String) pop();
                 String[] tos = null;
                 if (!list.isEmpty()) {
                     tos = list.toArray(new String[list.size()]);
                 }
                 ModuleVisitor mv = (ModuleVisitor) peek();
-                mv.visitExport(export, access, tos);
+                if (exports) {
+                    mv.visitExport(name, access, tos);
+                } else {
+                    if (opens) {
+                        mv.visitOpen(name, access, tos);
+                    } else {
+                        mv.visitProvide(name, tos);
+                    }
+                }
             } else if ("module".equals(element)) {
                 ((ModuleVisitor) pop()).visitEnd();
             }

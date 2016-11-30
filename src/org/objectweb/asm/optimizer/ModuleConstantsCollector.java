@@ -85,11 +85,22 @@ public class ModuleConstantsCollector extends ModuleVisitor {
     public void visitExport(String packaze, int access, String... modules) {
         cp.newUTF8(packaze);
         if (modules != null && modules.length > 0) {
-            for(String to: modules) {
-                cp.newUTF8(to);
+            for(String module: modules) {
+                cp.newUTF8(module);
             }
         }
         mv.visitExport(packaze, access, modules);
+    }
+    
+    @Override
+    public void visitOpen(String packaze, int access, String... modules) {
+        cp.newUTF8(packaze);
+        if (modules != null && modules.length > 0) {
+            for(String module: modules) {
+                cp.newUTF8(module);
+            }
+        }
+        mv.visitOpen(packaze, access, modules);
     }
 
     @Override
@@ -99,10 +110,12 @@ public class ModuleConstantsCollector extends ModuleVisitor {
     }
     
     @Override
-    public void visitProvide(String service, String impl) {
+    public void visitProvide(String service, String... providers) {
         cp.newClass(service);
-        cp.newClass(impl);
-        mv.visitProvide(service, impl);
+        for(String provider: providers) {
+            cp.newClass(provider);
+        }
+        mv.visitProvide(service, providers);
     }
     
     @Override

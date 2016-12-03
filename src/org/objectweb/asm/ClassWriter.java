@@ -698,7 +698,8 @@ public class ClassWriter extends ClassVisitor {
     }
 
     @Override
-    public final ModuleVisitor visitModule(String name, int access) {
+    public final ModuleVisitor visitModule(final String name,
+            final int access) {
         return moduleWriter = new ModuleWriter(this, newUTF8(name), access); 
     }
     

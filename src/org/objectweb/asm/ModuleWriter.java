@@ -156,7 +156,7 @@ final class ModuleWriter extends ModuleVisitor {
      */
     private ByteVector provides;
     
-    ModuleWriter(final ClassWriter cw, int name, int access) {
+    ModuleWriter(final ClassWriter cw, final int name, final int access) {
         super(Opcodes.ASM6);
         this.cw = cw;
         this.size = 14;  // name + access + 5 counts

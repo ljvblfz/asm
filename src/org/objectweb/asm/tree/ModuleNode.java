@@ -84,10 +84,10 @@ public class ModuleNode extends ModuleVisitor {
     public String osVersion;
     
     /**
-     * A list of packages that are declared concealed by the current module.
+     * A list of packages that are declared by the current module.
      * May be <tt>null</tt>.
      */
-    public List<String> concealedPackages;
+    public List<String> packages;
     
     /**
      * A list of modules can are required by the current module.
@@ -155,18 +155,18 @@ public class ModuleNode extends ModuleVisitor {
         this.mainClass = mainClass;
     }
     @Override
-    public void visitTargetPlatform(String osName, String osArch,
+    public void visitTarget(String osName, String osArch,
             String osVersion) {
         this.osName = osName;
         this.osArch = osArch;
         this.osVersion = osVersion;
     }
     @Override
-    public void visitConcealedPackage(String packaze) {
-        if (concealedPackages == null) {
-            concealedPackages = new ArrayList<String>(5);
+    public void visitPackage(String packaze) {
+        if (packages == null) {
+            packages = new ArrayList<String>(5);
         }
-        concealedPackages.add(packaze);
+        packages.add(packaze);
     }
     
     @Override
@@ -244,11 +244,11 @@ public class ModuleNode extends ModuleVisitor {
             mv.visitMainClass(mainClass);
         }
         if (osName != null || osArch != null || osVersion != null) {
-            mv.visitTargetPlatform(osName, osArch, osVersion);
+            mv.visitTarget(osName, osArch, osVersion);
         }
-        if (concealedPackages != null) {
-            for(int i = 0; i < concealedPackages.size(); i++) {
-                mv.visitConcealedPackage(concealedPackages.get(i));
+        if (packages != null) {
+            for(int i = 0; i < packages.size(); i++) {
+                mv.visitPackage(packages.get(i));
             }
         }
         

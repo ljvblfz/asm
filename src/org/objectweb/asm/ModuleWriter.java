@@ -91,15 +91,15 @@ final class ModuleWriter extends ModuleVisitor {
     private int osVersion;
     
     /**
-     * number of concealed packages
+     * number of packages
      */
-    private int concealedPackageCount;
+    private int packageCount;
     
     /**
-     * The concealed packages in bytecode form. This byte vector only contains
-     * the items themselves, the number of items is store in concealedPackageCount
+     * The packages in bytecode form. This byte vector only contains
+     * the items themselves, the number of items is store in packageCount
      */
-    private ByteVector concealedPackages;
+    private ByteVector packages;
     
     /**
      * number of requires items
@@ -167,7 +167,7 @@ final class ModuleWriter extends ModuleVisitor {
     @Override
     public void visitVersion(String version) {
         if (this.version == 0) {  // protect against several calls to visitVersion
-            cw.newUTF8("Version");
+            cw.newUTF8("ModuleVersion");
             attributeCount++;
             attributesSize += 8;    
         }
@@ -176,21 +176,21 @@ final class ModuleWriter extends ModuleVisitor {
     @Override
     public void visitMainClass(String mainClass) {
         if (this.mainClass == 0) { // protect against several calls to visitMainClass
-            cw.newUTF8("MainClass");
+            cw.newUTF8("ModuleMainClass");
             attributeCount++;
             attributesSize += 8;
         }
         this.mainClass = cw.newClass(mainClass);
     }
     @Override
-    public void visitTargetPlatform(String osName, String osArch,
+    public void visitTarget(String osName, String osArch,
             String osVersion) {
         if (osName == null && osArch == null && osVersion == null) {
             return;
         }
         if (this.osName == 0 && this.osArch == 0 && this.osVersion == 0) {
-            // protect against several calls to visitTargetPlatform
-            cw.newUTF8("TargetPlatform");
+            // protect against several calls to visitTarget
+            cw.newUTF8("ModuleTarget");
             attributeCount++;
             attributesSize += 12;
         }
@@ -205,16 +205,16 @@ final class ModuleWriter extends ModuleVisitor {
         }
     }
     @Override
-    public void visitConcealedPackage(String packaze) {
-        if (concealedPackages == null) { 
-            // protect against several calls to visitConcealedPackages
-            cw.newUTF8("ConcealedPackages");
-            concealedPackages = new ByteVector();
+    public void visitPackage(String packaze) {
+        if (packages == null) { 
+            // protect against several calls to visitPackage
+            cw.newUTF8("ModulePackages");
+            packages = new ByteVector();
             attributeCount++;
             attributesSize += 8;
         }
-        concealedPackages.putShort(cw.newUTF8(packaze));
-        concealedPackageCount++;
+        packages.putShort(cw.newUTF8(packaze));
+        packageCount++;
         attributesSize += 2;
     }
     
@@ -297,23 +297,23 @@ final class ModuleWriter extends ModuleVisitor {
 
     void putAttributes(ByteVector out) {
         if (version != 0) {
-            out.putShort(cw.newUTF8("Version")).putInt(2).putShort(version);
+            out.putShort(cw.newUTF8("ModuleVersion")).putInt(2).putShort(version);
         }
         if (mainClass != 0) {
-            out.putShort(cw.newUTF8("MainClass")).putInt(2).putShort(mainClass);
+            out.putShort(cw.newUTF8("ModuleMainClass")).putInt(2).putShort(mainClass);
         }
         if (osName != 0 || osArch != 0 || osVersion != 0) {
-            out.putShort(cw.newUTF8("TargetPlatform"))
+            out.putShort(cw.newUTF8("ModuleTarget"))
                .putInt(6)
                .putShort(osName)
                .putShort(osArch)
                .putShort(osVersion);
         }
-        if (concealedPackages != null) {
-            out.putShort(cw.newUTF8("ConcealedPackages"))
-               .putInt(2 + 2 * concealedPackageCount)
-               .putShort(concealedPackageCount)
-               .putByteArray(concealedPackages.data, 0, concealedPackages.length);
+        if (packages != null) {
+            out.putShort(cw.newUTF8("ModulePackages"))
+               .putInt(2 + 2 * packageCount)
+               .putShort(packageCount)
+               .putByteArray(packages.data, 0, packages.length);
         }
     }
 

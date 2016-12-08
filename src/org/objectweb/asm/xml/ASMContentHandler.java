@@ -96,8 +96,8 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         RULES.add(BASE + "/module", moduleRule);
         RULES.add(BASE + "/module/version", moduleRule);
         RULES.add(BASE + "/module/main-class", moduleRule);
-        RULES.add(BASE + "/module/target-platform", moduleRule);
-        RULES.add(BASE + "/module/concealed-package", moduleRule);
+        RULES.add(BASE + "/module/target", moduleRule);
+        RULES.add(BASE + "/module/packages", moduleRule);
         RULES.add(BASE + "/module/requires", moduleRule);
         RULES.add(BASE + "/module/exports", moduleRule);
         RULES.add(BASE + "/module/exports/to", moduleRule);
@@ -782,12 +782,12 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
             } else if ("main-class".equals(element)) {
                 ModuleVisitor mv = (ModuleVisitor) peek();
                 mv.visitMainClass(attrs.getValue("name"));
-            } else if ("target-platform".equals(element)) {
+            } else if ("target".equals(element)) {
                 ModuleVisitor mv = (ModuleVisitor) peek();
-                mv.visitTargetPlatform(attrs.getValue("osName"),
+                mv.visitTarget(attrs.getValue("osName"),
                         attrs.getValue("osArch"),
                         attrs.getValue("osVersion"));
-            } else if ("concealed-package".equals(element)) {
+            } else if ("packages".equals(element)) {
                 ModuleVisitor mv = (ModuleVisitor) peek();
                 mv.visitVersion(attrs.getValue("name"));
             } else if ("requires".equals(element)) {

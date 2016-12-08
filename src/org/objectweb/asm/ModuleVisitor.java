@@ -102,9 +102,9 @@ public abstract class ModuleVisitor {
      * @param osArch an OS architecture or null
      * @param osVersion an OS version or null
      */
-    public void visitTargetPlatform(String osName, String osArch, String osVersion) {
+    public void visitTarget(String osName, String osArch, String osVersion) {
         if (mv != null) {
-            mv.visitTargetPlatform(osName, osArch, osVersion);
+            mv.visitTarget(osName, osArch, osVersion);
         }
     }
     
@@ -113,9 +113,9 @@ public abstract class ModuleVisitor {
      * 
      * @param packaze name of a concealed package
      */
-    public void visitConcealedPackage(String packaze) {
+    public void visitPackage(String packaze) {
         if (mv != null) {
-            mv.visitConcealedPackage(packaze);
+            mv.visitPackage(packaze);
         }
     }
     

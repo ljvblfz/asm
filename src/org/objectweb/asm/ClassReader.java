@@ -606,13 +606,13 @@ public class ClassReader {
                 itanns = u + 8;
             } else if ("Module".equals(attrName)) {
                 module = u + 8;
-            } else if ("Version".equals(attrName)) {
+            } else if ("ModuleVersion".equals(attrName)) {
                 moduleVersion = readUTF8(u + 8, c);
-            } else if ("MainClass".equals(attrName)) {
+            } else if ("ModuleMainClass".equals(attrName)) {
                 moduleMainClass = readClass(u + 8, c);
-            } else if ("TargetPlatform".equals(attrName)) {
+            } else if ("ModuleTarget".equals(attrName)) {
                 targetPlatform = u + 8;
-            } else if ("ConcealedPackages".equals(attrName)) {
+            } else if ("ModulePackages".equals(attrName)) {
                 packages = u + 10;
             } else if ("BootstrapMethods".equals(attrName)) {
                 int[] bootstrapMethods = new int[readUnsignedShort(u + 8)];
@@ -763,7 +763,7 @@ public class ClassReader {
             mv.visitMainClass(mainClass);
         }
         if (targetPlatform != 0) {
-            mv.visitTargetPlatform(
+            mv.visitTarget(
                     readUTF8(targetPlatform, buffer),
                     readUTF8(targetPlatform + 2, buffer),
                     readUTF8(targetPlatform + 4, buffer));
@@ -771,7 +771,7 @@ public class ClassReader {
         if (packages != 0) {
             for (int i = readUnsignedShort(packages - 2); i > 0; --i) {
                 String packaze = readUTF8(packages, buffer);
-                mv.visitConcealedPackage(packaze);
+                mv.visitPackage(packaze);
                 packages += 2;
             }
         }

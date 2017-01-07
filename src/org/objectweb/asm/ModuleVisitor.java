@@ -74,17 +74,6 @@ public abstract class ModuleVisitor {
     }
     
     /**
-     * Visit the version of the current module.
-     * 
-     * @param version the version of the current module.
-     */
-    public void visitVersion(String version) {
-        if (mv != null) {
-            mv.visitVersion(version);
-        }
-    }
-    
-    /**
      * Visit the main class of the current module.
      * 
      * @param mainClass the main class of the current module.
@@ -126,10 +115,11 @@ public abstract class ModuleVisitor {
      * @param access the access flag of the dependence among
      *        ACC_TRANSITIVE, ACC_STATIC_PHASE, ACC_SYNTHETIC
      *        and ACC_MANDATED.
+     * @param version the module version at compile time or null.
      */
-    public void visitRequire(String module, int access) {
+    public void visitRequire(String module, int access, String version) {
         if (mv != null) {
-            mv.visitRequire(module, access);
+            mv.visitRequire(module, access, version);
         }
     }
     

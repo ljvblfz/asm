@@ -244,8 +244,9 @@ public class ClassNode extends ClassVisitor {
     }
     
     @Override
-    public ModuleVisitor visitModule(final String name, final int access) {
-        return module = new ModuleNode(name, access); 
+    public ModuleVisitor visitModule(final String name, final int access,
+            final String version) {
+        return module = new ModuleNode(name, access, version); 
     }
 
     @Override

@@ -53,7 +53,7 @@ public final class CheckModuleAdapter extends ModuleVisitor {
     }
     
     @Override
-    public void visitRequire(String module, int access) {
+    public void visitRequire(String module, int access, String version) {
         checkEnd();
         if (module == null) {
             throw new IllegalArgumentException("require cannot be null");
@@ -61,7 +61,7 @@ public final class CheckModuleAdapter extends ModuleVisitor {
         checkDeclared("requires", requireNames, module);
         CheckClassAdapter.checkAccess(access, Opcodes.ACC_STATIC_PHASE
                 + Opcodes.ACC_TRANSITIVE + Opcodes.ACC_SYNTHETIC + Opcodes.ACC_MANDATED);
-        super.visitRequire(module, access);
+        super.visitRequire(module, access, version);
     }
     
     @Override
@@ -70,6 +70,7 @@ public final class CheckModuleAdapter extends ModuleVisitor {
         if (packaze == null) {
             throw new IllegalArgumentException("packaze cannot be null");
         }
+        CheckMethodAdapter.checkInternalName(packaze, "package name");
         checkDeclared("exports", exportNames, packaze);
         CheckClassAdapter.checkAccess(access, Opcodes.ACC_SYNTHETIC
                 + Opcodes.ACC_MANDATED);
@@ -92,6 +93,7 @@ public final class CheckModuleAdapter extends ModuleVisitor {
         if (packaze == null) {
             throw new IllegalArgumentException("packaze cannot be null");
         }
+        CheckMethodAdapter.checkInternalName(packaze, "package name");
         checkDeclared("opens", openNames, packaze);
         CheckClassAdapter.checkAccess(access, Opcodes.ACC_SYNTHETIC
                 + Opcodes.ACC_MANDATED);

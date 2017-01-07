@@ -48,12 +48,6 @@ public class ModuleConstantsCollector extends ModuleVisitor {
     }
 
     @Override
-    public void visitVersion(String version) {
-        cp.newUTF8("ModuleVersion");
-        cp.newUTF8(version);
-        mv.visitVersion(version);
-    }
-    @Override
     public void visitMainClass(String mainClass) {
         cp.newUTF8("ModuleMainClass");
         cp.newUTF8(mainClass);
@@ -76,17 +70,18 @@ public class ModuleConstantsCollector extends ModuleVisitor {
     }
     
     @Override
-    public void visitRequire(String module, int access) {
-        cp.newUTF8(module);
-        mv.visitRequire(module, access);
+    public void visitRequire(String module, int access, String version) {
+        cp.newModule(module);
+        cp.newUTF8(version);
+        mv.visitRequire(module, access, version);
     }
     
     @Override
     public void visitExport(String packaze, int access, String... modules) {
-        cp.newUTF8(packaze);
+        cp.newPackage(packaze);
         if (modules != null && modules.length > 0) {
             for(String module: modules) {
-                cp.newUTF8(module);
+                cp.newModule(module);
             }
         }
         mv.visitExport(packaze, access, modules);
@@ -94,10 +89,10 @@ public class ModuleConstantsCollector extends ModuleVisitor {
     
     @Override
     public void visitOpen(String packaze, int access, String... modules) {
-        cp.newUTF8(packaze);
+        cp.newPackage(packaze);
         if (modules != null && modules.length > 0) {
             for(String module: modules) {
-                cp.newUTF8(module);
+                cp.newModule(module);
             }
         }
         mv.visitOpen(packaze, access, modules);

@@ -119,15 +119,18 @@ public class ModuleNode extends ModuleVisitor {
      */
     public List<ModuleProvideNode> provides;
 
-    public ModuleNode(final String name, final int access) {
+    public ModuleNode(final String name, final int access,
+            final String version) {
         super(Opcodes.ASM6);
         this.name = name;
         this.access = access;
+        this.version = version;
     }
     
     public ModuleNode(final int api,
       final String name,
       final int access,
+      final String version,
       final List<ModuleRequireNode> requires,
       final List<ModuleExportNode> exports,
       final List<ModuleOpenNode> opens,
@@ -136,6 +139,7 @@ public class ModuleNode extends ModuleVisitor {
         super(api);
         this.name = name;
         this.access = access;
+        this.version = version;
         this.requires = requires;
         this.exports = exports;
         this.opens = opens;
@@ -146,10 +150,6 @@ public class ModuleNode extends ModuleVisitor {
         }
     }
     
-    @Override
-    public void visitVersion(String version) {
-        this.version = version;
-    }
     @Override
     public void visitMainClass(String mainClass) {
         this.mainClass = mainClass;
@@ -170,11 +170,11 @@ public class ModuleNode extends ModuleVisitor {
     }
     
     @Override
-    public void visitRequire(String module, int access) {
+    public void visitRequire(String module, int access, String version) {
         if (requires == null) {
             requires = new ArrayList<ModuleRequireNode>(5);
         }
-        requires.add(new ModuleRequireNode(module, access));
+        requires.add(new ModuleRequireNode(module, access, version));
     }
     
     @Override
@@ -233,12 +233,9 @@ public class ModuleNode extends ModuleVisitor {
     }
     
     public void accept(final ClassVisitor cv) {
-        ModuleVisitor mv = cv.visitModule(name, access);
+        ModuleVisitor mv = cv.visitModule(name, access, version);
         if (mv == null) {
             return;
-        }
-        if (version != null) {
-            mv.visitVersion(version);
         }
         if (mainClass != null) {
             mv.visitMainClass(mainClass);

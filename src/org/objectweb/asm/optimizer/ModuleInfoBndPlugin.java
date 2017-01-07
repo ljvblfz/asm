@@ -36,24 +36,19 @@ public class ModuleInfoBndPlugin implements AnalyzerPlugin {
     //System.out.println(exportPackages);
     
     ClassWriter writer = new ClassWriter(0);
-    writer.visit(Opcodes.V1_9, Opcodes.ACC_MODULE, null, null, null, null);
+    writer.visit(Opcodes.V1_9, Opcodes.ACC_MODULE, "module-info", null, null, null);
     
-    ModuleVisitor mv = writer.visitModule(moduleName.replace('.', '/'), Opcodes.ACC_OPEN);
-    
-    // version
-    if (moduleVersion != null) {
-        mv.visitVersion(moduleVersion);
-    }
+    ModuleVisitor mv = writer.visitModule(moduleName, Opcodes.ACC_OPEN, moduleVersion);
     
     // requires
-    mv.visitRequire("java/base", Opcodes.ACC_MANDATED);
+    mv.visitRequire("java.base", Opcodes.ACC_MANDATED, null);
     if (requireModules != null) {
       Parameters requireParams = analyzer.parseHeader(requireModules);
       for(String requireName: requireParams.keySet()) {
         Attrs attrs = requireParams.get(requireName);
         boolean isTransitive = attrs.containsKey("transitive");
         boolean isStatic = attrs.containsKey("static");
-        mv.visitRequire(requireName.replace('.', '/'), (isTransitive? Opcodes.ACC_TRANSITIVE: 0) | (isStatic? Opcodes.ACC_STATIC_PHASE: 0));
+        mv.visitRequire(requireName, (isTransitive? Opcodes.ACC_TRANSITIVE: 0) | (isStatic? Opcodes.ACC_STATIC_PHASE: 0), null);
       }
     }
     

@@ -386,14 +386,11 @@ public class CheckClassAdapter extends ClassVisitor {
                 + Opcodes.ACC_ANNOTATION + Opcodes.ACC_ENUM
                 + Opcodes.ACC_DEPRECATED + Opcodes.ACC_MODULE
                 + 0x40000); // ClassWriter.ACC_SYNTHETIC_ATTRIBUTE
-        if ((access | Opcodes.ACC_MODULE) != 0) {
-            if (name != null) {
-                throw new IllegalArgumentException("class name of a module should be null");
-            }
-        } else {
-            if (name == null || !name.endsWith("package-info")) {
-                CheckMethodAdapter.checkInternalName(name, "class name");
-            }
+        if (name == null) {
+            throw new IllegalArgumentException("class name of a module should be null");
+        }
+        if (!name.endsWith("package-info")) {
+            CheckMethodAdapter.checkInternalName(name, "class name");
         }
         if ("java/lang/Object".equals(name)) {
             if (superName != null) {
@@ -434,7 +431,7 @@ public class CheckClassAdapter extends ClassVisitor {
     }
 
     @Override
-    public ModuleVisitor visitModule(String name, int access) {
+    public ModuleVisitor visitModule(String name, int access, String version) {
         checkState();
         if (module) {
             throw new IllegalStateException(
@@ -444,8 +441,8 @@ public class CheckClassAdapter extends ClassVisitor {
         if (name == null) {
             throw new IllegalArgumentException("Illegal module name (null)");
         }
-        checkAccess(access, Opcodes.ACC_OPEN);
-        return new CheckModuleAdapter(super.visitModule(name, access), (access | Opcodes.ACC_OPEN) != 0);
+        checkAccess(access, Opcodes.ACC_OPEN|Opcodes.ACC_SYNTHETIC);
+        return new CheckModuleAdapter(super.visitModule(name, access, version), (access | Opcodes.ACC_OPEN) != 0);
     }
     
     @Override

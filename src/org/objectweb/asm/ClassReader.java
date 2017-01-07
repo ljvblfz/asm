@@ -347,7 +347,9 @@ public class ClassReader {
                 break;
             // case ClassWriter.STR:
             // case ClassWriter.CLASS:
-            // case ClassWriter.MTYPE
+            // case ClassWriter.MTYPE:
+            // case ClassWriter.MODULE:
+            // case ClassWriter.PACKAGE:
             default:
                 item.set(tag, readUTF8(index, buf), null, null);
                 break;
@@ -554,7 +556,6 @@ public class ClassReader {
         String enclosingOwner = null;
         String enclosingName = null;
         String enclosingDesc = null;
-        String moduleVersion = null;
         String moduleMainClass = null;
         int anns = 0;
         int ianns = 0;
@@ -606,8 +607,6 @@ public class ClassReader {
                 itanns = u + 8;
             } else if ("Module".equals(attrName)) {
                 module = u + 8;
-            } else if ("ModuleVersion".equals(attrName)) {
-                moduleVersion = readUTF8(u + 8, c);
             } else if ("ModuleMainClass".equals(attrName)) {
                 moduleMainClass = readClass(u + 8, c);
             } else if ("ModuleTarget".equals(attrName)) {
@@ -645,8 +644,7 @@ public class ClassReader {
         // visits the module info and associated attributes
         if (module != 0) {
             readModule(classVisitor, context, module,
-                    moduleVersion, moduleMainClass,
-                    targetPlatform, packages);
+                    moduleMainClass, targetPlatform, packages);
         }
         
         // visits the outer class
@@ -727,8 +725,6 @@ public class ClassReader {
      *           information about the class being parsed.
      * @param u
      *           start offset of the module attribute in the class file.
-     * @param version 
-     *           the version of the module or null.
      * @param mainClass
      *           name of the main class of a module or null.
      * @param targetPlatform
@@ -738,27 +734,24 @@ public class ClassReader {
      * @return
      */
     private void readModule(final ClassVisitor classVisitor,
-            final Context context, int u, final String version,
+            final Context context, int u,
             final String mainClass, final int targetPlatform,
             int packages) {
     
         char[] buffer = context.buffer;
         
-        // reads module name and flags
-        String name = readUTF8(u, buffer);
+        // reads module name, flags and version
+        String name = readModule(u, buffer);
         int flags = readUnsignedShort(u + 2);
-        u += 4;
+        String version = readUTF8(u + 4, buffer);
+        u += 6;
     
-        ModuleVisitor mv = classVisitor.visitModule(name, flags);
+        ModuleVisitor mv = classVisitor.visitModule(name, flags, version);
         if (mv == null) {
             return;
         }
         
-        // module attributes (version, main class,
-        // target platform, packages)
-        if (version != null) {
-            mv.visitVersion(version);
-        }
+        // module attributes (main class, target platform, packages)
         if (mainClass != null) {
             mv.visitMainClass(mainClass);
         }
@@ -770,7 +763,7 @@ public class ClassReader {
         }
         if (packages != 0) {
             for (int i = readUnsignedShort(packages - 2); i > 0; --i) {
-                String packaze = readUTF8(packages, buffer);
+                String packaze = readPackage(packages, buffer);
                 mv.visitPackage(packaze);
                 packages += 2;
             }
@@ -779,16 +772,17 @@ public class ClassReader {
         // reads requires
         u += 2;
         for (int i = readUnsignedShort(u - 2); i > 0; --i) {
-            String module = readUTF8(u, buffer);
+            String module = readModule(u, buffer);
             int access = readUnsignedShort(u + 2);
-            mv.visitRequire(module, access);
-            u += 4;
+            String requireVersion = readUTF8(u + 4, buffer);
+            mv.visitRequire(module, access, requireVersion);
+            u += 6;
         }
         
         // reads exports
         u += 2;
         for (int i = readUnsignedShort(u - 2); i > 0; --i) {
-            String export = readUTF8(u, buffer);
+            String export = readPackage(u, buffer);
             int access = readUnsignedShort(u + 2);
             int exportToCount = readUnsignedShort(u + 4);
             u += 6;
@@ -796,7 +790,7 @@ public class ClassReader {
             if (exportToCount != 0) {
                 tos = new String[exportToCount];
                 for (int j = 0; j < tos.length; ++j) {
-                    tos[j] = readUTF8(u, buffer);
+                    tos[j] = readModule(u, buffer);
                     u += 2;
                 }
             }
@@ -806,7 +800,7 @@ public class ClassReader {
         // reads opens
         u += 2;
         for (int i = readUnsignedShort(u - 2); i > 0; --i) {
-            String open = readUTF8(u, buffer);
+            String open = readPackage(u, buffer);
             int access = readUnsignedShort(u + 2);
             int openToCount = readUnsignedShort(u + 4);
             u += 6;
@@ -814,7 +808,7 @@ public class ClassReader {
             if (openToCount != 0) {
                 tos = new String[openToCount];
                 for (int j = 0; j < tos.length; ++j) {
-                    tos[j] = readUTF8(u, buffer);
+                    tos[j] = readModule(u, buffer);
                     u += 2;
                 }
             }
@@ -2590,6 +2584,20 @@ public class ClassReader {
     }
 
     /**
+     * Read a stringish constant item (CONSTANT_Class, CONSTANT_String,
+     * CONSTANT_MethodType, CONSTANT_Module or CONSTANT_Package
+     * @param index
+     * @param buf
+     * @return
+     */
+    private String readStringish(final int index, final char[] buf) {
+        // computes the start index of the item in b
+        // and reads the CONSTANT_Utf8 item designated by
+        // the first two bytes of this item
+        return readUTF8(items[readUnsignedShort(index)], buf);
+    }
+    
+    /**
      * Reads a class constant pool item in {@link #b b}. <i>This method is
      * intended for {@link Attribute} sub classes, and is normally not needed by
      * class generators or adapters.</i>
@@ -2603,10 +2611,41 @@ public class ClassReader {
      * @return the String corresponding to the specified class item.
      */
     public String readClass(final int index, final char[] buf) {
-        // computes the start index of the CONSTANT_Class item in b
-        // and reads the CONSTANT_Utf8 item designated by
-        // the first two bytes of this CONSTANT_Class item
-        return readUTF8(items[readUnsignedShort(index)], buf);
+        return readStringish(index, buf);
+    }
+    
+    /**
+     * Reads a module constant pool item in {@link #b b}. <i>This method is
+     * intended for {@link Attribute} sub classes, and is normally not needed by
+     * class generators or adapters.</i>
+     * 
+     * @param index
+     *            the start index of an unsigned short value in {@link #b b},
+     *            whose value is the index of a module constant pool item.
+     * @param buf
+     *            buffer to be used to read the item. This buffer must be
+     *            sufficiently large. It is not automatically resized.
+     * @return the String corresponding to the specified module item.
+     */
+    public String readModule(final int index, final char[] buf) {
+        return readStringish(index, buf);
+    }
+    
+    /**
+     * Reads a module constant pool item in {@link #b b}. <i>This method is
+     * intended for {@link Attribute} sub classes, and is normally not needed by
+     * class generators or adapters.</i>
+     * 
+     * @param index
+     *            the start index of an unsigned short value in {@link #b b},
+     *            whose value is the index of a module constant pool item.
+     * @param buf
+     *            buffer to be used to read the item. This buffer must be
+     *            sufficiently large. It is not automatically resized.
+     * @return the String corresponding to the specified module item.
+     */
+    public String readPackage(final int index, final char[] buf) {
+        return readStringish(index, buf);
     }
 
     /**

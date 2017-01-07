@@ -114,13 +114,16 @@ public final class SAXClassAdapter extends ClassVisitor {
     }
     
     @Override
-    public ModuleVisitor visitModule(final String name, final int access) {
+    public ModuleVisitor visitModule(final String name, final int access,
+            final String version) {
         AttributesImpl att = new AttributesImpl();
         att.addAttribute("", "name", "name", "", name);
         StringBuilder sb = new StringBuilder();
         appendAccess(access | ACCESS_MODULE, sb);
         att.addAttribute("", "access", "access", "", sb.toString());
-        
+        if (version != null) {
+          att.addAttribute("", "version", "version", "", encode(version));
+        }
         sa.addStart("module", att);
         return new SAXModuleAdapter(sa);
     }

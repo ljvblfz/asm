@@ -58,17 +58,17 @@ final class ModuleWriter extends ModuleVisitor {
     /**
      * module name index in the constant pool
      */
-    private int name;
+    private final int name;
     
     /**
      * module access flags
      */
-    private int access;
+    private final int access;
     
     /**
      * module version index in the constant pool or 0
      */
-    private int version;
+    private final int version;
     
     /**
      * module main class index in the constant pool or 0
@@ -156,23 +156,16 @@ final class ModuleWriter extends ModuleVisitor {
      */
     private ByteVector provides;
     
-    ModuleWriter(final ClassWriter cw, final int name, final int access) {
+    ModuleWriter(final ClassWriter cw, final int name,
+            final int access, final int version) {
         super(Opcodes.ASM6);
         this.cw = cw;
-        this.size = 14;  // name + access + 5 counts
+        this.size = 16;  // name + access + version + 5 counts
         this.name = name;
         this.access = access;
+        this.version = version;
     }
     
-    @Override
-    public void visitVersion(String version) {
-        if (this.version == 0) {  // protect against several calls to visitVersion
-            cw.newUTF8("ModuleVersion");
-            attributeCount++;
-            attributesSize += 8;    
-        }
-        this.version = cw.newUTF8(version);
-    }
     @Override
     public void visitMainClass(String mainClass) {
         if (this.mainClass == 0) { // protect against several calls to visitMainClass
@@ -213,19 +206,21 @@ final class ModuleWriter extends ModuleVisitor {
             attributeCount++;
             attributesSize += 8;
         }
-        packages.putShort(cw.newUTF8(packaze));
+        packages.putShort(cw.newPackage(packaze));
         packageCount++;
         attributesSize += 2;
     }
     
     @Override
-    public void visitRequire(String module, int access) {
+    public void visitRequire(String module, int access, String version) {
         if (requires == null) {
             requires = new ByteVector();
         }
-        requires.putShort(cw.newUTF8(module)).putShort(access);
+        requires.putShort(cw.newModule(module))
+                .putShort(access)
+                .putShort(version == null? 0: cw.newUTF8(version));
         requireCount++;
-        size += 4;
+        size += 6;
     }
     
     @Override
@@ -233,14 +228,14 @@ final class ModuleWriter extends ModuleVisitor {
         if (exports == null) {
             exports = new ByteVector();
         }
-        exports.putShort(cw.newUTF8(packaze)).putShort(access);
+        exports.putShort(cw.newPackage(packaze)).putShort(access);
         if (modules == null) {
             exports.putShort(0);
             size += 6;
         } else {
             exports.putShort(modules.length);
             for(String module: modules) {
-                exports.putShort(cw.newUTF8(module));
+                exports.putShort(cw.newModule(module));
             }    
             size += 6 + 2 * modules.length; 
         }
@@ -252,14 +247,14 @@ final class ModuleWriter extends ModuleVisitor {
         if (opens == null) {
             opens = new ByteVector();
         }
-        opens.putShort(cw.newUTF8(packaze)).putShort(access);
+        opens.putShort(cw.newPackage(packaze)).putShort(access);
         if (modules == null) {
             opens.putShort(0);
             size += 6;
         } else {
             opens.putShort(modules.length);
             for(String module: modules) {
-                opens.putShort(cw.newUTF8(module));
+                opens.putShort(cw.newModule(module));
             }    
             size += 6 + 2 * modules.length; 
         }
@@ -296,9 +291,6 @@ final class ModuleWriter extends ModuleVisitor {
     }
 
     void putAttributes(ByteVector out) {
-        if (version != 0) {
-            out.putShort(cw.newUTF8("ModuleVersion")).putInt(2).putShort(version);
-        }
         if (mainClass != 0) {
             out.putShort(cw.newUTF8("ModuleMainClass")).putInt(2).putShort(mainClass);
         }
@@ -319,7 +311,7 @@ final class ModuleWriter extends ModuleVisitor {
 
     void put(ByteVector out) {
         out.putInt(size);
-        out.putShort(name).putShort(access);
+        out.putShort(name).putShort(access).putShort(version);
         out.putShort(requireCount);
         if (requires != null) {
             out.putByteArray(requires.data, 0, requires.length);

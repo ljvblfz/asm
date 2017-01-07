@@ -62,8 +62,8 @@ public class ModuleRemapper extends ModuleVisitor {
     }
     
     @Override
-    public void visitRequire(String module, int access) {
-        super.visitRequire(remapper.mapModuleName(module), access);
+    public void visitRequire(String module, int access, String version) {
+        super.visitRequire(remapper.mapModuleName(module), access, version);
     }
     
     @Override

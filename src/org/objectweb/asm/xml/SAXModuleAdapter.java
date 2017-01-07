@@ -48,12 +48,6 @@ public final class SAXModuleAdapter extends ModuleVisitor {
     }
 
     @Override
-    public void visitVersion(String version) {
-        AttributesImpl att = new AttributesImpl();
-        att.addAttribute("", "value", "value", "", version);
-        sa.addElement("version", att);
-    }
-    @Override
     public void visitMainClass(String mainClass) {
         AttributesImpl att = new AttributesImpl();
         att.addAttribute("", "name", "name", "", mainClass);
@@ -76,12 +70,15 @@ public final class SAXModuleAdapter extends ModuleVisitor {
     }
     
     @Override
-    public void visitRequire(String module, int access) {
+    public void visitRequire(String module, int access, String version) {
         AttributesImpl att = new AttributesImpl();
         StringBuilder sb = new StringBuilder();
         SAXClassAdapter.appendAccess(access | SAXClassAdapter.ACCESS_MODULE, sb);
         att.addAttribute("", "module", "module", "", module);
         att.addAttribute("", "access", "access", "", sb.toString());
+        if (version != null) {
+            att.addAttribute("", "access", "access", "", version);
+        }
         sa.addElement("requires", att);
     }
     

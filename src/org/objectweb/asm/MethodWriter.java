@@ -823,7 +823,7 @@ class MethodWriter extends MethodVisitor {
     @Override
     public void visitTypeInsn(final int opcode, final String type) {
         lastCodeOffset = code.length;
-        Item i = cw.newClassItem(type);
+        Item i = cw.newStringishItem(ClassWriter.CLASS, type);
         // Label currentBlock = this.currentBlock;
         if (currentBlock != null) {
             if (compute == FRAMES) {
@@ -1242,7 +1242,7 @@ class MethodWriter extends MethodVisitor {
     @Override
     public void visitMultiANewArrayInsn(final String desc, final int dims) {
         lastCodeOffset = code.length;
-        Item i = cw.newClassItem(desc);
+        Item i = cw.newStringishItem(ClassWriter.CLASS, desc);
         // Label currentBlock = this.currentBlock;
         if (currentBlock != null) {
             if (compute == FRAMES) {

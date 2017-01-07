@@ -262,12 +262,15 @@ public class ASMifier extends Printer {
     }
     
     @Override
-    public Printer visitModule(final String name, final int flags) {
+    public Printer visitModule(final String name, final int flags,
+            final String version) {
         buf.setLength(0);
         buf.append("ModuleVisitor mdv = cw.visitModule(");
         appendConstant(name);
         buf.append(", ");
         appendAccess(flags | ACCESS_MODULE);
+        buf.append(", ");
+        appendConstant(version);
         buf.append(");\n\n");
         text.add(buf.toString());
         ASMifier a = createASMifier("mdv", 0);
@@ -391,14 +394,6 @@ public class ASMifier extends Printer {
     // ------------------------------------------------------------------------
     
     @Override
-    public void visitVersion(String version) {
-        buf.setLength(0);
-        buf.append("mdv.visitVersion(");
-        appendConstant(buf, version);
-        buf.append(");\n");
-        text.add(buf.toString());
-    }
-    @Override
     public void visitMainClass(String mainClass) {
         buf.setLength(0);
         buf.append("mdv.visitMainClass(");
@@ -429,12 +424,14 @@ public class ASMifier extends Printer {
     }
     
     @Override
-    public void visitRequire(String module, int access) {
+    public void visitRequire(String module, int access, String version) {
         buf.setLength(0);
         buf.append("mdv.visitRequire(");
         appendConstant(buf, module);
         buf.append(", ");
         appendAccess(access | ACCESS_MODULE);
+        buf.append(", ");
+        appendConstant(buf, version);
         buf.append(");\n");
         text.add(buf.toString());
     }

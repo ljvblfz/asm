@@ -48,6 +48,11 @@ public class ModuleRequireNode {
      *        <tt>ACC_SYNTHETIC</tt> and <tt>ACC_MANDATED</tt>.
      */
     public int access;
+    
+    /**
+     * Version at compile time of the required module or null.
+     */
+    public String version;
 
     /**
      * Constructs a new {@link ModuleRequireNode}.
@@ -59,19 +64,24 @@ public class ModuleRequireNode {
      *            <tt>ACC_TRANSITIVE</tt>, <tt>ACC_STATIC_PHASE</tt>,
      *            <tt>ACC_SYNTHETIC</tt> and <tt>ACC_MANDATED</tt>
      *            (see {@link org.objectweb.asm.Opcodes}).
+     * @param version
+     *            Version of the required module at compile time,
+     *            null if not defined.
      */
-    public ModuleRequireNode(final String module, final int access) {
+    public ModuleRequireNode(final String module, final int access,
+            final String version) {
         this.module = module;
         this.access = access;
+        this.version = version;
     }
 
     /**
-     * Makes the given module visitor visit this require declaration.
+     * Makes the given module visitor visit this require directive.
      * 
      * @param mv
      *            a module visitor.
      */
     public void accept(final ModuleVisitor mv) {
-        mv.visitRequire(module, access);
+        mv.visitRequire(module, access, version);
     }
 }

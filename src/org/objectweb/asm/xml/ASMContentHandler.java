@@ -94,7 +94,6 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         
         ModuleRule moduleRule = new ModuleRule();
         RULES.add(BASE + "/module", moduleRule);
-        RULES.add(BASE + "/module/version", moduleRule);
         RULES.add(BASE + "/module/main-class", moduleRule);
         RULES.add(BASE + "/module/target", moduleRule);
         RULES.add(BASE + "/module/packages", moduleRule);
@@ -775,10 +774,9 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
         public final void begin(final String element, final Attributes attrs)
                 throws SAXException {
             if ("module".equals(element)) {
-                push(cv.visitModule(attrs.getValue("name"), getAccess(attrs.getValue("access"))));
-            } else if ("version".equals(element)) {
-                ModuleVisitor mv = (ModuleVisitor) peek();
-                mv.visitVersion(attrs.getValue("value"));
+                push(cv.visitModule(attrs.getValue("name"),
+                        getAccess(attrs.getValue("access")),
+                        attrs.getValue("version")));
             } else if ("main-class".equals(element)) {
                 ModuleVisitor mv = (ModuleVisitor) peek();
                 mv.visitMainClass(attrs.getValue("name"));
@@ -789,14 +787,15 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
                         attrs.getValue("osVersion"));
             } else if ("packages".equals(element)) {
                 ModuleVisitor mv = (ModuleVisitor) peek();
-                mv.visitVersion(attrs.getValue("name"));
+                mv.visitPackage(attrs.getValue("name"));
             } else if ("requires".equals(element)) {
                 ModuleVisitor mv = (ModuleVisitor) peek();
                 int access = getAccess(attrs.getValue("access"));
                 if ((access & Opcodes.ACC_STATIC) != 0) {
                     access = access & ~Opcodes.ACC_STATIC | Opcodes.ACC_STATIC_PHASE;
                 }
-                mv.visitRequire(attrs.getValue("module"), access);
+                mv.visitRequire(attrs.getValue("module"),
+                        access, attrs.getValue("version"));
             } else if ("exports".equals(element)) {
                 push(attrs.getValue("name"));
                 push(getAccess(attrs.getValue("access")));

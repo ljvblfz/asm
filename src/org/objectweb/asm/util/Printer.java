@@ -207,9 +207,11 @@ public abstract class Printer {
      * @param access
      *            module flags, among {@code ACC_OPEN}, {@code ACC_SYNTHETIC}
      *            and {@code ACC_MANDATED}.
+     * @param version
+     *            module version or null.
      * @return
      */
-    public Printer visitModule(String name, int access) {
+    public Printer visitModule(String name, int access, String version) {
         throw new RuntimeException("Must be overriden");
     }
     
@@ -366,9 +368,6 @@ public abstract class Printer {
     // Module
     // ------------------------------------------------------------------------
     
-    public void visitVersion(String version) {
-        throw new RuntimeException("Must be overriden");
-    }
     public void visitMainClass(String mainClass) {
         throw new RuntimeException("Must be overriden");
     }
@@ -380,7 +379,7 @@ public abstract class Printer {
         throw new RuntimeException("Must be overriden");
     }
     
-    public void visitRequire(String module, int access) {
+    public void visitRequire(String module, int access, String version) {
         throw new RuntimeException("Must be overriden");
     }
     

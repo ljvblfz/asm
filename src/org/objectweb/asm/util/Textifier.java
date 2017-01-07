@@ -290,12 +290,17 @@ public class Textifier extends Printer {
     }
     
     @Override
-    public Printer visitModule(final String name, final int access) {
+    public Printer visitModule(final String name, final int access,
+            final String version) {
         buf.setLength(0);
         if ((access & Opcodes.ACC_OPEN) != 0) {
             buf.append("open ");
         }
-        buf.append("module ").append(name).append(" {\n\n");
+        buf.append("module ")
+           .append(name)
+           .append(" { ")
+           .append(version == null? "": "// " + version)
+           .append("\n\n");
         text.add(buf.toString());
         Textifier t = createTextifier();
         text.add(t.getText());
@@ -475,12 +480,6 @@ public class Textifier extends Printer {
     // ------------------------------------------------------------------------
     
     @Override
-    public void visitVersion(String version) {
-        buf.setLength(0);
-        buf.append("  // version ").append(version).append('\n');
-        text.add(buf.toString());
-    }
-    @Override
     public void visitMainClass(String mainClass) {
         buf.setLength(0);
         buf.append("  // main class ").append(mainClass).append('\n');
@@ -505,7 +504,7 @@ public class Textifier extends Printer {
     }
     
     @Override
-    public void visitRequire(String require, int access) {
+    public void visitRequire(String require, int access, String version) {
         buf.setLength(0);
         buf.append(tab).append("requires ");
         if ((access & Opcodes.ACC_TRANSITIVE) != 0) {
@@ -518,6 +517,11 @@ public class Textifier extends Printer {
            .append(";  // access flags 0x")
            .append(Integer.toHexString(access).toUpperCase())
            .append('\n');
+        if (version != null) {
+            buf.append("  // version ")
+               .append(version)
+               .append('\n');
+        }
         text.add(buf.toString());
     }
     

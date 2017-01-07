@@ -243,9 +243,19 @@ public class ClassWriter extends ClassVisitor {
     static final int INDY = 18;
 
     /**
+     * The type of CONSTANT_Module constant pool items.
+     */
+    static final int MODULE = 19;
+    
+    /**
+     * The type of CONSTANT_Package constant pool items.
+     */
+    static final int PACKAGE = 20;
+    
+    /**
      * The base value for all CONSTANT_MethodHandle constant pool items.
      * Internally, ASM store the 9 variations of CONSTANT_MethodHandle into 9
-     * different items.
+     * different items (from 21 to 29).
      */
     static final int HANDLE_BASE = 20;
 
@@ -671,7 +681,7 @@ public class ClassWriter extends ClassVisitor {
             final String[] interfaces) {
         this.version = version;
         this.access = access;
-        this.name = name == null? 0: newClass(name);
+        this.name = newClass(name);
         thisName = name;
         if (ClassReader.SIGNATURES && signature != null) {
             this.signature = newUTF8(signature);
@@ -699,8 +709,10 @@ public class ClassWriter extends ClassVisitor {
 
     @Override
     public final ModuleVisitor visitModule(final String name,
-            final int access) {
-        return moduleWriter = new ModuleWriter(this, newUTF8(name), access); 
+            final int access, final String version) {
+        return moduleWriter = new ModuleWriter(this,
+                newModule(name), access,
+                version == null? 0: newUTF8(version)); 
     }
     
     @Override
@@ -777,7 +789,7 @@ public class ClassWriter extends ClassVisitor {
         // and equality tests). If so we store the index of this inner class
         // entry (plus one) in intVal. This hack allows duplicate detection in
         // O(1) time.
-        Item nameItem = newClassItem(name);
+        Item nameItem = newStringishItem(CLASS, name);
         if (nameItem.intVal == 0) {
             ++innerClassesCount;
             innerClasses.putShort(nameItem.index);
@@ -1061,16 +1073,16 @@ public class ClassWriter extends ClassVisitor {
             double val = ((Double) cst).doubleValue();
             return newDouble(val);
         } else if (cst instanceof String) {
-            return newString((String) cst);
+            return newStringishItem(STR, (String) cst);
         } else if (cst instanceof Type) {
             Type t = (Type) cst;
             int s = t.getSort();
             if (s == Type.OBJECT) {
-                return newClassItem(t.getInternalName());
+                return newStringishItem(CLASS, t.getInternalName());
             } else if (s == Type.METHOD) {
-                return newMethodTypeItem(t.getDescriptor());
+                return newStringishItem(MTYPE, t.getDescriptor());
             } else { // s == primitive type or array
-                return newClassItem(t.getDescriptor());
+                return newStringishItem(CLASS, t.getDescriptor());
             }
         } else if (cst instanceof Handle) {
             Handle h = (Handle) cst;
@@ -1119,20 +1131,21 @@ public class ClassWriter extends ClassVisitor {
     }
 
     /**
-     * Adds a class reference to the constant pool of the class being build.
+     * Adds a string reference, a class reference, a method type, a module
+     * or a package to the constant pool of the class being build.
      * Does nothing if the constant pool already contains a similar item.
-     * <i>This method is intended for {@link Attribute} sub classes, and is
-     * normally not needed by class generators or adapters.</i>
      * 
+     * @param type 
+     *            a type among STR, CLASS, MTYPE, MODULE or PACKAGE
      * @param value
-     *            the internal name of the class.
-     * @return a new or already existing class reference item.
+     *            string value of the reference.
+     * @return a new or already existing reference item.
      */
-    Item newClassItem(final String value) {
-        key2.set(CLASS, value, null, null);
+    Item newStringishItem(final int type, final String value) {
+        key2.set(type, value, null, null);
         Item result = get(key2);
         if (result == null) {
-            pool.put12(CLASS, newUTF8(value));
+            pool.put12(type, newUTF8(value));
             result = new Item(index++, key2);
             put(result);
         }
@@ -1150,28 +1163,7 @@ public class ClassWriter extends ClassVisitor {
      * @return the index of a new or already existing class reference item.
      */
     public int newClass(final String value) {
-        return newClassItem(value).index;
-    }
-
-    /**
-     * Adds a method type reference to the constant pool of the class being
-     * build. Does nothing if the constant pool already contains a similar item.
-     * <i>This method is intended for {@link Attribute} sub classes, and is
-     * normally not needed by class generators or adapters.</i>
-     * 
-     * @param methodDesc
-     *            method descriptor of the method type.
-     * @return a new or already existing method type reference item.
-     */
-    Item newMethodTypeItem(final String methodDesc) {
-        key2.set(MTYPE, methodDesc, null, null);
-        Item result = get(key2);
-        if (result == null) {
-            pool.put12(MTYPE, newUTF8(methodDesc));
-            result = new Item(index++, key2);
-            put(result);
-        }
-        return result;
+        return newStringishItem(CLASS, value).index;
     }
 
     /**
@@ -1186,7 +1178,37 @@ public class ClassWriter extends ClassVisitor {
      *         item.
      */
     public int newMethodType(final String methodDesc) {
-        return newMethodTypeItem(methodDesc).index;
+        return newStringishItem(MTYPE, methodDesc).index;
+    }
+    
+    /**
+     * Adds a module reference to the constant pool of the class being
+     * build. Does nothing if the constant pool already contains a similar item.
+     * <i>This method is intended for {@link Attribute} sub classes, and is
+     * normally not needed by class generators or adapters.</i>
+     * 
+     * @param moduleName
+     *            name of the module.
+     * @return the index of a new or already existing module reference
+     *         item.
+     */
+    public int newModule(final String moduleName) {
+        return newStringishItem(MODULE, moduleName).index;
+    }
+    
+    /**
+     * Adds a module reference to the constant pool of the class being
+     * build. Does nothing if the constant pool already contains a similar item.
+     * <i>This method is intended for {@link Attribute} sub classes, and is
+     * normally not needed by class generators or adapters.</i>
+     * 
+     * @param packageName
+     *            name of the package in its internal form.
+     * @return the index of a new or already existing module reference
+     *         item.
+     */
+    public int newPackage(final String packageName) {
+        return newStringishItem(PACKAGE, packageName).index;
     }
 
     /**
@@ -1562,25 +1584,6 @@ public class ClassWriter extends ClassVisitor {
             pool.putByte(DOUBLE).putLong(key.longVal);
             result = new Item(index, key);
             index += 2;
-            put(result);
-        }
-        return result;
-    }
-
-    /**
-     * Adds a string to the constant pool of the class being build. Does nothing
-     * if the constant pool already contains a similar item.
-     * 
-     * @param value
-     *            the String value.
-     * @return a new or already existing string item.
-     */
-    private Item newString(final String value) {
-        key2.set(STR, value, null, null);
-        Item result = get(key2);
-        if (result == null) {
-            pool.put12(STR, newUTF8(value));
-            result = new Item(index++, key2);
             put(result);
         }
         return result;

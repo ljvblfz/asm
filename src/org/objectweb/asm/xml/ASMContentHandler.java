@@ -767,7 +767,7 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
     }
     
     /**
-     * ModuleRule: module, requires, exports, restricted-to, uses and provides 
+     * ModuleRule: module, requires, exports, opens, uses and provides 
      */
     final class ModuleRule extends Rule {
         @Override
@@ -780,11 +780,6 @@ public class ASMContentHandler extends DefaultHandler implements Opcodes {
             } else if ("main-class".equals(element)) {
                 ModuleVisitor mv = (ModuleVisitor) peek();
                 mv.visitMainClass(attrs.getValue("name"));
-            } else if ("target".equals(element)) {
-                ModuleVisitor mv = (ModuleVisitor) peek();
-                mv.visitTarget(attrs.getValue("osName"),
-                        attrs.getValue("osArch"),
-                        attrs.getValue("osVersion"));
             } else if ("packages".equals(element)) {
                 ModuleVisitor mv = (ModuleVisitor) peek();
                 mv.visitPackage(attrs.getValue("name"));

@@ -53,15 +53,7 @@ public class ModuleConstantsCollector extends ModuleVisitor {
         cp.newUTF8(mainClass);
         mv.visitMainClass(mainClass);
     }
-    @Override
-    public void visitTarget(String osName, String osArch,
-            String osVersion) {
-        cp.newUTF8("ModuleTarget");
-        cp.newUTF8(osName);
-        cp.newUTF8(osArch);
-        cp.newUTF8(osVersion);
-        super.visitTarget(osName, osArch, osVersion);
-    }
+    
     @Override
     public void visitPackage(String packaze) {
         cp.newUTF8("ModulePackages");

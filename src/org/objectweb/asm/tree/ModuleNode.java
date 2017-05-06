@@ -66,24 +66,6 @@ public class ModuleNode extends ModuleVisitor {
     public String mainClass;
     
     /**
-     * Name of OS of the targeted platform.
-     * May be <tt>null</tt>.
-     */
-    public String osName;
-    
-    /**
-     * Architecture of the OS of the targeted platform.
-     * May be <tt>null</tt>.
-     */
-    public String osArch;
-    
-    /**
-     * Version of the OS of the targeted platform.
-     * May be <tt>null</tt>.
-     */
-    public String osVersion;
-    
-    /**
      * A list of packages that are declared by the current module.
      * May be <tt>null</tt>.
      */
@@ -154,13 +136,7 @@ public class ModuleNode extends ModuleVisitor {
     public void visitMainClass(String mainClass) {
         this.mainClass = mainClass;
     }
-    @Override
-    public void visitTarget(String osName, String osArch,
-            String osVersion) {
-        this.osName = osName;
-        this.osArch = osArch;
-        this.osVersion = osVersion;
-    }
+    
     @Override
     public void visitPackage(String packaze) {
         if (packages == null) {
@@ -239,9 +215,6 @@ public class ModuleNode extends ModuleVisitor {
         }
         if (mainClass != null) {
             mv.visitMainClass(mainClass);
-        }
-        if (osName != null || osArch != null || osVersion != null) {
-            mv.visitTarget(osName, osArch, osVersion);
         }
         if (packages != null) {
             for(int i = 0; i < packages.size(); i++) {

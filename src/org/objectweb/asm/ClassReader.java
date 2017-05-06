@@ -563,7 +563,6 @@ public class ClassReader {
         int itanns = 0;
         int innerClasses = 0;
         int module = 0;
-        int targetPlatform = 0;
         int packages = 0;
         Attribute attributes = null;
 
@@ -609,8 +608,6 @@ public class ClassReader {
                 module = u + 8;
             } else if ("ModuleMainClass".equals(attrName)) {
                 moduleMainClass = readClass(u + 8, c);
-            } else if ("ModuleTarget".equals(attrName)) {
-                targetPlatform = u + 8;
             } else if ("ModulePackages".equals(attrName)) {
                 packages = u + 10;
             } else if ("BootstrapMethods".equals(attrName)) {
@@ -644,7 +641,7 @@ public class ClassReader {
         // visits the module info and associated attributes
         if (module != 0) {
             readModule(classVisitor, context, module,
-                    moduleMainClass, targetPlatform, packages);
+                    moduleMainClass, packages);
         }
         
         // visits the outer class
@@ -727,16 +724,12 @@ public class ClassReader {
      *           start offset of the module attribute in the class file.
      * @param mainClass
      *           name of the main class of a module or null.
-     * @param targetPlatform
-     *           start offset of the target platform attribute.
      * @param packages
      *           start offset of the concealed package attribute.
-     * @return
      */
     private void readModule(final ClassVisitor classVisitor,
             final Context context, int u,
-            final String mainClass, final int targetPlatform,
-            int packages) {
+            final String mainClass, int packages) {
     
         char[] buffer = context.buffer;
         
@@ -751,16 +744,11 @@ public class ClassReader {
             return;
         }
         
-        // module attributes (main class, target platform, packages)
+        // module attributes (main class, packages)
         if (mainClass != null) {
             mv.visitMainClass(mainClass);
         }
-        if (targetPlatform != 0) {
-            mv.visitTarget(
-                    readUTF8(targetPlatform, buffer),
-                    readUTF8(targetPlatform + 2, buffer),
-                    readUTF8(targetPlatform + 4, buffer));
-        }
+        
         if (packages != 0) {
             for (int i = readUnsignedShort(packages - 2); i > 0; --i) {
                 String packaze = readPackage(packages, buffer);

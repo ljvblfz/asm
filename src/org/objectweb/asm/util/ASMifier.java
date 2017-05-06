@@ -401,19 +401,7 @@ public class ASMifier extends Printer {
         buf.append(");\n");
         text.add(buf.toString());
     }
-    @Override
-    public void visitTarget(String osName, String osArch,
-            String osVersion) {
-        buf.setLength(0);
-        buf.append("mdv.visitTarget(");
-        appendConstant(buf, osName);
-        buf.append(", ");
-        appendConstant(buf, osArch);
-        buf.append(", ");
-        appendConstant(buf, osVersion);
-        buf.append(");\n");
-        text.add(buf.toString());
-    }
+    
     @Override
     public void visitPackage(String packaze) {
         buf.setLength(0);

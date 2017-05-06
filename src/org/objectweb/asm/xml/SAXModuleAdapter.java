@@ -53,15 +53,7 @@ public final class SAXModuleAdapter extends ModuleVisitor {
         att.addAttribute("", "name", "name", "", mainClass);
         sa.addElement("main-class", att);
     }
-    @Override
-    public void visitTarget(String osName, String osArch,
-            String osVersion) {
-        AttributesImpl att = new AttributesImpl();
-        att.addAttribute("", "osName", "osName", "", osName);
-        att.addAttribute("", "osArch", "osArch", "", osName);
-        att.addAttribute("", "osVersion", "osVersion", "", osName);
-        sa.addElement("target", att);
-    }
+    
     @Override
     public void visitPackage(String packaze) {
         AttributesImpl att = new AttributesImpl();

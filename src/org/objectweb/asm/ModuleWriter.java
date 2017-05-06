@@ -76,21 +76,6 @@ final class ModuleWriter extends ModuleVisitor {
     private int mainClass;
     
     /**
-     * module platform target OS name index in the constant pool or 0
-     */
-    private int osName;
-    
-    /**
-     * module platform target OS architecture index in the constant pool or 0
-     */
-    private int osArch;
-    
-    /**
-     * module platform target OS version index in the constant pool or 0
-     */
-    private int osVersion;
-    
-    /**
      * number of packages
      */
     private int packageCount;
@@ -175,28 +160,7 @@ final class ModuleWriter extends ModuleVisitor {
         }
         this.mainClass = cw.newClass(mainClass);
     }
-    @Override
-    public void visitTarget(String osName, String osArch,
-            String osVersion) {
-        if (osName == null && osArch == null && osVersion == null) {
-            return;
-        }
-        if (this.osName == 0 && this.osArch == 0 && this.osVersion == 0) {
-            // protect against several calls to visitTarget
-            cw.newUTF8("ModuleTarget");
-            attributeCount++;
-            attributesSize += 12;
-        }
-        if (osName != null) {
-            this.osName = cw.newUTF8(osName);
-        }
-        if (osArch != null) {
-            this.osArch = cw.newUTF8(osArch);
-        }
-        if (osVersion != null) {
-            this.osVersion = cw.newUTF8(osVersion);
-        }
-    }
+    
     @Override
     public void visitPackage(String packaze) {
         if (packages == null) { 
@@ -293,13 +257,6 @@ final class ModuleWriter extends ModuleVisitor {
     void putAttributes(ByteVector out) {
         if (mainClass != 0) {
             out.putShort(cw.newUTF8("ModuleMainClass")).putInt(2).putShort(mainClass);
-        }
-        if (osName != 0 || osArch != 0 || osVersion != 0) {
-            out.putShort(cw.newUTF8("ModuleTarget"))
-               .putInt(6)
-               .putShort(osName)
-               .putShort(osArch)
-               .putShort(osVersion);
         }
         if (packages != null) {
             out.putShort(cw.newUTF8("ModulePackages"))

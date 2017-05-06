@@ -85,19 +85,6 @@ public abstract class ModuleVisitor {
     }
     
     /**
-     * Visit the target platform of the current module.
-     * 
-     * @param osName an OS name or null
-     * @param osArch an OS architecture or null
-     * @param osVersion an OS version or null
-     */
-    public void visitTarget(String osName, String osArch, String osVersion) {
-        if (mv != null) {
-            mv.visitTarget(osName, osArch, osVersion);
-        }
-    }
-    
-    /**
      * Visit a concealed package of the current module.
      * 
      * @param packaze name of a concealed package

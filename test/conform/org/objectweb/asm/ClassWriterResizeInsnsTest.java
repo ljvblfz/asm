@@ -33,6 +33,7 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import junit.framework.TestSuite;
@@ -41,9 +42,13 @@ import org.objectweb.asm.attrs.CodeComment;
 
 public class ClassWriterResizeInsnsTest extends AbstractTest {
 
+    static HashSet<String> success = new HashSet<String>();
+    static HashMap<String, Throwable> errors = new HashMap<String, Throwable>();
+    
     public static void premain(final String agentArgs,
             final Instrumentation inst) {
         inst.addTransformer(new ClassFileTransformer() {
+            @Override
             public byte[] transform(final ClassLoader loader,
                     final String className, final Class<?> classBeingRedefined,
                     final ProtectionDomain domain, byte[] b)
@@ -51,24 +56,21 @@ public class ClassWriterResizeInsnsTest extends AbstractTest {
                 String n = className.replace('/', '.');
                 if (agentArgs.length() == 0 || n.indexOf(agentArgs) != -1) {
                     try {
-                        b = transformClass(b, ClassWriter.COMPUTE_FRAMES);
-                        if (n.equals("pkg.FrameMap")) {
-                            transformClass(b, 0);
-                        }
+                        b = transformClass(b);
+                        success.add(n);
                         return b;
-                    } catch (Throwable e) {
-                        return transformClass(b, 0);
+                    } catch (Throwable t) {
+                        errors.put(n, t);
                     }
-                } else {
-                    return null;
                 }
+                return null;
             }
         });
     }
 
-    static byte[] transformClass(final byte[] clazz, final int flags) {
+    static byte[] transformClass(final byte[] clazz) {
         ClassReader cr = new ClassReader(clazz);
-        ClassWriter cw = new ComputeClassWriter(flags);
+        ClassWriter cw = new ClassWriter(0);
         ClassVisitor ca = new ClassVisitor(Opcodes.ASM5, cw) {
 
             boolean transformed = false;
@@ -76,11 +78,9 @@ public class ClassWriterResizeInsnsTest extends AbstractTest {
             @Override
             public void visit(int version, int access, String name,
                     String signature, String superName, String[] interfaces) {
-                if (flags == ClassWriter.COMPUTE_FRAMES) {
-                    // Set V1_7 version to prevent fallback to old verifier.
-                    version = (version & 0xFFFF) < Opcodes.V1_7 ? Opcodes.V1_7
-                            : version;
-                }
+                // Set V1_7 version to prevent fallback to old verifier.
+                version = (version & 0xFFFF) < Opcodes.V1_7 ? Opcodes.V1_7
+                        : version;
                 super.visit(version, access, name, signature, superName,
                         interfaces);
             }
@@ -127,16 +127,25 @@ public class ClassWriterResizeInsnsTest extends AbstractTest {
 
     @Override
     public void test() throws Exception {
+        if (n.startsWith("pkg.")) {
+            return;
+        }
         try {
             Class.forName(n, true, getClass().getClassLoader());
         } catch (NoClassDefFoundError ncdfe) {
-            // ignored
+            fail(ncdfe.getMessage());
         } catch (UnsatisfiedLinkError ule) {
-            // ignored
+            fail(ule.getMessage());
         } catch (ClassFormatError cfe) {
             fail(cfe.getMessage());
         } catch (VerifyError ve) {
             fail(ve.toString());
+        }
+        if (errors.get(n) != null) {
+            throw new Exception(errors.get(n));
+        }
+        if (!success.contains(n)) {
+            fail(n + " not transformed");
         }
     }
 }

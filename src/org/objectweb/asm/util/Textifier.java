@@ -242,7 +242,6 @@ public class Textifier extends Printer {
                     .append(sv.getDeclaration()).append('\n');
         }
 
-        String internalName = name;
         appendAccess(access & ~(Opcodes.ACC_SUPER|Opcodes.ACC_MODULE));
         if ((access & Opcodes.ACC_ANNOTATION) != 0) {
             buf.append("@interface ");
@@ -254,7 +253,7 @@ public class Textifier extends Printer {
         } else if ((access & Opcodes.ACC_ENUM) == 0) {
             buf.append("class ");
         }
-        appendDescriptor(INTERNAL_NAME, internalName);
+        appendDescriptor(INTERNAL_NAME, name);
 
         if (superName != null && !"java/lang/Object".equals(superName)) {
             buf.append(" extends ");
@@ -330,7 +329,7 @@ public class Textifier extends Printer {
     }
 
     @Override
-    public Textifier visitClassTypeAnnotation(int typeRef, TypePath typePath,
+    public Printer visitClassTypeAnnotation(int typeRef, TypePath typePath,
             String desc, boolean visible) {
         text.add("\n");
         return visitTypeAnnotation(typeRef, typePath, desc, visible);
@@ -436,7 +435,7 @@ public class Textifier extends Printer {
         }
 
         buf.append(tab);
-        appendAccess(access & ~Opcodes.ACC_VOLATILE);
+        appendAccess(access & ~(Opcodes.ACC_VOLATILE | Opcodes.ACC_TRANSIENT));
         if ((access & Opcodes.ACC_NATIVE) != 0) {
             buf.append("native ");
         }
@@ -777,7 +776,7 @@ public class Textifier extends Printer {
     }
 
     @Override
-    public Textifier visitFieldTypeAnnotation(int typeRef, TypePath typePath,
+    public Printer visitFieldTypeAnnotation(int typeRef, TypePath typePath,
             String desc, boolean visible) {
         return visitTypeAnnotation(typeRef, typePath, desc, visible);
     }
@@ -821,7 +820,7 @@ public class Textifier extends Printer {
     }
 
     @Override
-    public Textifier visitMethodTypeAnnotation(int typeRef, TypePath typePath,
+    public Printer visitMethodTypeAnnotation(int typeRef, TypePath typePath,
             String desc, boolean visible) {
         return visitTypeAnnotation(typeRef, typePath, desc, visible);
     }
@@ -1102,7 +1101,7 @@ public class Textifier extends Printer {
     }
 
     @Override
-    public Textifier visitInsnAnnotation(int typeRef, TypePath typePath,
+    public Printer visitInsnAnnotation(int typeRef, TypePath typePath,
             String desc, boolean visible) {
         return visitTypeAnnotation(typeRef, typePath, desc, visible);
     }
@@ -1124,7 +1123,7 @@ public class Textifier extends Printer {
     }
 
     @Override
-    public Textifier visitTryCatchAnnotation(int typeRef, TypePath typePath,
+    public Printer visitTryCatchAnnotation(int typeRef, TypePath typePath,
             String desc, boolean visible) {
         buf.setLength(0);
         buf.append(tab2).append("TRYCATCHBLOCK @");
@@ -1169,7 +1168,7 @@ public class Textifier extends Printer {
     }
 
     @Override
-    public Textifier visitLocalVariableAnnotation(int typeRef, TypePath typePath,
+    public Printer visitLocalVariableAnnotation(int typeRef, TypePath typePath,
             Label[] start, Label[] end, int[] index, String desc,
             boolean visible) {
         buf.setLength(0);

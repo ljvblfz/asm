@@ -590,7 +590,7 @@ public class ASMifier extends Printer {
     // ------------------------------------------------------------------------
     // Methods
     // ------------------------------------------------------------------------
-    
+
     @Override
     public void visitParameter(String parameterName, int access) {
         buf.setLength(0);
@@ -1102,7 +1102,7 @@ public class ASMifier extends Printer {
             buf.append("ACC_PROTECTED");
             first = false;
         }
-        if ((access & (Opcodes.ACC_FINAL)) != 0) {
+        if ((access & Opcodes.ACC_FINAL) != 0) {
             if (!first) {
                 buf.append(" + ");
             }

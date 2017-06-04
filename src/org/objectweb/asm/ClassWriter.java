@@ -58,8 +58,8 @@ public class ClassWriter extends ClassVisitor {
      * {@link MethodVisitor#visitFrame} method are ignored, and the stack map
      * frames are recomputed from the methods bytecode. The arguments of the
      * {@link MethodVisitor#visitMaxs visitMaxs} method are also ignored and
-     * recomputed from the bytecode. In other words, computeFrames implies
-     * computeMaxs.
+     * recomputed from the bytecode. In other words, COMPUTE_FRAMES implies
+     * COMPUTE_MAXS.
      * 
      * @see #ClassWriter(int)
      */
@@ -166,6 +166,22 @@ public class ClassWriter extends ClassVisitor {
      * The type of the WIDE instruction.
      */
     static final int WIDE_INSN = 17;
+
+    /**
+     * The type of the ASM pseudo instructions with an unsigned 2 bytes offset
+     * label (see Label#resolve).
+     */
+    static final int ASM_LABEL_INSN = 18;
+
+    /**
+     * Represents a frame inserted between already existing frames. This kind of
+     * frame can only be used if the frame content can be computed from the
+     * previous existing frame and from the instructions between this existing
+     * frame and the inserted one, without any knowledge of the type hierarchy.
+     * This kind of frame is only used when an unconditional jump is inserted in
+     * a method while expanding an ASM pseudo instruction (see ClassReader).
+     */
+    static final int F_INSERT = 256;
 
     /**
      * The instruction types of all JVM opcodes.
@@ -499,25 +515,19 @@ public class ClassWriter extends ClassVisitor {
     MethodWriter lastMethod;
 
     /**
-     * <tt>true</tt> if the maximum stack size and number of local variables
-     * must be automatically computed.
+     * Indicates what must be automatically computed.
+     * 
+     * @see MethodWriter#compute
      */
-    private boolean computeMaxs;
+    private int compute;
 
     /**
-     * <tt>true</tt> if the stack map frames must be recomputed from scratch.
+     * <tt>true</tt> if some methods have wide forward jumps using ASM pseudo
+     * instructions, which need to be expanded into sequences of standard
+     * bytecode instructions. In this case the class is re-read and re-written
+     * with a ClassReader -> ClassWriter chain to perform this transformation.
      */
-    private boolean computeFrames;
-
-    /**
-     * <tt>true</tt> if the stack map tables of this class are invalid. The
-     * {@link MethodWriter#resizeInstructions} method cannot transform existing
-     * stack map tables, and so produces potentially invalid classes when it is
-     * executed. In this case the class is reread and rewritten with the
-     * {@link #COMPUTE_FRAMES} option (the resizeInstructions method can resize
-     * stack map tables when this option is used).
-     */
-    boolean invalidFrames;
+    boolean hasAsmInsns;
 
     // ------------------------------------------------------------------------
     // Static initializer
@@ -532,7 +542,7 @@ public class ClassWriter extends ClassVisitor {
         String s = "AAAAAAAAAAAAAAAABCLMMDDDDDEEEEEEEEEEEEEEEEEEEEAAAAAAAADD"
                 + "DDDEEEEEEEEEEEEEEEEEEEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 + "AAAAAAAAAAAAAAAAANAAAAAAAAAAAAAAAAAAAAJJJJJJJJJJJJJJJJDOPAA"
-                + "AAAAGGGGGGGHIFBFAAFFAARQJJKKJJJJJJJJJJJJJJJJJJ";
+                + "AAAAGGGGGGGHIFBFAAFFAARQJJKKSSSSSSSSSSSSSSSSSS";
         for (i = 0; i < b.length; ++i) {
             b[i] = (byte) (s.charAt(i) - 'A');
         }
@@ -586,7 +596,7 @@ public class ClassWriter extends ClassVisitor {
         // // temporary opcodes used internally by ASM - see Label and
         // MethodWriter
         // for (i = 202; i < 220; ++i) {
-        // b[i] = LABEL_INSN;
+        // b[i] = ASM_LABEL_INSN;
         // }
         //
         // // LDC(_W) instructions
@@ -629,8 +639,9 @@ public class ClassWriter extends ClassVisitor {
         key2 = new Item();
         key3 = new Item();
         key4 = new Item();
-        this.computeMaxs = (flags & COMPUTE_MAXS) != 0;
-        this.computeFrames = (flags & COMPUTE_FRAMES) != 0;
+        this.compute = (flags & COMPUTE_FRAMES) != 0 ? MethodWriter.FRAMES
+                : ((flags & COMPUTE_MAXS) != 0 ? MethodWriter.MAXS
+                        : MethodWriter.NOTHING);
     }
 
     /**
@@ -814,7 +825,7 @@ public class ClassWriter extends ClassVisitor {
     public final MethodVisitor visitMethod(final int access, final String name,
             final String desc, final String signature, final String[] exceptions) {
         return new MethodWriter(this, access, name, desc, signature,
-                exceptions, computeMaxs, computeFrames);
+                exceptions, compute);
     }
 
     @Override
@@ -1010,23 +1021,28 @@ public class ClassWriter extends ClassVisitor {
         if (attrs != null) {
             attrs.put(this, null, 0, -1, -1, out);
         }
-        if (invalidFrames) {
+        if (hasAsmInsns) {
+            boolean hasFrames = false;
+            mb = firstMethod;
+            while (mb != null) {
+                hasFrames |= mb.frameCount > 0;
+                mb = (MethodWriter) mb.mv;
+            }
             anns = null;
             ianns = null;
             attrs = null;
             moduleWriter = null;
             innerClassesCount = 0;
             innerClasses = null;
-            bootstrapMethodsCount = 0;
-            bootstrapMethods = null;
             firstField = null;
             lastField = null;
             firstMethod = null;
             lastMethod = null;
-            computeMaxs = false;
-            computeFrames = true;
-            invalidFrames = false;
-            new ClassReader(out.data).accept(this, ClassReader.SKIP_FRAMES);
+            compute = hasFrames ? MethodWriter.INSERTED_FRAMES : 0;
+            hasAsmInsns = false;
+            new ClassReader(out.data).accept(this, 
+                    (hasFrames ? ClassReader.EXPAND_FRAMES : 0)
+                    | ClassReader.EXPAND_ASM_INSNS);
             return toByteArray();
         }
         return out.data;

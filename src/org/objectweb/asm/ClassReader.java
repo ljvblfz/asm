@@ -220,6 +220,8 @@ public class ClassReader {
             // case ClassWriter.CLASS:
             // case ClassWriter.STR:
             // case ClassWriter.MTYPE
+            // case ClassWriter.PACKAGE:
+            // case ClassWriter.MODULE:
             default:
                 size = 3;
                 break;

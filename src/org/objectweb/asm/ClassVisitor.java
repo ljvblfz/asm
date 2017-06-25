@@ -32,7 +32,7 @@ package org.objectweb.asm;
 /**
  * A visitor to visit a Java class. The methods of this class must be called in
  * the following order: <tt>visit</tt> [ <tt>visitSource</tt> ] [
- * <tt>visitOuterClass</tt> ] ( <tt>visitAnnotation</tt> |
+ * <tt>visitModule</tt> ][ <tt>visitOuterClass</tt> ] ( <tt>visitAnnotation</tt> |
  * <tt>visitTypeAnnotation</tt> | <tt>visitAttribute</tt> )* (
  * <tt>visitInnerClass</tt> | <tt>visitField</tt> | <tt>visitMethod</tt> )*
  * <tt>visitEnd</tt>.

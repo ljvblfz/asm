@@ -387,7 +387,7 @@ public class CheckClassAdapter extends ClassVisitor {
                 + Opcodes.ACC_DEPRECATED + Opcodes.ACC_MODULE
                 + 0x40000); // ClassWriter.ACC_SYNTHETIC_ATTRIBUTE
         if (name == null) {
-            throw new IllegalArgumentException("class name of a module should be null");
+            throw new IllegalArgumentException("Illegal class name (null)");
         }
         if (!name.endsWith("package-info")) {
             CheckMethodAdapter.checkInternalName(name, "class name");
@@ -441,8 +441,9 @@ public class CheckClassAdapter extends ClassVisitor {
         if (name == null) {
             throw new IllegalArgumentException("Illegal module name (null)");
         }
-        checkAccess(access, Opcodes.ACC_OPEN|Opcodes.ACC_SYNTHETIC);
-        return new CheckModuleAdapter(super.visitModule(name, access, version), (access | Opcodes.ACC_OPEN) != 0);
+        checkAccess(access, Opcodes.ACC_OPEN | Opcodes.ACC_SYNTHETIC);
+        return new CheckModuleAdapter(super.visitModule(name, access, version), 
+            (access | Opcodes.ACC_OPEN) != 0);
     }
     
     @Override

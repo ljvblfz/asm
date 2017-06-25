@@ -325,7 +325,7 @@
 		      basedir="${out.build}/tmp"
 		 	   includes="org/objectweb/asm/**/*.class">
 		 </jar>
-   </target>
+        </target>
 	
 	<target name="jar" depends="dist.init,dist.version,compile,shrink,bnd-module-plugin-jar">
 		<ant antfile="${archive}/asm.xml" />

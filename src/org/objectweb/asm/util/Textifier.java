@@ -221,6 +221,10 @@ public class Textifier extends Printer {
     public void visit(final int version, final int access, final String name,
             final String signature, final String superName,
             final String[] interfaces) {
+        if ((access & Opcodes.ACC_MODULE) != 0) {
+            // visitModule will print the module
+            return;
+        }
         this.access = access;
         int major = version & 0xFFFF;
         int minor = version >>> 16;
@@ -242,14 +246,11 @@ public class Textifier extends Printer {
                     .append(sv.getDeclaration()).append('\n');
         }
 
-        appendAccess(access & ~(Opcodes.ACC_SUPER|Opcodes.ACC_MODULE));
+        appendAccess(access & ~(Opcodes.ACC_SUPER | Opcodes.ACC_MODULE));
         if ((access & Opcodes.ACC_ANNOTATION) != 0) {
             buf.append("@interface ");
         } else if ((access & Opcodes.ACC_INTERFACE) != 0) {
             buf.append("interface ");
-        } else if ((access & Opcodes.ACC_MODULE) != 0) {
-            // visitModule will print the module
-            return;
         } else if ((access & Opcodes.ACC_ENUM) == 0) {
             buf.append("class ");
         }
@@ -298,7 +299,7 @@ public class Textifier extends Printer {
         buf.append("module ")
            .append(name)
            .append(" { ")
-           .append(version == null? "": "// " + version)
+           .append(version == null ? "" : "// " + version)
            .append("\n\n");
         text.add(buf.toString());
         Textifier t = createTextifier();

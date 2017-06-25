@@ -77,6 +77,6 @@ public class ModuleExportNode {
      *            a module visitor.
      */
     public void accept(final ModuleVisitor mv) {
-        mv.visitExport(packaze, access, (modules == null)? null: modules.toArray(new String[0]));
+        mv.visitExport(packaze, access, (modules == null) ? null : modules.toArray(new String[0]));
     }
 }

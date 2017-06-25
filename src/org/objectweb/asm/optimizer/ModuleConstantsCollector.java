@@ -72,7 +72,7 @@ public class ModuleConstantsCollector extends ModuleVisitor {
     public void visitExport(String packaze, int access, String... modules) {
         cp.newPackage(packaze);
         if (modules != null && modules.length > 0) {
-            for(String module: modules) {
+            for (String module : modules) {
                 cp.newModule(module);
             }
         }
@@ -83,7 +83,7 @@ public class ModuleConstantsCollector extends ModuleVisitor {
     public void visitOpen(String packaze, int access, String... modules) {
         cp.newPackage(packaze);
         if (modules != null && modules.length > 0) {
-            for(String module: modules) {
+            for (String module : modules) {
                 cp.newModule(module);
             }
         }
@@ -99,7 +99,7 @@ public class ModuleConstantsCollector extends ModuleVisitor {
     @Override
     public void visitProvide(String service, String... providers) {
         cp.newClass(service);
-        for(String provider: providers) {
+        for (String provider : providers) {
             cp.newClass(provider);
         }
         mv.visitProvide(service, providers);

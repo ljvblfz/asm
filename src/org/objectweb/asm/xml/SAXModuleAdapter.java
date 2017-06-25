@@ -83,7 +83,7 @@ public final class SAXModuleAdapter extends ModuleVisitor {
         att.addAttribute("", "access", "access", "", sb.toString());
         sa.addStart("exports", att);
         if (modules != null && modules.length > 0) {
-            for(String to: modules) {
+            for (String to : modules) {
                 AttributesImpl atts = new AttributesImpl();
                 atts.addAttribute("", "module", "module", "", to);
                 sa.addElement("to", atts);
@@ -101,7 +101,7 @@ public final class SAXModuleAdapter extends ModuleVisitor {
         att.addAttribute("", "access", "access", "", sb.toString());
         sa.addStart("opens", att);
         if (modules != null && modules.length > 0) {
-            for(String to: modules) {
+            for (String to : modules) {
                 AttributesImpl atts = new AttributesImpl();
                 atts.addAttribute("", "module", "module", "", to);
                 sa.addElement("to", atts);
@@ -122,7 +122,7 @@ public final class SAXModuleAdapter extends ModuleVisitor {
         AttributesImpl att = new AttributesImpl();
         att.addAttribute("", "service", "service", "", service);
         sa.addStart("provides", att);
-        for(String provider: providers) {
+        for (String provider : providers) {
             AttributesImpl atts = new AttributesImpl();
             atts.addAttribute("", "provider", "provider", "", provider);
             sa.addElement("with", atts);

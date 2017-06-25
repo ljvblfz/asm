@@ -75,7 +75,7 @@ public final class CheckModuleAdapter extends ModuleVisitor {
         CheckClassAdapter.checkAccess(access, Opcodes.ACC_SYNTHETIC
                 + Opcodes.ACC_MANDATED);
         if (modules != null) {
-            for(int i = 0; i < modules.length; i++) {
+            for (int i = 0; i < modules.length; i++) {
                 if (modules[i] == null) {
                     throw new IllegalArgumentException("module at index " + i + " cannot be null");
                 }
@@ -98,7 +98,7 @@ public final class CheckModuleAdapter extends ModuleVisitor {
         CheckClassAdapter.checkAccess(access, Opcodes.ACC_SYNTHETIC
                 + Opcodes.ACC_MANDATED);
         if (modules != null) {
-            for(int i = 0; i < modules.length; i++) {
+            for (int i = 0; i < modules.length; i++) {
                 if (modules[i] == null) {
                     throw new IllegalArgumentException("module at index " + i + " cannot be null");
                 }
@@ -123,7 +123,7 @@ public final class CheckModuleAdapter extends ModuleVisitor {
         if (providers == null || providers.length == 0) {
             throw new IllegalArgumentException("providers cannot be null or empty");
         }
-        for(int i = 0; i < providers.length; i++) {
+        for (int i = 0; i < providers.length; i++) {
             CheckMethodAdapter.checkInternalName(providers[i], "provider");
         }
         super.visitProvide(service, providers);

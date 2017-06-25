@@ -44,18 +44,18 @@ public class ModuleInfoBndPlugin implements AnalyzerPlugin {
     mv.visitRequire("java.base", Opcodes.ACC_MANDATED, null);
     if (requireModules != null) {
       Parameters requireParams = analyzer.parseHeader(requireModules);
-      for(String requireName: requireParams.keySet()) {
+      for (String requireName : requireParams.keySet()) {
         Attrs attrs = requireParams.get(requireName);
         boolean isTransitive = attrs.containsKey("transitive");
         boolean isStatic = attrs.containsKey("static");
-        mv.visitRequire(requireName, (isTransitive? Opcodes.ACC_TRANSITIVE: 0) | (isStatic? Opcodes.ACC_STATIC_PHASE: 0), null);
+        mv.visitRequire(requireName, (isTransitive ? Opcodes.ACC_TRANSITIVE : 0) | (isStatic ? Opcodes.ACC_STATIC_PHASE : 0), null);
       }
     }
     
     // exports
     if (exportPackages != null) {
       Parameters exportParams = analyzer.parseHeader(exportPackages);
-      for(String packageName: exportParams.keySet()) {
+      for (String packageName : exportParams.keySet()) {
         if (packageName.endsWith("*")) {
             throw new IllegalStateException("unsupported wildcard packages " + packageName);
         }

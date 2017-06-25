@@ -478,8 +478,8 @@ public class ASMifier extends Printer {
         appendConstant(buf, service);
         buf.append(",  new String[] {");
         for (int i = 0; i < providers.length; ++i) {
-                buf.append(i == 0 ? " " : ", ");
-                appendConstant(providers[i]);
+            buf.append(i == 0 ? " " : ", ");
+            appendConstant(providers[i]);
         }
         buf.append(" });\n");
         text.add(buf.toString());
@@ -1227,7 +1227,7 @@ public class ASMifier extends Printer {
             buf.append("ACC_DEPRECATED");
             first = false;
         }
-        if ((access & (Opcodes.ACC_MANDATED|Opcodes.ACC_MODULE)) != 0) {
+        if ((access & (Opcodes.ACC_MANDATED | Opcodes.ACC_MODULE)) != 0) {
             if (!first) {
                 buf.append(" + ");
             }

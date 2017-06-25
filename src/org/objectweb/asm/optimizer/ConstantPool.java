@@ -162,7 +162,7 @@ public class ConstantPool extends HashMap<Constant, Constant> {
 
     public Constant newHandle(final int tag, final String owner,
             final String name, final String desc, final boolean itf) {
-        key4.set((char) ('a' + tag - 1 + (itf && tag != Opcodes.H_INVOKEINTERFACE? 4: 0)), owner, name, desc);
+        key4.set((char) ('a' + tag - 1 + (itf && tag != Opcodes.H_INVOKEINTERFACE ? 4 : 0)), owner, name, desc);
         Constant result = get(key4);
         if (result == null) {
             if (tag <= Opcodes.H_PUTSTATIC) {

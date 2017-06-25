@@ -71,7 +71,7 @@ public class ClassRemapper extends ClassVisitor {
     @Override
     public ModuleVisitor visitModule(String name, int flags, String version) {
         ModuleVisitor mv = super.visitModule(remapper.mapModuleName(name), flags, version);
-        return mv == null ? null: createModuleRemapper(mv); 
+        return mv == null ? null : createModuleRemapper(mv); 
     }
     
     @Override

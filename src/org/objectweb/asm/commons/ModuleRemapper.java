@@ -71,7 +71,7 @@ public class ModuleRemapper extends ModuleVisitor {
         String[] newModules = null;
         if (modules != null) {
             newModules = new String[modules.length];
-            for(int i = 0 ; i < modules.length; i++) {
+            for (int i = 0 ; i < modules.length; i++) {
                 newModules[i] = remapper.mapModuleName(modules[i]);
             }
         }
@@ -83,7 +83,7 @@ public class ModuleRemapper extends ModuleVisitor {
         String[] newModules = null;
         if (modules != null) {
             newModules = new String[modules.length];
-            for(int i = 0 ; i < modules.length; i++) {
+            for (int i = 0 ; i < modules.length; i++) {
                 newModules[i] = remapper.mapModuleName(modules[i]);
             }
         }
@@ -98,7 +98,7 @@ public class ModuleRemapper extends ModuleVisitor {
     @Override
     public void visitProvide(String service, String... providers) {
         String[] newProviders = new String[providers.length];
-        for(int i = 0 ; i < providers.length; i++) {
+        for (int i = 0 ; i < providers.length; i++) {
             newProviders[i] = remapper.mapType(providers[i]);
         }
         super.visitProvide(remapper.mapType(service), newProviders);

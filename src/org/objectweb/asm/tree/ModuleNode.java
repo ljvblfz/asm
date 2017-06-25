@@ -161,7 +161,7 @@ public class ModuleNode extends ModuleVisitor {
         List<String> moduleList = null;
         if (modules != null) {
             moduleList = new ArrayList<String>(modules.length);
-            for(int i = 0; i < modules.length; i++) {
+            for (int i = 0; i < modules.length; i++) {
                 moduleList.add(modules[i]);
             }
         }
@@ -176,7 +176,7 @@ public class ModuleNode extends ModuleVisitor {
         List<String> moduleList = null;
         if (modules != null) {
             moduleList = new ArrayList<String>(modules.length);
-            for(int i = 0; i < modules.length; i++) {
+            for (int i = 0; i < modules.length; i++) {
                 moduleList.add(modules[i]);
             }
         }
@@ -198,7 +198,7 @@ public class ModuleNode extends ModuleVisitor {
         }
         ArrayList<String> providerList =
                 new ArrayList<String>(providers.length);
-        for(int i = 0; i < providers.length; i++) {
+        for (int i = 0; i < providers.length; i++) {
                 providerList.add(providers[i]);
         }
         provides.add(new ModuleProvideNode(service, providerList));
@@ -217,33 +217,33 @@ public class ModuleNode extends ModuleVisitor {
             mv.visitMainClass(mainClass);
         }
         if (packages != null) {
-            for(int i = 0; i < packages.size(); i++) {
+            for (int i = 0; i < packages.size(); i++) {
                 mv.visitPackage(packages.get(i));
             }
         }
         
         if (requires != null) {
-            for(int i = 0; i < requires.size(); i++) {
+            for (int i = 0; i < requires.size(); i++) {
                 requires.get(i).accept(mv);
             }
         }
         if (exports != null) {
-            for(int i = 0; i < exports.size(); i++) {
+            for (int i = 0; i < exports.size(); i++) {
                 exports.get(i).accept(mv);
             }
         }
         if (opens != null) {
-            for(int i = 0; i < opens.size(); i++) {
+            for (int i = 0; i < opens.size(); i++) {
                 opens.get(i).accept(mv);
             }
         }
         if (uses != null) {
-            for(int i = 0; i < uses.size(); i++) {
+            for (int i = 0; i < uses.size(); i++) {
                 mv.visitUse(uses.get(i));
             }
         }
         if (provides != null) {
-            for(int i = 0; i < provides.size(); i++) {
+            for (int i = 0; i < provides.size(); i++) {
                 provides.get(i).accept(mv);
             }
         }

@@ -31,6 +31,7 @@
 package org.objectweb.asm.commons;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -44,7 +45,6 @@ import org.objectweb.asm.TypePath;
  * @author Eugene Kuleshov
  */
 public class ClassRemapper extends ClassVisitor {
-
     protected final Remapper remapper;
 
     protected String className;
@@ -89,6 +89,26 @@ public class ClassRemapper extends ClassVisitor {
         return av == null ? null : createAnnotationRemapper(av);
     }
 
+    @Override
+    public void visitAttribute(Attribute attr) {
+        if (attr instanceof ModuleTargetAttribute) {
+            ModuleTargetAttribute renamedAttribute = new ModuleTargetAttribute();
+            ((ModuleTargetAttribute)attr).accept(createModuleAttributeRemapper(renamedAttribute));
+            attr = renamedAttribute;
+        }
+        else if (attr instanceof ModuleHashesAttribute) {
+            ModuleHashesAttribute renamedAttribute = new ModuleHashesAttribute();
+            ((ModuleHashesAttribute)attr).accept(createModuleAttributeRemapper(renamedAttribute));
+            attr = renamedAttribute;
+        }
+        else if (attr instanceof ModuleResolutionAttribute) {
+            ModuleResolutionAttribute renamedAttribute = new ModuleResolutionAttribute();
+            ((ModuleResolutionAttribute)attr).accept(createModuleAttributeRemapper(renamedAttribute));
+            attr = renamedAttribute;
+        }
+        super.visitAttribute(attr);
+    }
+    
     @Override
     public FieldVisitor visitField(int access, String name, String desc,
             String signature, Object value) {
@@ -139,5 +159,9 @@ public class ClassRemapper extends ClassVisitor {
     
     protected ModuleVisitor createModuleRemapper(ModuleVisitor mv) {
         return new ModuleRemapper(mv, remapper);
+    }
+    
+    protected ModuleAttributeRemapper createModuleAttributeRemapper(ModuleAttributeVisitor mv) {
+        return new ModuleAttributeRemapper(mv, remapper);
     }
 }

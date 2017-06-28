@@ -45,6 +45,12 @@ import org.objectweb.asm.Opcodes;
  */
 public class ModuleAttributeVisitor extends Attribute {
     /**
+     * Resolution state of a module meaning that the module is not available
+     * from the class-path by default.
+     */
+    public static final int RESOLUTION_DO_NOT_RESOLVE_BY_DEFAULT = 1;
+    
+    /**
      * Resolution state of a module meaning the module is marked as deprecated.
      */
     public static final int RESOLUTION_WARN_DEPRECATED = 2;

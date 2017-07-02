@@ -35,32 +35,37 @@ import org.objectweb.asm.ByteVector;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
 
 /**
  * ModuleResolution_attribute.
  * This attribute is specific to the OpenJDK and may change in the future.
- * 
- * Unlike a classical ASM attribute, this attribute can interact
- * with {@link ClassReader#accept(org.objectweb.asm.ClassVisitor, Attribute[], int)}
- * in two different ways.
- * The usual way, by creating an empty attribute using {@link #ModuleResolutionAttribute()}
- * that will be sent as argument of the method accept of the ClassReader and
- * during the parsing the method {@link org.objectweb.asm.ClassVisitor#visitAttribute(Attribute)}
- * will be called.
- * The visitor way, by creating an empty attribute using
- * {@link #ModuleResolutionAttribute(int, ModuleAttributeVisitor)} that will called
- * the methods of the {@link ModuleAttributeVisitor} when the attribute is found.
- * In that case the method {@link org.objectweb.asm.ClassVisitor#visitAttribute(Attribute)}
- * will not be called.
- * 
- * Moreover, like the Tree API, this attribute is itself a visitor and has a method
- * {@link #accept(ModuleAttributeVisitor)} that allow to extract the values of this
- * attribute using a visitor.
  *  
  * @author Remi Forax
  */
-public final class ModuleResolutionAttribute extends ModuleAttributeVisitor {
+public final class ModuleResolutionAttribute extends Attribute {
+    /**
+     * Resolution state of a module meaning that the module is not available
+     * from the class-path by default.
+     */
+    public static final int RESOLUTION_DO_NOT_RESOLVE_BY_DEFAULT = 1;
+    
+    /**
+     * Resolution state of a module meaning the module is marked as deprecated.
+     */
+    public static final int RESOLUTION_WARN_DEPRECATED = 2;
+    
+    /**
+     * Resolution state of a module meaning the module is marked as deprecated
+     * and will be removed in a future release.
+     */
+    public static final int RESOLUTION_WARN_DEPRECATED_FOR_REMOVAL = 4;
+    
+    /**
+     * Resolution state of a module meaning the module is not yet standardized,
+     * so in incubating mode.
+     */
+    public static final int RESOLUTION_WARN_INCUBATING = 8;
+    
     public int resolution;
     
     /**
@@ -71,7 +76,7 @@ public final class ModuleResolutionAttribute extends ModuleAttributeVisitor {
      *        {@link #RESOLUTION_WARN_INCUBATING}.
      */
     public ModuleResolutionAttribute(final int resolution) {
-        super(Opcodes.ASM6, "ModuleResolution");
+        super("ModuleResolution");
         this.resolution = resolution;
     }
     
@@ -84,45 +89,10 @@ public final class ModuleResolutionAttribute extends ModuleAttributeVisitor {
         this(0);
     }
     
-    /**
-     * Create an empty attribute that when used with
-     * {@link ClassReader#accept(org.objectweb.asm.ClassVisitor, Attribute[], int)}
-     * will called the visitor taken as parameter if an attribute of the same kind
-     * is found
-     * 
-     * @param api the ASM api to use, only {@link Opcodes#ASM6} is valid.
-     * @param mv a module attribute visitor
-     */
-    public ModuleResolutionAttribute(final int api, final ModuleAttributeVisitor mv) {
-        super(api, "ModuleResolution");
-        this.mv = mv;
-    }
-    
-    /**
-     * Makes the given visitor visit this attribute.
-     * 
-     * @param mv a module attribute visitor.
-     */
-    public void accept(final ModuleAttributeVisitor mv) {
-        int resolution = this.resolution;
-        if (resolution != 0) {
-            mv.visitResolution(resolution);
-        }
-    }
-    
-    @Override
-    public void visitResolution(int resolution) {
-        this.resolution = resolution;
-    }
-    
     @Override
     protected Attribute read(ClassReader cr, int off, int len, char[] buf,
             int codeOff, Label[] labels) {
         int resolution = cr.readUnsignedShort(off); 
-        if (mv != null) {
-            mv.visitResolution(resolution);
-            return null;
-        }
         return new ModuleResolutionAttribute(resolution);
     }
     

@@ -35,32 +35,14 @@ import org.objectweb.asm.ByteVector;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
 
 /**
  * ModuleTarget attribute.
  * This attribute is specific to the OpenJDK and may change in the future.
  * 
- * Unlike a classical ASM attribute, this attribute can interact
- * with {@link ClassReader#accept(org.objectweb.asm.ClassVisitor, Attribute[], int)}
- * in two different ways.
- * The usual way, by creating an empty attribute using {@link #ModuleTargetAttribute()}
- * that will be sent as argument of the method accept of the ClassReader and
- * during the parsing the method {@link org.objectweb.asm.ClassVisitor#visitAttribute(Attribute)}
- * will be called.
- * The visitor way, by creating an empty attribute using
- * {@link #ModuleTargetAttribute(int, ModuleAttributeVisitor)} that will called
- * the methods of the {@link ModuleAttributeVisitor} when the attribute is found.
- * In that case the method {@link org.objectweb.asm.ClassVisitor#visitAttribute(Attribute)}
- * will not be called.
- * 
- * Moreover, like the Tree API, this attribute is itself a visitor and has a method
- * {@link #accept(ModuleAttributeVisitor)} that allow to extract the values of this
- * attribute using a visitor.
- * 
  * @author Remi Forax
  */
-public final class ModuleTargetAttribute extends ModuleAttributeVisitor {
+public final class ModuleTargetAttribute extends Attribute {
     public String platform;
     
     /**
@@ -68,7 +50,7 @@ public final class ModuleTargetAttribute extends ModuleAttributeVisitor {
      * @param platform the platform name on which the module can run.
      */
     public ModuleTargetAttribute(final String platform) {
-        super(Opcodes.ASM6, "ModuleTarget");
+        super("ModuleTarget");
         this.platform = platform;
     }
     
@@ -81,45 +63,10 @@ public final class ModuleTargetAttribute extends ModuleAttributeVisitor {
         this(null);
     }
     
-    /**
-     * Create an empty attribute that when used with
-     * {@link ClassReader#accept(org.objectweb.asm.ClassVisitor, Attribute[], int)}
-     * will called the visitor taken as parameter if an attribute of the same kind
-     * is found
-     * 
-     * @param api the ASM api to use, only {@link Opcodes#ASM6} is valid.
-     * @param mv a module attribute visitor
-     */
-    public ModuleTargetAttribute(final int api, final ModuleAttributeVisitor mv) {
-        super(api, "ModuleTarget");
-        this.mv = mv;
-    }
-    
-    /**
-     * Makes the given visitor visit this attribute.
-     * 
-     * @param mv a module attribute visitor.
-     */
-    public void accept(final ModuleAttributeVisitor mv) {
-        String platform = this.platform;
-        if (platform != null) {
-            mv.visitPlatform(platform);
-        }
-    }
-    
-    @Override
-    public void visitPlatform(String platform) {
-       this.platform = platform;
-    }
-    
     @Override
     protected Attribute read(ClassReader cr, int off, int len, char[] buf,
             int codeOff, Label[] labels) {
-        String platform = cr.readUTF8(off, buf); 
-        if (mv != null) {
-            mv.visitPlatform(platform);
-            return null;
-        }
+        String platform = cr.readUTF8(off, buf);
         return new ModuleTargetAttribute(platform);
     }
     

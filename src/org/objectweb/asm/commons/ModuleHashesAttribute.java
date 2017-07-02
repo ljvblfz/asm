@@ -38,32 +38,14 @@ import org.objectweb.asm.ByteVector;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
 
 /**
  * ModuleHashes attribute.
  * This attribute is specific to the OpenJDK and may change in the future.
  * 
- * Unlike a classical ASM attribute, this attribute can interact
- * with {@link ClassReader#accept(org.objectweb.asm.ClassVisitor, Attribute[], int)}
- * in two different ways.
- * The usual way, by creating an empty attribute using {@link #ModuleHashesAttribute()}
- * that will be sent as argument of the method accept of the ClassReader and
- * during the parsing the method {@link org.objectweb.asm.ClassVisitor#visitAttribute(Attribute)}
- * will be called.
- * The visitor way, by creating an empty attribute using
- * {@link #ModuleHashesAttribute(int, ModuleAttributeVisitor)} that will called
- * the methods of the {@link ModuleAttributeVisitor} when the attribute is found.
- * In that case the method {@link org.objectweb.asm.ClassVisitor#visitAttribute(Attribute)}
- * will not be called.
- * 
- * Moreover, like the Tree API, this attribute is itself a visitor and has a method
- * {@link #accept(ModuleAttributeVisitor)} that allow to extract the values of this
- * attribute using a visitor.
- * 
  * @author Remi Forax
  */
-public final class ModuleHashesAttribute extends ModuleAttributeVisitor {
+public final class ModuleHashesAttribute extends Attribute {
     public String algorithm;
     public List<String> modules;
     public List<byte[]> hashes;
@@ -77,7 +59,7 @@ public final class ModuleHashesAttribute extends ModuleAttributeVisitor {
      */
     public ModuleHashesAttribute(final String algorithm,
             final List<String> modules, final List<byte[]> hashes) {
-        super(Opcodes.ASM6, "ModuleHashes");
+        super("ModuleHashes");
         this.algorithm = algorithm;
         this.modules = modules;
         this.hashes = hashes;
@@ -92,64 +74,17 @@ public final class ModuleHashesAttribute extends ModuleAttributeVisitor {
         this(null, null, null);
     }
     
-    /**
-     * Create an empty attribute that when used with
-     * {@link ClassReader#accept(org.objectweb.asm.ClassVisitor, Attribute[], int)}
-     * will called the visitor taken as parameter if an attribute of the same kind
-     * is found
-     * 
-     * @param api the ASM api to use, only {@link Opcodes#ASM6} is valid.
-     * @param mv a module attribute visitor
-     */
-    public ModuleHashesAttribute(final int api, final ModuleAttributeVisitor mv) {
-        super(api, "ModuleHashes");
-        this.mv = mv;
-    }
-    
-    /**
-     * Makes the given visitor visit this attribute.
-     * 
-     * @param mv a module attribute visitor.
-     */
-    public void accept(final ModuleAttributeVisitor mv) {
-        mv.visitHashAlgorithm(algorithm);
-        List<String> modules = this.modules;
-        if (modules != null) {
-            List<byte[]> hashes = this.hashes;
-            int count = modules.size();
-            for(int i = 0; i < count; i++) {
-                mv.visitModuleHash(modules.get(i), hashes.get(i));
-            }
-        }
-    }
-    
-    @Override
-    public void visitHashAlgorithm(String hashAlgorithm) {
-        this.algorithm = hashAlgorithm;
-    }
-    @Override
-    public void visitModuleHash(String module, byte[] hash) {
-        if (modules == null) {
-            modules = new ArrayList<String>();
-            hashes = new ArrayList<byte[]>();
-        }
-        modules.add(module);
-        hashes.add(hash);
-    }
-    
     @Override
     protected Attribute read(ClassReader cr, int off, int len, char[] buf,
             int codeOff, Label[] labels) {
-        ModuleHashesAttribute attr = null;
-        ModuleAttributeVisitor mv = (this.mv == null)? attr = new ModuleHashesAttribute(): this.mv;
-        
         String hashAlgorithm = cr.readUTF8(off, buf); 
-        mv.visitHashAlgorithm(hashAlgorithm);
         
         int count = cr.readUnsignedShort(off + 2);
+        ArrayList<String> modules = new ArrayList<String>(count);
+        ArrayList<byte[]> hashes = new ArrayList<byte[]>(count);
         off += 4;
-
-        for (int i = 0; i< count; i++) {
+        
+        for (int i = 0; i < count; i++) {
             String module = cr.readModule(off, buf);
             int hashLength = cr.readUnsignedShort(off + 2);
             off += 4;
@@ -160,9 +95,10 @@ public final class ModuleHashesAttribute extends ModuleAttributeVisitor {
             }
             off += hashLength;
 
-            mv.visitModuleHash(module, hash);
+            modules.add(module);
+            hashes.add(hash);
         }
-        return attr;
+        return new ModuleHashesAttribute(hashAlgorithm, modules, hashes);
     }
     
     @Override

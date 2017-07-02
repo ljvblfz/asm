@@ -30,6 +30,8 @@
 
 package org.objectweb.asm.commons;
 
+import java.util.List;
+
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
@@ -91,20 +93,12 @@ public class ClassRemapper extends ClassVisitor {
 
     @Override
     public void visitAttribute(Attribute attr) {
-        if (attr instanceof ModuleTargetAttribute) {
-            ModuleTargetAttribute renamedAttribute = new ModuleTargetAttribute();
-            ((ModuleTargetAttribute)attr).accept(createModuleAttributeRemapper(renamedAttribute));
-            attr = renamedAttribute;
-        }
-        else if (attr instanceof ModuleHashesAttribute) {
-            ModuleHashesAttribute renamedAttribute = new ModuleHashesAttribute();
-            ((ModuleHashesAttribute)attr).accept(createModuleAttributeRemapper(renamedAttribute));
-            attr = renamedAttribute;
-        }
-        else if (attr instanceof ModuleResolutionAttribute) {
-            ModuleResolutionAttribute renamedAttribute = new ModuleResolutionAttribute();
-            ((ModuleResolutionAttribute)attr).accept(createModuleAttributeRemapper(renamedAttribute));
-            attr = renamedAttribute;
+        if (attr instanceof ModuleHashesAttribute) {
+            ModuleHashesAttribute hashesAttr = new ModuleHashesAttribute();
+            List<String> modules = hashesAttr.modules;
+            for(int i = 0; i < modules.size(); i++) {
+                modules.set(i, remapper.mapModuleName(modules.get(i)));
+            }
         }
         super.visitAttribute(attr);
     }
@@ -159,9 +153,5 @@ public class ClassRemapper extends ClassVisitor {
     
     protected ModuleVisitor createModuleRemapper(ModuleVisitor mv) {
         return new ModuleRemapper(mv, remapper);
-    }
-    
-    protected ModuleAttributeRemapper createModuleAttributeRemapper(ModuleAttributeVisitor mv) {
-        return new ModuleAttributeRemapper(mv, remapper);
     }
 }

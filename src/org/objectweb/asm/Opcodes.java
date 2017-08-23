@@ -369,4 +369,14 @@ public interface Opcodes {
     int IFNONNULL = 199; // -
     // int GOTO_W = 200; // -
     // int JSR_W = 201; // -
+    // ??? = 202; // -
+    int VLOAD = 203; // visitVarInsn
+    int VSTORE = 204; // visitVarInsn
+    int VALOAD = 205; // visitTypeInsn
+    int VASTORE = 206;  // visitTypeInsn
+    int VRETURN = 207; // visitInsn
+    int VDEFAULT = 208; // visitTypeInsn
+    int VWITHFIELD = 209; // visitFieldInsn
+    int VBOX = 210; // visitTypeInsn
+    int VUNBOX = 211; // visitTypeInsn
 }

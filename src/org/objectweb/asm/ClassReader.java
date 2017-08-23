@@ -1641,7 +1641,7 @@ public class ClassReader {
                 cpIndex = items[readUnsignedShort(cpIndex + 2)];
                 String iname = readUTF8(cpIndex, c);
                 String idesc = readUTF8(cpIndex + 2, c);
-                if (opcode < Opcodes.INVOKEVIRTUAL) {
+                if (opcode < Opcodes.INVOKEVIRTUAL || opcode == Opcodes.VWITHFIELD) {
                     mv.visitFieldInsn(opcode, iowner, iname, idesc);
                 } else {
                     mv.visitMethodInsn(opcode, iowner, iname, idesc, itf);

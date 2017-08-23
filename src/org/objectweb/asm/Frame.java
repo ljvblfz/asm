@@ -236,11 +236,11 @@ class Frame {
      */
     static {
         int i;
-        int[] b = new int[202];
+        int[] b = new int[212];
         String s = "EFFFFFFFFGGFFFGGFFFEEFGFGFEEEEEEEEEEEEEEEEEEEEDEDEDDDDD"
                 + "CDCDEEEEEEEEEEEEEEEEEEEEBABABBBBDCFFFGGGEDCDCDCDCDCDCDCDCD"
                 + "CDCEEEEDDDDDDDCDCDCEFEFDDEEFFDEDEEEBDDBBDDDDDDCCCCCCCCEFED"
-                + "DDCDCDEEEEEEEEEEFEEEEEEDDEEDDEE";
+                + "DDCDCDEEEEEEEEEEFEEEEEEDDEEDDEEEFDDBDFEEE";
         for (i = 0; i < b.length; ++i) {
             b[i] = s.charAt(i) - 'E';
         }
@@ -453,6 +453,16 @@ class Frame {
         // -1, //IFNONNULL, // -
         // NA, //GOTO_W, // -
         // NA, //JSR_W, // -
+        // NA, // ???, // -
+        // 1, //VLOAD, // visitVarInsn
+        // -1, //VSTORE, // visitVarInsn
+        // -1, //VALOAD, // visitTypeInsn
+        // -3, //VASTORE,  // visitTypeInsn
+        // -1, //VRETURN, // visitInsn
+        // 1, //VDEFAULT, // visitTypeInsn
+        // NA, //VWITHFIELD, // visitFieldInsn
+        // 0, //VBOX, // visitTypeInsn
+        // 0, //VUNBOX, // visitTypeInsn
         // };
         // for (i = 0; i < b.length; ++i) {
         // System.err.print((char)('E' + b[i]));
@@ -1028,6 +1038,7 @@ class Frame {
             }
             break;
         case Opcodes.ALOAD:
+        case Opcodes.VLOAD:
             push(get(arg));
             break;
         case Opcodes.IALOAD:
@@ -1061,6 +1072,7 @@ class Frame {
         case Opcodes.ISTORE:
         case Opcodes.FSTORE:
         case Opcodes.ASTORE:
+        case Opcodes.VSTORE:
             t1 = pop();
             set(arg, t1);
             if (arg > 0) {
@@ -1095,6 +1107,7 @@ class Frame {
         case Opcodes.SASTORE:
         case Opcodes.FASTORE:
         case Opcodes.AASTORE:
+        case Opcodes.VASTORE:
             pop(3);
             break;
         case Opcodes.LASTORE:
@@ -1118,6 +1131,7 @@ class Frame {
         case Opcodes.MONITOREXIT:
         case Opcodes.IFNULL:
         case Opcodes.IFNONNULL:
+        case Opcodes.VRETURN:
             pop(1);
             break;
         case Opcodes.POP2:
@@ -1285,6 +1299,7 @@ class Frame {
             push(cw, item.strVal3);
             break;
         case Opcodes.PUTSTATIC:
+        case Opcodes.VWITHFIELD:
             pop(item.strVal3);
             break;
         case Opcodes.GETFIELD:
@@ -1364,10 +1379,25 @@ class Frame {
                 push(OBJECT | cw.addType(s));
             }
             break;
-        // case Opcodes.MULTIANEWARRAY:
-        default:
+        case Opcodes.MULTIANEWARRAY:
             pop(arg);
             push(cw, item.strVal1);
+            break;
+        case Opcodes.VALOAD:
+            s = item.strVal1;
+            pop(2);
+            push(OBJECT | cw.addType(s));
+            break;
+        case Opcodes.VDEFAULT:
+            s = item.strVal1;
+            push(OBJECT | cw.addType(s));
+            break;
+        // case Opcodes.VBOX:
+        // case Opcodes.VUNBOX:
+        default:
+            s = item.strVal1;
+            pop(1);
+            push(OBJECT | cw.addType(s));
             break;
         }
     }

@@ -547,7 +547,7 @@ public class ClassWriter extends ClassVisitor {
         String s = "AAAAAAAAAAAAAAAABCLMMDDDDDEEEEEEEEEEEEEEEEEEEEAAAAAAAADD"
                 + "DDDEEEEEEEEEEEEEEEEEEEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 + "AAAAAAAAAAAAAAAAANAAAAAAAAAAAAAAAAAAAAJJJJJJJJJJJJJJJJDOPAA"
-                + "AAAAGGGGGGGHIFBFAAFFAARQJJKKZZZZZZZZZZSSSSSSSSSSSSSSSSSST";
+                + "AAAAGGGGGGGHIFBFAAFFAARQJJKKADDFFAFGFFSSSSSSSSSSSSSSSSSST";
         for (i = 0; i < b.length; ++i) {
             b[i] = (byte) (s.charAt(i) - 'A');
         }
@@ -570,6 +570,8 @@ public class ClassWriter extends ClassVisitor {
         // for (i = Constants.ISTORE; i <= Constants.ASTORE; ++i) {
         // b[i] = VAR_INSN;
         // }
+        // b[Constants.VLOAD] = VAR_INSN;
+        // b[Constants.VSTORE] = VAR_INSN;
         // for (i = 26; i <= 45; ++i) { // ILOAD_0 to ALOAD_3
         // b[i] = IMPLVAR_INSN;
         // }
@@ -582,11 +584,17 @@ public class ClassWriter extends ClassVisitor {
         // b[Constants.ANEWARRAY] = TYPE_INSN;
         // b[Constants.CHECKCAST] = TYPE_INSN;
         // b[Constants.INSTANCEOF] = TYPE_INSN;
+        // b[Constants.VALOAD] = TYPE_INSN;
+        // b[Constants.VASTORE] = TYPE_INSN;
+        // b[Constants.VDEFAULT] = TYPE_INSN;
+        // b[Constants.VBOX] = TYPE_INSN;
+        // b[Constants.VUNBOX] = TYPE_INSN;
         //
         // // (Set)FIELDORMETH_INSN instructions
         // for (i = Constants.GETSTATIC; i <= Constants.INVOKESTATIC; ++i) {
         // b[i] = FIELDORMETH_INSN;
         // }
+        // b[Constants.VWITHFIELD] = FIELDORMETH_INSN;
         // b[Constants.INVOKEINTERFACE] = ITFMETH_INSN;
         // b[Constants.INVOKEDYNAMIC] = INDYMETH_INSN;
         //

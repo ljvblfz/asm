@@ -755,7 +755,7 @@ class MethodWriter extends MethodVisitor {
             }
             // if opcode == ATHROW or xRETURN, ends current block (no successor)
             if ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN)
-                    || opcode == Opcodes.ATHROW) {
+                    || opcode == Opcodes.ATHROW || opcode == Opcodes.VRETURN) {
                 noSuccessor();
             }
         }
@@ -825,7 +825,7 @@ class MethodWriter extends MethodVisitor {
             }
         }
         // adds the instruction to the bytecode of the method
-        if (var < 4 && opcode != Opcodes.RET) {
+        if (var < 4 && opcode <= 78 /*ASTORE_3*/) {
             int opt;
             if (opcode < Opcodes.ISTORE) {
                 /* ILOAD_0 */
@@ -840,7 +840,7 @@ class MethodWriter extends MethodVisitor {
         } else {
             code.put11(opcode, var);
         }
-        if (opcode >= Opcodes.ISTORE && compute == FRAMES && handlerCount > 0) {
+        if (opcode >= Opcodes.ISTORE && opcode != Opcodes.VLOAD && compute == FRAMES && handlerCount > 0) {
             visitLabel(new Label());
         }
     }
@@ -853,10 +853,12 @@ class MethodWriter extends MethodVisitor {
         if (currentBlock != null) {
             if (compute == FRAMES || compute == INSERTED_FRAMES) {
                 currentBlock.frame.execute(opcode, code.length, cw, i);
-            } else if (opcode == Opcodes.NEW) {
-                // updates current and max stack sizes only if opcode == NEW
-                // (no stack change for ANEWARRAY, CHECKCAST, INSTANCEOF)
-                int size = stackSize + 1;
+            } else {
+                // opcodes NEW, VALOAD, VASTORE, VDEFAULT change the stack
+                // (ANEWARRAY, CHECKCAST, INSTANCEOF, VBOX, VUNBOX, let the stack unchanged)
+                // TODO, either remove the TODO or add some ifs, but i'm not sure it's a good idea here
+                
+                int size = stackSize + Frame.SIZE[opcode];
                 if (size > maxStackSize) {
                     maxStackSize = size;
                 }
@@ -885,6 +887,7 @@ class MethodWriter extends MethodVisitor {
                     size = stackSize + (c == 'D' || c == 'J' ? 2 : 1);
                     break;
                 case Opcodes.PUTSTATIC:
+                case Opcodes.VWITHFIELD:
                     size = stackSize + (c == 'D' || c == 'J' ? -2 : -1);
                     break;
                 case Opcodes.GETFIELD:
@@ -1070,7 +1073,7 @@ class MethodWriter extends MethodVisitor {
                 // ASM pseudo GOTO_W insn, see ClassReader. We don't use a real
                 // GOTO_W because we might need to insert a frame just after (as
                 // the target of the IFNOTxxx jump instruction).
-                code.putByte(220);
+                code.putByte(230);
                 cw.hasAsmInsns = true; 
             }
             label.put(this, code, code.length - 1, true);

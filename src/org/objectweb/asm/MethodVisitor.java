@@ -334,7 +334,7 @@ public abstract class MethodVisitor {
      *            L2I, L2F, L2D, F2I, F2L, F2D, D2I, D2L, D2F, I2B, I2C, I2S,
      *            LCMP, FCMPL, FCMPG, DCMPL, DCMPG, IRETURN, LRETURN, FRETURN,
      *            DRETURN, ARETURN, RETURN, ARRAYLENGTH, ATHROW, MONITORENTER,
-     *            or MONITOREXIT.
+     *            MONITOREXIT or VRETURN.
      */
     public void visitInsn(int opcode) {
         if (mv != null) {
@@ -373,7 +373,7 @@ public abstract class MethodVisitor {
      * @param opcode
      *            the opcode of the local variable instruction to be visited.
      *            This opcode is either ILOAD, LLOAD, FLOAD, DLOAD, ALOAD,
-     *            ISTORE, LSTORE, FSTORE, DSTORE, ASTORE or RET.
+     *            VLOAD, ISTORE, LSTORE, FSTORE, DSTORE, ASTORE, VSTORE or RET.
      * @param var
      *            the operand of the instruction to be visited. This operand is
      *            the index of a local variable.
@@ -390,7 +390,8 @@ public abstract class MethodVisitor {
      * 
      * @param opcode
      *            the opcode of the type instruction to be visited. This opcode
-     *            is either NEW, ANEWARRAY, CHECKCAST or INSTANCEOF.
+     *            is either NEW, ANEWARRAY, CHECKCAST, INSTANCEOF, VALOAD,
+     *            VASTORE, VDEFAULT, VBOX or VUNBOX.
      * @param type
      *            the operand of the instruction to be visited. This operand
      *            must be the internal name of an object or array class (see
@@ -408,7 +409,8 @@ public abstract class MethodVisitor {
      * 
      * @param opcode
      *            the opcode of the type instruction to be visited. This opcode
-     *            is either GETSTATIC, PUTSTATIC, GETFIELD or PUTFIELD.
+     *            is either GETSTATIC, PUTSTATIC, GETFIELD, PUTFIELD or
+     *            VWITHFIELD.
      * @param owner
      *            the internal name of the field's owner class (see
      *            {@link Type#getInternalName() getInternalName}).

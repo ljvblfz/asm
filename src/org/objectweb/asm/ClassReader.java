@@ -1534,10 +1534,10 @@ public class ClassReader {
                 u += 5;
                 break;
             case ClassWriter.ASM_LABEL_INSN: {
-                // changes temporary opcodes 202 to 217 (inclusive), 218
-                // and 219 to IFEQ ... JSR (inclusive), IFNULL and
+                // changes temporary opcodes 212 to 227 (inclusive), 228
+                // and 229 to IFEQ ... JSR (inclusive), IFNULL and
                 // IFNONNULL
-                opcode = opcode < 218 ? opcode - 49 : opcode - 20;
+                opcode = opcode < 228 ? opcode - 59 : opcode - 30;
                 Label target = labels[offset + readUnsignedShort(u + 1)];
                 // replaces GOTO with GOTO_W, JSR with JSR_W and IFxxx
                 // <l> with IFNOTxxx <L> GOTO_W <l> L:..., where IFNOTxxx is

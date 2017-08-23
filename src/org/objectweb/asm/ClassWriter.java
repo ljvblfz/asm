@@ -543,11 +543,11 @@ public class ClassWriter extends ClassVisitor {
      */
     static {
         int i;
-        byte[] b = new byte[221];
+        byte[] b = new byte[231];
         String s = "AAAAAAAAAAAAAAAABCLMMDDDDDEEEEEEEEEEEEEEEEEEEEAAAAAAAADD"
                 + "DDDEEEEEEEEEEEEEEEEEEEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 + "AAAAAAAAAAAAAAAAANAAAAAAAAAAAAAAAAAAAAJJJJJJJJJJJJJJJJDOPAA"
-                + "AAAAGGGGGGGHIFBFAAFFAARQJJKKSSSSSSSSSSSSSSSSSST";
+                + "AAAAGGGGGGGHIFBFAAFFAARQJJKKZZZZZZZZZZSSSSSSSSSSSSSSSSSST";
         for (i = 0; i < b.length; ++i) {
             b[i] = (byte) (s.charAt(i) - 'A');
         }
@@ -600,10 +600,10 @@ public class ClassWriter extends ClassVisitor {
         // b[201] = LABELW_INSN; // JSR_W
         // // temporary opcodes used internally by ASM - see Label and
         // MethodWriter
-        // for (i = 202; i < 220; ++i) {
+        // for (i = 212; i < 230; ++i) {
         // b[i] = ASM_LABEL_INSN;
         // }
-        // b[220] = ASM_LABELW_INSN;
+        // b[230] = ASM_LABELW_INSN;
         //
         // // LDC(_W) instructions
         // b[Constants.LDC] = LDC_INSN;

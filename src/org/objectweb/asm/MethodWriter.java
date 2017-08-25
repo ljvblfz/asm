@@ -1816,7 +1816,8 @@ class MethodWriter extends MethodVisitor {
         int i = 1;
         loop: while (true) {
             int j = i;
-            switch (descriptor.charAt(i++)) {
+            char c;
+            switch (c = descriptor.charAt(i++)) {
             case 'Z':
             case 'C':
             case 'B':
@@ -1837,7 +1838,8 @@ class MethodWriter extends MethodVisitor {
                 while (descriptor.charAt(i) == '[') {
                     ++i;
                 }
-                if (descriptor.charAt(i) == 'L') {
+                c = descriptor.charAt(i);
+                if (c == 'L' || c == 'Q') {
                     ++i;
                     while (descriptor.charAt(i) != ';') {
                         ++i;
@@ -1846,11 +1848,17 @@ class MethodWriter extends MethodVisitor {
                 frame[frameIndex++] = Frame.type(cw, descriptor.substring(j, ++i));
                 break;
             case 'L':
+            case 'Q':
                 while (descriptor.charAt(i) != ';') {
                     ++i;
                 }
-                frame[frameIndex++] = Frame.OBJECT
-                        | cw.addType(descriptor.substring(j + 1, i++));
+                if (c == 'L') {
+                    frame[frameIndex++] = Frame.OBJECT
+                            | cw.addType(descriptor.substring(j + 1, i++));
+                } else {  // c == 'Q'
+                    frame[frameIndex++] = Frame.OBJECT
+                            | cw.addType(';' + descriptor.substring(j, ++i));
+                }
                 break;
             default:
                 break loop;
@@ -2004,10 +2012,11 @@ class MethodWriter extends MethodVisitor {
             if (d == 0) {
                 int v = t & Frame.BASE_VALUE;
                 switch (t & Frame.BASE_KIND) {
-                case Frame.OBJECT:
+                case Frame.OBJECT: {
                     stackMap.putByte(7).putShort(
                             cw.newClass(cw.typeTable[v].strVal1));
                     break;
+                }
                 case Frame.UNINITIALIZED:
                     stackMap.putByte(8).putShort(cw.typeTable[v].intVal);
                     break;
@@ -2021,9 +2030,14 @@ class MethodWriter extends MethodVisitor {
                     sb.append('[');
                 }
                 if ((t & Frame.BASE_KIND) == Frame.OBJECT) {
-                    sb.append('L');
-                    sb.append(cw.typeTable[t & Frame.BASE_VALUE].strVal1);
-                    sb.append(';');
+                    String name = cw.typeTable[t & Frame.BASE_VALUE].strVal1;
+                    if (name.charAt(0) == ';') { // Q internal name
+                      sb.append(name, 1, name.length());
+                    } else {
+                      sb.append('L');
+                      sb.append(name);
+                      sb.append(';');
+                    }
                 } else {
                     switch (t & 0xF) {
                     case 1:

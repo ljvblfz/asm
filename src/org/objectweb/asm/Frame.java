@@ -757,7 +757,11 @@ class Frame {
             // stores the internal name, not the descriptor!
             t = desc.substring(index + 1, desc.length() - 1);
             return OBJECT | cw.addType(t);
-            // case '[':
+        case 'Q':
+            // stores the internal name, not the descriptor!
+            t = ';' + desc.substring(index, desc.length());
+            return OBJECT | cw.addType(t);
+        // case '[':
         default:
             // extracts the dimensions and the element type
             int data;
@@ -789,6 +793,11 @@ class Frame {
                 break;
             case 'D':
                 data = DOUBLE;
+                break;
+            case 'Q':
+                // stores the internal name, not the descriptor
+                t = ';' + desc.substring(dims, desc.length());
+                data = OBJECT | cw.addType(t);
                 break;
             // case 'L':
             default:

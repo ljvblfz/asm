@@ -225,8 +225,25 @@ public class Type {
      * @return the Java type corresponding to the given internal name.
      */
     public static Type getObjectType(final String internalName) {
-        char[] buf = internalName.toCharArray();
-        return new Type(buf[0] == '[' ? ARRAY : OBJECT, buf, 0, buf.length);
+        switch(internalName.charAt(0)) {
+        case ';': // Q internal name
+            return new Type(OBJECT, internalName.substring(1).toCharArray(), 0, internalName.length() - 1);
+        case '[': {  // we need to know if it's an array of object or an array of value type
+            int i = 1;
+            while (internalName.charAt(i) == '[') {
+                ++i;
+            }
+            if (internalName.charAt(i) == ';') {  // Q internal name
+                return new Type(ARRAY, (internalName.substring(0, i) + internalName.substring(i + 1)).toCharArray(), 0, internalName.length() - 1);
+            }
+            char[] buf = internalName.toCharArray();
+            return new Type(ARRAY, buf, 0, buf.length);
+        }
+        default: {
+            char[] buf = internalName.toCharArray();
+            return new Type(OBJECT, buf, 0, buf.length);
+        }
+        }
     }
 
     /**
@@ -329,7 +346,7 @@ public class Type {
             char car = buf[off++];
             if (car == ')') {
                 break;
-            } else if (car == 'L') {
+            } else if (car == 'L' || car == 'Q') {
                 while (buf[off++] != ';') {
                 }
                 ++size;
@@ -341,9 +358,10 @@ public class Type {
         off = 1;
         size = 0;
         while (buf[off] != ')') {
-            args[size] = getType(buf, off);
-            off += args[size].len + (args[size].sort == OBJECT ? 2 : 0);
-            size += 1;
+            Type type = getType(buf, off);
+            args[size] = type;
+            off += type.len + ((type.sort == OBJECT && type.buf[type.off + type.len - 1] != ';')? 2 : 0);
+            size += 1;;
         }
         return args;
     }
@@ -382,7 +400,7 @@ public class Type {
             char car = buf[off++];
             if (car == ')') {
                 return getType(buf, off);
-            } else if (car == 'L') {
+            } else if (car == 'L' || car == 'Q') {
                 while (buf[off++] != ';') {
                 }
             }
@@ -422,7 +440,7 @@ public class Type {
                 car = desc.charAt(c);
                 return n << 2
                         | (car == 'V' ? 0 : (car == 'D' || car == 'J' ? 2 : 1));
-            } else if (car == 'L') {
+            } else if (car == 'L' || car == 'Q') {
                 while (desc.charAt(c++) != ';') {
                 }
                 n += 1;
@@ -454,7 +472,8 @@ public class Type {
      */
     private static Type getType(final char[] buf, final int off) {
         int len;
-        switch (buf[off]) {
+        char c;
+        switch (c = buf[off]) {
         case 'V':
             return VOID_TYPE;
         case 'Z':
@@ -478,7 +497,8 @@ public class Type {
             while (buf[off + len] == '[') {
                 ++len;
             }
-            if (buf[off + len] == 'L') {
+            c = buf[off + len];
+            if (c == 'L' || c == 'Q') {
                 ++len;
                 while (buf[off + len] != ';') {
                     ++len;
@@ -486,12 +506,17 @@ public class Type {
             }
             return new Type(ARRAY, buf, off, len + 1);
         case 'L':
+        case 'Q':
             len = 1;
             while (buf[off + len] != ';') {
                 ++len;
             }
-            return new Type(OBJECT, buf, off + 1, len - 1);
-            // case '(':
+            if (c == 'L') {
+                return new Type(OBJECT, buf, off + 1, len - 1);
+            } else { // c == 'Q', store the descriptor
+                return new Type(OBJECT, buf, off, len + 1);
+            }
+        // case '(':
         default:
             return new Type(METHOD, buf, off, buf.length - off);
         }
@@ -571,6 +596,9 @@ public class Type {
             }
             return sb.toString();
         case OBJECT:
+            if (buf[off + len - 1] == ';') { // Q internal name
+                return new String(buf, off + 1, len - 2).replace('/', '.');
+            }
             return new String(buf, off, len).replace('/', '.');
         default:
             return null;
@@ -586,6 +614,9 @@ public class Type {
      * @return the internal name of the class corresponding to this object type.
      */
     public String getInternalName() {
+        if (buf[off + len - 1] == ';') { // Q internal name
+            return ';' + new String(buf, off, len);
+        }
         return new String(buf, off, len);
     }
 
@@ -674,11 +705,11 @@ public class Type {
             // descriptor is in byte 3 of 'off' for primitive types (buf ==
             // null)
             buf.append((char) ((off & 0xFF000000) >>> 24));
-        } else if (sort == OBJECT) {
+        } else if (sort == OBJECT && this.buf[off + len - 1] != ';') {  // and not a Q type
             buf.append('L');
             buf.append(this.buf, off, len);
             buf.append(';');
-        } else { // sort == ARRAY || sort == METHOD
+        } else { // sort == ARRAY || sort == METHOD || Q type
             buf.append(this.buf, off, len);
         }
     }
@@ -698,6 +729,7 @@ public class Type {
      * @return the internal name of the given class.
      */
     public static String getInternalName(final Class<?> c) {
+        //FIXME, need to detect if c is a value type or not
         return c.getName().replace('.', '/');
     }
 
@@ -788,6 +820,7 @@ public class Type {
                 buf.append('[');
                 d = d.getComponentType();
             } else {
+                // FIXME remi, need to detect value type here !!
                 buf.append('L');
                 String name = d.getName();
                 int len = name.length();
@@ -830,6 +863,10 @@ public class Type {
      *         <tt>opcode</tt> is IRETURN, this method returns FRETURN.
      */
     public int getOpcode(final int opcode) {
+        // FIXME Remi, this method does not work with Q type (VALOAD / VASTORE, VRETURN)
+        if (buf != null && buf[off + len - 1] == ';') {
+            throw new RuntimeException("do not work with vamlue type");
+        }
         if (opcode == Opcodes.IALOAD || opcode == Opcodes.IASTORE) {
             // the offset for IALOAD or IASTORE is in byte 1 of 'off' for
             // primitive types (buf == null)

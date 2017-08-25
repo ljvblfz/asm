@@ -2202,7 +2202,8 @@ public class ClassReader {
         int i = 1;
         loop: while (true) {
             int j = i;
-            switch (desc.charAt(i++)) {
+            char c;
+            switch (c = desc.charAt(i++)) {
             case 'Z':
             case 'C':
             case 'B':
@@ -2223,7 +2224,8 @@ public class ClassReader {
                 while (desc.charAt(i) == '[') {
                     ++i;
                 }
-                if (desc.charAt(i) == 'L') {
+                c = desc.charAt(i);
+                if (c == 'L' || c == 'Q') {
                     ++i;
                     while (desc.charAt(i) != ';') {
                         ++i;
@@ -2232,11 +2234,17 @@ public class ClassReader {
                 locals[local++] = desc.substring(j, ++i);
                 break;
             case 'L':
+            case 'Q':
                 while (desc.charAt(i) != ';') {
                     ++i;
                 }
-                locals[local++] = desc.substring(j + 1, i++);
+                if (c == 'L') {
+                    locals[local++] = desc.substring(j + 1, i++);
+                } else {  // c == 'Q'
+                    locals[local++] = ';' + desc.substring(j , ++i);
+                }
                 break;
+            // case ')':
             default:
                 break loop;
             }

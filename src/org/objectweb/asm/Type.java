@@ -614,8 +614,14 @@ public class Type {
      * @return the internal name of the class corresponding to this object type.
      */
     public String getInternalName() {
-        if (buf[off + len - 1] == ';') { // Q internal name
-            return ';' + new String(buf, off, len);
+        if (buf[off + len - 1] == ';') { // maybe a Q internal name
+            int i = off;
+            while(buf[i] == '[') {
+                i++;
+            }
+            if (buf[i] == 'Q') {
+                return ';' + new String(buf, off, len);
+            }
         }
         return new String(buf, off, len);
     }

@@ -52,7 +52,8 @@ public class TypeInsnNode extends AbstractInsnNode {
      * 
      * @param opcode
      *            the opcode of the type instruction to be constructed. This
-     *            opcode must be NEW, ANEWARRAY, CHECKCAST or INSTANCEOF.
+     *            opcode must be NEW, ANEWARRAY, CHECKCAST, INSTANCEOF, VALOAD,
+     *            VASTORE, VDEFAULT, VBOX or VUNBOX.
      * @param desc
      *            the operand of the instruction to be constructed. This operand
      *            is an internal name (see {@link org.objectweb.asm.Type}).
@@ -67,7 +68,8 @@ public class TypeInsnNode extends AbstractInsnNode {
      * 
      * @param opcode
      *            the new instruction opcode. This opcode must be NEW,
-     *            ANEWARRAY, CHECKCAST or INSTANCEOF.
+     *            ANEWARRAY, CHECKCAST, INSTANCEOF, VALOAD, VASTORE,
+     *            VDEFAULT, VBOX or VUNBOX.
      */
     public void setOpcode(final int opcode) {
         this.opcode = opcode;

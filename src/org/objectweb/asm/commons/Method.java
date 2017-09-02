@@ -211,7 +211,9 @@ public class Method {
         if (desc != null) {
             sb.append(desc);
         } else {
-            sb.append('L');
+            if (t.charAt(0) != 'Q') {
+                sb.append('L');
+            }
             if (t.indexOf('.') < 0) {
                 if (!defaultPackage) {
                     sb.append("java/lang/");

@@ -1104,7 +1104,7 @@ public class CheckMethodAdapter extends MethodVisitor {
      *            the expected opcode type.
      */
     static void checkOpcode(final int opcode, final int type) {
-        if (opcode < 0 || opcode > 199 || TYPE[opcode] != type) {
+        if (opcode < 0 || opcode > 211 || TYPE[opcode] != type) {
             throw new IllegalArgumentException("Invalid opcode: " + opcode);
         }
     }
@@ -1428,6 +1428,7 @@ public class CheckMethodAdapter extends MethodVisitor {
                         + desc);
             }
         case 'L':
+        case 'Q':
             index = desc.indexOf(';', start);
             if (index == -1 || index - start < 2) {
                 throw new IllegalArgumentException("Invalid descriptor: "

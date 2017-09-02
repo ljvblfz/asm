@@ -62,7 +62,8 @@ public class FieldInsnNode extends AbstractInsnNode {
      * 
      * @param opcode
      *            the opcode of the type instruction to be constructed. This
-     *            opcode must be GETSTATIC, PUTSTATIC, GETFIELD or PUTFIELD.
+     *            opcode must be GETSTATIC, PUTSTATIC, GETFIELD, PUTFIELD
+     *            or VWITHFIELD.
      * @param owner
      *            the internal name of the field's owner class (see
      *            {@link org.objectweb.asm.Type#getInternalName()
@@ -85,7 +86,7 @@ public class FieldInsnNode extends AbstractInsnNode {
      * 
      * @param opcode
      *            the new instruction opcode. This opcode must be GETSTATIC,
-     *            PUTSTATIC, GETFIELD or PUTFIELD.
+     *            PUTSTATIC, GETFIELD, PUTFIELD or VWITHFIELD.
      */
     public void setOpcode(final int opcode) {
         this.opcode = opcode;

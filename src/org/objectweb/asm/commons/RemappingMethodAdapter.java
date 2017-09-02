@@ -118,6 +118,9 @@ public class RemappingMethodAdapter extends LocalVariablesSorter {
     @Override
     public void visitFieldInsn(int opcode, String owner, String name,
             String desc) {
+        if (opcode == Opcodes.VWITHFIELD) {
+            throw new RuntimeException("RemappingMethodAdapter is deprecated, use MethodRemapper instead");
+        }
         super.visitFieldInsn(opcode, remapper.mapType(owner),
                 remapper.mapFieldName(owner, name, desc),
                 remapper.mapDesc(desc));
@@ -174,6 +177,9 @@ public class RemappingMethodAdapter extends LocalVariablesSorter {
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
+        if (opcode >= Opcodes.VALOAD) {
+            throw new RuntimeException("RemappingMethodAdapter is deprecated, use MethodRemapper instead");
+        }
         super.visitTypeInsn(opcode, remapper.mapType(type));
     }
 

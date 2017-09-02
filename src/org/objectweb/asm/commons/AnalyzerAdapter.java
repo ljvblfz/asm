@@ -256,7 +256,7 @@ public class AnalyzerAdapter extends MethodVisitor {
         }
         execute(opcode, 0, null);
         if ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN)
-                || opcode == Opcodes.ATHROW) {
+                || opcode == Opcodes.ATHROW || opcode == Opcodes.VRETURN) {
             this.locals = null;
             this.stack = null;
         }
@@ -538,6 +538,13 @@ public class AnalyzerAdapter extends MethodVisitor {
                 push(desc.substring(index, desc.length()));
             }
             break;
+        case 'Q':
+            if (index == 0) {
+                push(';' + desc);
+            } else {
+                push(';' + desc.substring(index, desc.length()));
+            }
+            break;
         // case 'L':
         default:
             if (index == 0) {
@@ -626,6 +633,7 @@ public class AnalyzerAdapter extends MethodVisitor {
         case Opcodes.ILOAD:
         case Opcodes.FLOAD:
         case Opcodes.ALOAD:
+        case Opcodes.VLOAD:
             push(get(iarg));
             break;
         case Opcodes.LLOAD:
@@ -668,6 +676,7 @@ public class AnalyzerAdapter extends MethodVisitor {
         case Opcodes.ISTORE:
         case Opcodes.FSTORE:
         case Opcodes.ASTORE:
+        case Opcodes.VSTORE:
             t1 = pop();
             set(iarg, t1);
             if (iarg > 0) {
@@ -696,6 +705,7 @@ public class AnalyzerAdapter extends MethodVisitor {
         case Opcodes.SASTORE:
         case Opcodes.FASTORE:
         case Opcodes.AASTORE:
+        case Opcodes.VASTORE:
             pop(3);
             break;
         case Opcodes.LASTORE:
@@ -712,6 +722,7 @@ public class AnalyzerAdapter extends MethodVisitor {
         case Opcodes.IRETURN:
         case Opcodes.FRETURN:
         case Opcodes.ARETURN:
+        case Opcodes.VRETURN:
         case Opcodes.TABLESWITCH:
         case Opcodes.LOOKUPSWITCH:
         case Opcodes.ATHROW:
@@ -885,6 +896,7 @@ public class AnalyzerAdapter extends MethodVisitor {
             pushDesc(sarg);
             break;
         case Opcodes.PUTSTATIC:
+        case Opcodes.VWITHFIELD:
             pop(sarg);
             break;
         case Opcodes.GETFIELD:
@@ -936,11 +948,22 @@ public class AnalyzerAdapter extends MethodVisitor {
             pop();
             pushDesc(Type.getObjectType(sarg).getDescriptor());
             break;
-        // case Opcodes.MULTIANEWARRAY:
-        default:
+        case Opcodes.MULTIANEWARRAY:
             pop(iarg);
             pushDesc(sarg);
             break;
+        case Opcodes.VALOAD:
+            pop(2);
+            push(sarg);
+            break;
+        case Opcodes.VDEFAULT:
+            push(sarg);
+            break;
+        // case Opcodes.VBOX:
+        // case Opcodes.VUNBOX:
+        default:
+            pop();
+            push(sarg);
         }
         labels = null;
     }

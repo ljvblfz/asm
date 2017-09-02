@@ -54,7 +54,8 @@ public class VarInsnNode extends AbstractInsnNode {
      * @param opcode
      *            the opcode of the local variable instruction to be
      *            constructed. This opcode must be ILOAD, LLOAD, FLOAD, DLOAD,
-     *            ALOAD, ISTORE, LSTORE, FSTORE, DSTORE, ASTORE or RET.
+     *            ALOAD, VLOAD, ISTORE, LSTORE, FSTORE, DSTORE, ASTORE, VSTORE,
+     *            or RET.
      * @param var
      *            the operand of the instruction to be constructed. This operand
      *            is the index of a local variable.

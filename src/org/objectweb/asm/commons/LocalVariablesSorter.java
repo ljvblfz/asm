@@ -148,6 +148,8 @@ public class LocalVariablesSorter extends MethodVisitor {
         default:
             // case Opcodes.ALOAD:
             // case Opcodes.ASTORE:
+            // case Opcodes.VLOAD:
+            // case Opcodes.STORE:
             // case RET:
             type = OBJECT_TYPE;
             break;

@@ -137,6 +137,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes 
             case FRETURN: // 1 before n/a after
             case ARETURN: // 1 before n/a after
             case ATHROW: // 1 before n/a after
+            case VRETURN: // 1 before n/a after
                 popValue();
                 onMethodExit(opcode);
                 break;
@@ -314,6 +315,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes 
             switch (opcode) {
             case ILOAD:
             case FLOAD:
+            case VLOAD:
                 pushValue(OTHER);
                 break;
             case LLOAD:
@@ -327,6 +329,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes 
             case ASTORE:
             case ISTORE:
             case FSTORE:
+            case VSTORE:
                 popValue();
                 break;
             case LSTORE:
@@ -353,6 +356,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes 
                 }
                 break;
             case PUTSTATIC:
+            case VWITHFIELD:
                 popValue();
                 if (longOrDouble) {
                     popValue();
@@ -407,9 +411,15 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes 
     @Override
     public void visitTypeInsn(final int opcode, final String type) {
         mv.visitTypeInsn(opcode, type);
-        // ANEWARRAY, CHECKCAST or INSTANCEOF don't change stack
-        if (constructor && opcode == NEW) {
-            pushValue(OTHER);
+        // ANEWARRAY, CHECKCAST, INSTANCEOF, VBOX, VUNBOX don't change the stack
+        if (constructor) {
+            if (opcode == NEW || opcode == VALOAD) {
+                pushValue(OTHER);
+            } else if (opcode == VASTORE) {
+                popValue();
+                popValue();
+                popValue();
+            }
         }
     }
 

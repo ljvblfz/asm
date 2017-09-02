@@ -84,8 +84,10 @@ public abstract class Printer {
                 + "PUTSTATIC,GETFIELD,PUTFIELD,INVOKEVIRTUAL,INVOKESPECIAL,"
                 + "INVOKESTATIC,INVOKEINTERFACE,INVOKEDYNAMIC,NEW,NEWARRAY,"
                 + "ANEWARRAY,ARRAYLENGTH,ATHROW,CHECKCAST,INSTANCEOF,"
-                + "MONITORENTER,MONITOREXIT,,MULTIANEWARRAY,IFNULL,IFNONNULL,";
-        OPCODES = new String[200];
+                + "MONITORENTER,MONITOREXIT,,MULTIANEWARRAY,IFNULL,IFNONNULL,"
+                + ",,,VLOAD,VSTORE,VALOAD,VASTORE,VRETURN,VDEFAULT,VWITHFIELD,"
+                + "VBOX,VUNBOX,";
+        OPCODES = new String[212];
         int i = 0;
         int j = 0;
         int l;
@@ -722,7 +724,7 @@ public abstract class Printer {
      *            L2I, L2F, L2D, F2I, F2L, F2D, D2I, D2L, D2F, I2B, I2C, I2S,
      *            LCMP, FCMPL, FCMPG, DCMPL, DCMPG, IRETURN, LRETURN, FRETURN,
      *            DRETURN, ARETURN, RETURN, ARRAYLENGTH, ATHROW, MONITORENTER,
-     *            or MONITOREXIT.
+     *            MONITOREXIT or VRETURN.
      */
     public abstract void visitInsn(final int opcode);
 
@@ -754,7 +756,7 @@ public abstract class Printer {
      * @param opcode
      *            the opcode of the local variable instruction to be visited.
      *            This opcode is either ILOAD, LLOAD, FLOAD, DLOAD, ALOAD,
-     *            ISTORE, LSTORE, FSTORE, DSTORE, ASTORE or RET.
+     *            VLOAD, ISTORE, LSTORE, FSTORE, DSTORE, ASTORE, VSTORE or RET.
      * @param var
      *            the operand of the instruction to be visited. This operand is
      *            the index of a local variable.
@@ -785,7 +787,8 @@ public abstract class Printer {
      *
      * @param opcode
      *            the opcode of the type instruction to be visited. This opcode
-     *            is either GETSTATIC, PUTSTATIC, GETFIELD or PUTFIELD.
+     *            is either GETSTATIC, PUTSTATIC, GETFIELD, PUTFIELD or
+     *            VWITHFIELD.
      * @param owner
      *            the internal name of the field's owner class (see
      *            {@link org.objectweb.asm.Type#getInternalName() getInternalName}).

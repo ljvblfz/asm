@@ -855,8 +855,7 @@ class MethodWriter extends MethodVisitor {
                 currentBlock.frame.execute(opcode, code.length, cw, i);
             } else {
                 // opcodes NEW, VALOAD, VASTORE, VDEFAULT change the stack
-                // (ANEWARRAY, CHECKCAST, INSTANCEOF, VBOX, VUNBOX, let the stack unchanged)
-                // TODO, either remove the TODO or add some ifs, but i'm not sure it's a good idea here
+                // (ANEWARRAY, CHECKCAST, INSTANCEOF, VBOX, VUNBOX, left the stack unchanged)
                 
                 int size = stackSize + Frame.SIZE[opcode];
                 if (size > maxStackSize) {

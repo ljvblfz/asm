@@ -62,7 +62,11 @@ public abstract class Remapper {
         case Type.OBJECT:
             String newType = map(t.getInternalName());
             if (newType != null) {
-                return 'L' + newType + ';';
+                if (newType.charAt(0) == ';') {  // Q internal name
+                    return newType.substring(1);
+                } else {
+                    return 'L' + newType + ';';
+                }
             }
         }
         return desc;

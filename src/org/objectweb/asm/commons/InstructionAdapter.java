@@ -380,6 +380,8 @@ public class InstructionAdapter extends MethodVisitor {
         case Opcodes.MONITOREXIT:
             monitorexit();
             break;
+        case Opcodes.VRETURN:
+            throw new RuntimeException("vreturn is not a supported opcode");
         default:
             throw new IllegalArgumentException();
         }
@@ -465,6 +467,9 @@ public class InstructionAdapter extends MethodVisitor {
         case Opcodes.RET:
             ret(var);
             break;
+        case Opcodes.VLOAD:
+        case Opcodes.VSTORE:
+            throw new RuntimeException("vload and vstore opcodes are not supported");
         default:
             throw new IllegalArgumentException();
         }
@@ -486,6 +491,21 @@ public class InstructionAdapter extends MethodVisitor {
         case Opcodes.INSTANCEOF:
             instanceOf(t);
             break;
+        case Opcodes.VALOAD:
+            vaload(t);
+            break;
+        case Opcodes.VASTORE:
+            vastore(t);
+            break;
+        case Opcodes.VDEFAULT:
+            vdefault(t);
+            break;
+        case Opcodes.VBOX:
+            vbox(t);
+            break;
+        case Opcodes.VUNBOX:
+            vunbox(t);
+            break;
         default:
             throw new IllegalArgumentException();
         }
@@ -506,6 +526,9 @@ public class InstructionAdapter extends MethodVisitor {
             break;
         case Opcodes.PUTFIELD:
             putfield(owner, name, desc);
+            break;
+        case Opcodes.VWITHFIELD:
+            vwithfield(owner, name, desc);
             break;
         default:
             throw new IllegalArgumentException();
@@ -1010,6 +1033,11 @@ public class InstructionAdapter extends MethodVisitor {
             final String desc) {
         mv.visitFieldInsn(Opcodes.PUTFIELD, owner, name, desc);
     }
+    
+    public void vwithfield(final String owner, final String name,
+            final String desc) {
+        mv.visitFieldInsn(Opcodes.VWITHFIELD, owner, name, desc);
+    }
 
     @Deprecated
     public void invokevirtual(final String owner, final String name,
@@ -1166,5 +1194,25 @@ public class InstructionAdapter extends MethodVisitor {
 
     public void mark(final Label label) {
         mv.visitLabel(label);
+    }
+    
+    public void vaload(final Type type) {
+        mv.visitTypeInsn(Opcodes.VALOAD, type.getInternalName());
+    }
+    
+    public void vastore(final Type type) {
+        mv.visitTypeInsn(Opcodes.VASTORE, type.getInternalName());
+    }
+    
+    public void vdefault(final Type type) {
+        mv.visitTypeInsn(Opcodes.VDEFAULT, type.getInternalName());
+    }
+    
+    public void vbox(final Type type) {
+        mv.visitTypeInsn(Opcodes.VBOX, type.getInternalName());
+    }
+    
+    public void vunbox(final Type type) {
+        mv.visitTypeInsn(Opcodes.VUNBOX, type.getInternalName());
     }
 }

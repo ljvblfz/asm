@@ -871,7 +871,7 @@ public class Type {
     public int getOpcode(final int opcode) {
         // FIXME Remi, this method does not work with Q type (VALOAD / VASTORE, VRETURN)
         if (buf != null && buf[off + len - 1] == ';') {
-            throw new RuntimeException("do not work with vamlue type");
+            throw new RuntimeException("do not work with value type");
         }
         if (opcode == Opcodes.IALOAD || opcode == Opcodes.IASTORE) {
             // the offset for IALOAD or IASTORE is in byte 1 of 'off' for

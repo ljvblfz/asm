@@ -45,6 +45,8 @@ import org.objectweb.asm.Type;
 public class InstructionAdapter extends MethodVisitor {
 
     public final static Type OBJECT_TYPE = Type.getType("Ljava/lang/Object;");
+    
+    public final static Type VALUE_TYPE = Type.getType(";Qjava/lang/__Value;");
 
     /**
      * Creates a new {@link InstructionAdapter}. <i>Subclasses must not use this
@@ -131,6 +133,9 @@ public class InstructionAdapter extends MethodVisitor {
         case Opcodes.SALOAD:
             aload(Type.SHORT_TYPE);
             break;
+        case Opcodes.VALOAD:
+            aload(VALUE_TYPE);
+            break;
         case Opcodes.IASTORE:
             astore(Type.INT_TYPE);
             break;
@@ -154,6 +159,9 @@ public class InstructionAdapter extends MethodVisitor {
             break;
         case Opcodes.SASTORE:
             astore(Type.SHORT_TYPE);
+            break;
+        case Opcodes.VASTORE:
+            astore(VALUE_TYPE);
             break;
         case Opcodes.POP:
             pop();
@@ -449,6 +457,9 @@ public class InstructionAdapter extends MethodVisitor {
         case Opcodes.ALOAD:
             load(var, OBJECT_TYPE);
             break;
+        case Opcodes.VLOAD:
+            load(var, VALUE_TYPE);
+            break;
         case Opcodes.ISTORE:
             store(var, Type.INT_TYPE);
             break;
@@ -464,12 +475,12 @@ public class InstructionAdapter extends MethodVisitor {
         case Opcodes.ASTORE:
             store(var, OBJECT_TYPE);
             break;
+        case Opcodes.VSTORE:
+            store(var, VALUE_TYPE);
+            break;
         case Opcodes.RET:
             ret(var);
             break;
-        case Opcodes.VLOAD:
-        case Opcodes.VSTORE:
-            throw new RuntimeException("vload and vstore opcodes are not supported");
         default:
             throw new IllegalArgumentException();
         }
@@ -490,12 +501,6 @@ public class InstructionAdapter extends MethodVisitor {
             break;
         case Opcodes.INSTANCEOF:
             instanceOf(t);
-            break;
-        case Opcodes.VALOAD:
-            vaload(t);
-            break;
-        case Opcodes.VASTORE:
-            vastore(t);
             break;
         case Opcodes.VDEFAULT:
             vdefault(t);
@@ -1194,14 +1199,6 @@ public class InstructionAdapter extends MethodVisitor {
 
     public void mark(final Label label) {
         mv.visitLabel(label);
-    }
-    
-    public void vaload(final Type type) {
-        mv.visitTypeInsn(Opcodes.VALOAD, type.getInternalName());
-    }
-    
-    public void vastore(final Type type) {
-        mv.visitTypeInsn(Opcodes.VASTORE, type.getInternalName());
     }
     
     public void vdefault(final Type type) {

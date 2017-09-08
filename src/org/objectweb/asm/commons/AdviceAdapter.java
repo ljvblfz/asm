@@ -193,6 +193,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes 
             case BALOAD: // remove 2 add 1
             case CALOAD: // remove 2 add 1
             case SALOAD: // remove 2 add 1
+            case VALOAD: // remove 2 add 1
             case POP:
             case IADD:
             case FADD:
@@ -246,6 +247,7 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes 
             case BASTORE:
             case CASTORE:
             case SASTORE:
+            case VASTORE:
             case LCMP: // 4 before 1 after
             case DCMPL:
             case DCMPG:
@@ -413,12 +415,8 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes 
         mv.visitTypeInsn(opcode, type);
         // ANEWARRAY, CHECKCAST, INSTANCEOF, VBOX, VUNBOX don't change the stack
         if (constructor) {
-            if (opcode == NEW || opcode == VALOAD) {
+            if (opcode == NEW || opcode == VDEFAULT) {
                 pushValue(OTHER);
-            } else if (opcode == VASTORE) {
-                popValue();
-                popValue();
-                popValue();
             }
         }
     }

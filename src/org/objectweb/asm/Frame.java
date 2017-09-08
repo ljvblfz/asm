@@ -456,8 +456,8 @@ class Frame {
         // NA, // ???, // -
         // 1, //VLOAD, // visitVarInsn
         // -1, //VSTORE, // visitVarInsn
-        // -1, //VALOAD, // visitTypeInsn
-        // -3, //VASTORE,  // visitTypeInsn
+        // -1, //VALOAD, // visitInsn
+        // -3, //VASTORE,  // visitInsn
         // -1, //VRETURN, // visitInsn
         // 1, //VDEFAULT, // visitTypeInsn
         // NA, //VWITHFIELD, // visitFieldInsn
@@ -1393,9 +1393,9 @@ class Frame {
             push(cw, item.strVal1);
             break;
         case Opcodes.VALOAD:
-            s = item.strVal1;
-            pop(2);
-            push(OBJECT | cw.addType(s));
+            pop(1);
+            t1 = pop();
+            push(ELEMENT_OF + t1);
             break;
         case Opcodes.VDEFAULT:
             s = item.strVal1;

@@ -547,7 +547,7 @@ public class ClassWriter extends ClassVisitor {
         String s = "AAAAAAAAAAAAAAAABCLMMDDDDDEEEEEEEEEEEEEEEEEEEEAAAAAAAADD"
                 + "DDDEEEEEEEEEEEEEEEEEEEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 + "AAAAAAAAAAAAAAAAANAAAAAAAAAAAAAAAAAAAAJJJJJJJJJJJJJJJJDOPAA"
-                + "AAAAGGGGGGGHIFBFAAFFAARQJJKKADDFFAFGFFSSSSSSSSSSSSSSSSSST";
+                + "AAAAGGGGGGGHIFBFAAFFAARQJJKKADDAAAFGFFSSSSSSSSSSSSSSSSSST";
         for (i = 0; i < b.length; ++i) {
             b[i] = (byte) (s.charAt(i) - 'A');
         }
@@ -584,8 +584,6 @@ public class ClassWriter extends ClassVisitor {
         // b[Constants.ANEWARRAY] = TYPE_INSN;
         // b[Constants.CHECKCAST] = TYPE_INSN;
         // b[Constants.INSTANCEOF] = TYPE_INSN;
-        // b[Constants.VALOAD] = TYPE_INSN;
-        // b[Constants.VASTORE] = TYPE_INSN;
         // b[Constants.VDEFAULT] = TYPE_INSN;
         // b[Constants.VBOX] = TYPE_INSN;
         // b[Constants.VUNBOX] = TYPE_INSN;

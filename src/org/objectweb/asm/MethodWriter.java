@@ -840,14 +840,14 @@ class MethodWriter extends MethodVisitor {
             if (compute == FRAMES || compute == INSERTED_FRAMES) {
                 currentBlock.frame.execute(opcode, code.length, cw, i);
             } else {
-                // opcodes NEW, VALOAD, VASTORE, VDEFAULT change the stack
-                // (ANEWARRAY, CHECKCAST, INSTANCEOF, VBOX, VUNBOX, left the stack unchanged)
-                
-                int size = stackSize + Frame.SIZE[opcode];
-                if (size > maxStackSize) {
-                    maxStackSize = size;
+                // only opcodes NEW and VDEFAULT change the stack
+                if (opcode == Opcodes.NEW || opcode == Opcodes.VDEFAULT) {
+                    int size = stackSize + 1;
+                    if (size > maxStackSize) {
+                        maxStackSize = size;
+                    }
+                    stackSize = size;
                 }
-                stackSize = size;
             }
         }
         // adds the instruction to the bytecode of the method

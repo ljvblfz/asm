@@ -372,8 +372,8 @@ public interface Opcodes {
     // ??? = 202; // -
     int VLOAD = 203; // visitVarInsn
     int VSTORE = 204; // visitVarInsn
-    int VALOAD = 205; // visitTypeInsn
-    int VASTORE = 206;  // visitTypeInsn
+    int VALOAD = 205; // visitInsn
+    int VASTORE = 206;  // visitInsn
     int VRETURN = 207; // visitInsn
     int VDEFAULT = 208; // visitTypeInsn
     int VWITHFIELD = 209; // visitFieldInsn

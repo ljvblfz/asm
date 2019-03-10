@@ -30,6 +30,7 @@ package org.objectweb.asm.tree;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -131,16 +132,16 @@ public class FrameNode extends AbstractInsnNode {
         methodVisitor.visitFrame(type, local.size(), asArray(local), stack.size(), asArray(stack));
         break;
       case Opcodes.F_APPEND:
-        methodVisitor.visitFrame(type, local.size(), asArray(local), 0, null);
+        methodVisitor.visitFrame(type, local.size(), asArray(local), 0, Opcodes.NO_TYPES);
         break;
       case Opcodes.F_CHOP:
-        methodVisitor.visitFrame(type, local.size(), null, 0, null);
+        methodVisitor.visitFrame(type, local.size(), Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
         break;
       case Opcodes.F_SAME:
-        methodVisitor.visitFrame(type, 0, null, 0, null);
+        methodVisitor.visitFrame(type, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
         break;
       case Opcodes.F_SAME1:
-        methodVisitor.visitFrame(type, 0, null, 1, asArray(stack));
+        methodVisitor.visitFrame(type, 0, Opcodes.NO_TYPES, 1, asArray(stack));
         break;
       default:
         throw new IllegalArgumentException();
@@ -174,15 +175,16 @@ public class FrameNode extends AbstractInsnNode {
     return clone;
   }
 
-  private static Object[] asArray(final List<Object> list) {
-    Object[] array = new Object[list.size()];
-    for (int i = 0, n = array.length; i < n; ++i) {
+  private static Array<Object> asArray(final List<Object> list) {
+    int size = list.size();
+    Array.Builder<Object> array = Array.newObjects(size);
+    for (int i = 0; i < size; ++i) {
       Object o = list.get(i);
       if (o instanceof LabelNode) {
         o = ((LabelNode) o).getLabel();
       }
-      array[i] = o;
+      array.set(i, o);
     }
-    return array;
+    return array.build();
   }
 }

@@ -28,8 +28,10 @@
 package org.objectweb.asm.util;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -62,7 +64,7 @@ public final class TraceMethodVisitor extends MethodVisitor {
    * @param printer the printer to convert the visited method into text.
    */
   public TraceMethodVisitor(final MethodVisitor methodVisitor, final Printer printer) {
-    super(Opcodes.ASM7, methodVisitor);
+    super(Opcodes.ASM8, methodVisitor);
     this.p = printer;
   }
 
@@ -123,10 +125,10 @@ public final class TraceMethodVisitor extends MethodVisitor {
   public void visitFrame(
       final int type,
       final int numLocal,
-      final Object[] local,
+      final Array<Object> local,
       final int numStack,
-      final Object[] stack) {
-    p.visitFrame(type, numLocal, local, numStack, stack);
+      final Array<Object> stack) {
+    p.visitFrame(type, numLocal, local.toArray(), numStack, stack.toArray());
     super.visitFrame(type, numLocal, local, numStack, stack);
   }
 
@@ -192,8 +194,9 @@ public final class TraceMethodVisitor extends MethodVisitor {
       final String name,
       final String descriptor,
       final Handle bootstrapMethodHandle,
-      final Object... bootstrapMethodArguments) {
-    p.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+      final Array<Object> bootstrapMethodArguments) {
+    p.visitInvokeDynamicInsn(
+        name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments.toArray());
     super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
   }
 
@@ -223,14 +226,15 @@ public final class TraceMethodVisitor extends MethodVisitor {
 
   @Override
   public void visitTableSwitchInsn(
-      final int min, final int max, final Label dflt, final Label... labels) {
-    p.visitTableSwitchInsn(min, max, dflt, labels);
+      final int min, final int max, final Label dflt, final Array<Label> labels) {
+    p.visitTableSwitchInsn(min, max, dflt, labels.toArray());
     super.visitTableSwitchInsn(min, max, dflt, labels);
   }
 
   @Override
-  public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
-    p.visitLookupSwitchInsn(dflt, keys, labels);
+  public void visitLookupSwitchInsn(
+      final Label dflt, final IntArray keys, final Array<Label> labels) {
+    p.visitLookupSwitchInsn(dflt, keys.toArray(), labels.toArray());
     super.visitLookupSwitchInsn(dflt, keys, labels);
   }
 
@@ -279,13 +283,20 @@ public final class TraceMethodVisitor extends MethodVisitor {
   public AnnotationVisitor visitLocalVariableAnnotation(
       final int typeRef,
       final TypePath typePath,
-      final Label[] start,
-      final Label[] end,
-      final int[] index,
+      final Array<Label> start,
+      final Array<Label> end,
+      final IntArray index,
       final String descriptor,
       final boolean visible) {
     Printer annotationPrinter =
-        p.visitLocalVariableAnnotation(typeRef, typePath, start, end, index, descriptor, visible);
+        p.visitLocalVariableAnnotation(
+            typeRef,
+            typePath,
+            start.toArray(),
+            end.toArray(),
+            index.toArray(),
+            descriptor,
+            visible);
     return new TraceAnnotationVisitor(
         super.visitLocalVariableAnnotation(
             typeRef, typePath, start, end, index, descriptor, visible),

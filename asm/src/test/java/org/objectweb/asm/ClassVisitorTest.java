@@ -174,9 +174,10 @@ public class ClassVisitorTest extends AsmTest {
         "C",
         null,
         "java/lang/Object",
-        null);
+        Opcodes.NO_INTERFACES);
     sourceClassWriter
-        .visitMethod(Opcodes.ACC_ABSTRACT | Opcodes.ACC_SYNTHETIC, "m", "()V", null, null)
+        .visitMethod(
+            Opcodes.ACC_ABSTRACT | Opcodes.ACC_SYNTHETIC, "m", "()V", null, Opcodes.NO_EXCEPTIONS)
         .visitEnd();
     sourceClassWriter.visitEnd();
     ClassReader classReader = new ClassReader(sourceClassWriter.toByteArray());
@@ -202,9 +203,10 @@ public class ClassVisitorTest extends AsmTest {
   public void testReadAndWrite_copyPool_changeMethodDescriptor() {
     ClassWriter sourceClassWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
     sourceClassWriter.visit(
-        Opcodes.V1_7, Opcodes.ACC_ABSTRACT, "C", null, "java/lang/Object", null);
+        Opcodes.V1_7, Opcodes.ACC_ABSTRACT, "C", null, "java/lang/Object", Opcodes.NO_INTERFACES);
     MethodVisitor methodVisitor =
-        sourceClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+        sourceClassWriter.visitMethod(
+            Opcodes.ACC_PUBLIC, "<init>", "()V", null, Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitCode();
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
     methodVisitor.visitMethodInsn(
@@ -250,7 +252,7 @@ public class ClassVisitorTest extends AsmTest {
     ClassReader classReader = new ClassReader(classFile);
     ClassWriter classWriter = new ClassWriter(0);
     ClassVisitor classVisitor =
-        new ClassVisitor(Opcodes.ASM7, classWriter) {
+        new ClassVisitor(Opcodes.ASM8, classWriter) {
 
           @Override
           public ModuleVisitor visitModule(
@@ -271,14 +273,14 @@ public class ClassVisitorTest extends AsmTest {
 
               @Override
               public void visitExport(
-                  final String packaze, final int access, final String... modules) {
-                super.visitExport(packaze, access, (String[]) null);
+                  final String packaze, final int access, final Array<String> modules) {
+                super.visitExport(packaze, access, Opcodes.NO_MODULES);
               }
 
               @Override
               public void visitOpen(
-                  final String packaze, final int access, final String... modules) {
-                super.visitOpen(packaze, access, (String[]) null);
+                  final String packaze, final int access, final Array<String> modules) {
+                super.visitOpen(packaze, access, Opcodes.NO_MODULES);
               }
             };
           }
@@ -349,7 +351,12 @@ public class ClassVisitorTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
+      if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitMethod(access, name, descriptor, signature, exceptions);
+      }
+
       return new MethodAdapter(
           api, super.visitMethod(access, name, descriptor, signature, exceptions));
     }
@@ -439,11 +446,17 @@ public class ClassVisitorTest extends AsmTest {
     public AnnotationVisitor visitLocalVariableAnnotation(
         final int typeRef,
         final TypePath typePath,
-        final Label[] start,
-        final Label[] end,
-        final int[] index,
+        final Array<Label> start,
+        final Array<Label> end,
+        final IntArray index,
         final String descriptor,
         final boolean visible) {
+      if (api < Opcodes.ASM8 && start.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitLocalVariableAnnotation(
+            typeRef, typePath, start, end, index, descriptor, visible);
+      }
+
       return new AnnotationAdapter(
           api,
           super.visitLocalVariableAnnotation(
@@ -454,7 +467,7 @@ public class ClassVisitorTest extends AsmTest {
   private static class ChangeExceptionAdapter extends ClassVisitor {
 
     ChangeExceptionAdapter(final ClassVisitor classVisitor) {
-      super(Opcodes.ASM7, classVisitor);
+      super(Opcodes.ASM8, classVisitor);
     }
 
     @Override
@@ -463,9 +476,14 @@ public class ClassVisitorTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
-      if (exceptions != null && exceptions.length > 0) {
-        exceptions[0] = "java/lang/Throwable";
+        final Array<String> exceptions) {
+      if (exceptions.size() > 0) {
+        return super.visitMethod(
+            access,
+            name,
+            descriptor,
+            signature,
+            exceptions.toBuilder().set(0, "java/lang/Throwable").build());
       }
       return super.visitMethod(access, name, descriptor, signature, exceptions);
     }
@@ -476,7 +494,7 @@ public class ClassVisitorTest extends AsmTest {
     private final int newVersion;
 
     ChangeVersionAdapter(final ClassVisitor classVisitor, final int newVersion) {
-      super(Opcodes.ASM7, classVisitor);
+      super(Opcodes.ASM8, classVisitor);
       this.newVersion = newVersion;
     }
 
@@ -487,7 +505,7 @@ public class ClassVisitorTest extends AsmTest {
         final String name,
         final String signature,
         final String superName,
-        final String[] interfaces) {
+        final Array<String> interfaces) {
       super.visit(newVersion, access, name, signature, superName, interfaces);
     }
   }
@@ -497,7 +515,7 @@ public class ClassVisitorTest extends AsmTest {
     private final int accessFlags;
 
     ChangeAccessAdapter(final ClassVisitor classVisitor, final int accessFlags) {
-      super(Opcodes.ASM7, classVisitor);
+      super(Opcodes.ASM8, classVisitor);
       this.accessFlags = accessFlags;
     }
 
@@ -507,7 +525,7 @@ public class ClassVisitorTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
       return super.visitMethod(access ^ accessFlags, name, descriptor, signature, exceptions);
     }
   }
@@ -518,7 +536,7 @@ public class ClassVisitorTest extends AsmTest {
     private final boolean visibilityValue;
 
     RemoveAnnotationAdapter(final ClassVisitor classVisitor, final boolean visibilityValue) {
-      super(Opcodes.ASM7, classVisitor);
+      super(Opcodes.ASM8, classVisitor);
       this.visibilityValue = visibilityValue;
     }
 
@@ -579,7 +597,7 @@ public class ClassVisitorTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
       return new MethodVisitor(
           api, super.visitMethod(access, name, descriptor, signature, exceptions)) {
 
@@ -640,9 +658,9 @@ public class ClassVisitorTest extends AsmTest {
         public AnnotationVisitor visitLocalVariableAnnotation(
             final int typeRef,
             final TypePath typePath,
-            final Label[] start,
-            final Label[] end,
-            final int[] index,
+            final Array<Label> start,
+            final Array<Label> end,
+            final IntArray index,
             final String descriptor,
             final boolean visible) {
           if (visible == visibilityValue) {
@@ -659,7 +677,7 @@ public class ClassVisitorTest extends AsmTest {
   private static class AddParameterAdapter extends ClassVisitor {
 
     public AddParameterAdapter(final ClassVisitor classVisitor) {
-      super(Opcodes.ASM7, classVisitor);
+      super(Opcodes.ASM8, classVisitor);
     }
 
     @Override
@@ -668,7 +686,7 @@ public class ClassVisitorTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
       List<Type> argumentTypes = new ArrayList<>(Arrays.asList(Type.getArgumentTypes(descriptor)));
       argumentTypes.add(Type.INT_TYPE);
       Type returnType = Type.getReturnType(descriptor);

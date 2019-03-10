@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -173,7 +174,7 @@ public class CheckClassAdapter extends ClassVisitor {
    * @throws IllegalStateException If a subclass calls this constructor.
    */
   public CheckClassAdapter(final ClassVisitor classVisitor, final boolean checkDataFlow) {
-    this(Opcodes.ASM7, classVisitor, checkDataFlow);
+    this(Opcodes.ASM8, classVisitor, checkDataFlow);
     if (getClass() != CheckClassAdapter.class) {
       throw new IllegalStateException();
     }
@@ -207,7 +208,13 @@ public class CheckClassAdapter extends ClassVisitor {
       final String name,
       final String signature,
       final String superName,
-      final String[] interfaces) {
+      final Array<String> interfaces) {
+    if (api < Opcodes.ASM8 && interfaces.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visit(version, access, name, signature, superName, interfaces);
+      return;
+    }
+
     if (visitCalled) {
       throw new IllegalStateException("visit must be called only once");
     }
@@ -251,11 +258,9 @@ public class CheckClassAdapter extends ClassVisitor {
       throw new IllegalArgumentException(
           "The super class name of interfaces must be 'java/lang/Object'");
     }
-    if (interfaces != null) {
-      for (int i = 0; i < interfaces.length; ++i) {
-        CheckMethodAdapter.checkInternalName(
-            version, interfaces[i], "interface name at index " + i);
-      }
+    for (int i = 0; i < interfaces.size(); ++i) {
+      CheckMethodAdapter.checkInternalName(
+          version, interfaces.get(i), "interface name at index " + i);
     }
     this.version = version;
     super.visit(version, access, name, signature, superName, interfaces);
@@ -404,7 +409,12 @@ public class CheckClassAdapter extends ClassVisitor {
       final String name,
       final String descriptor,
       final String signature,
-      final String[] exceptions) {
+      final Array<String> exceptions) {
+    if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      return super.visitMethod(access, name, descriptor, signature, exceptions);
+    }
+
     checkState();
     checkAccess(
         access,
@@ -428,11 +438,9 @@ public class CheckClassAdapter extends ClassVisitor {
     if (signature != null) {
       checkMethodSignature(signature);
     }
-    if (exceptions != null) {
-      for (int i = 0; i < exceptions.length; ++i) {
-        CheckMethodAdapter.checkInternalName(
-            version, exceptions[i], "exception name at index " + i);
-      }
+    for (int i = 0; i < exceptions.size(); ++i) {
+      CheckMethodAdapter.checkInternalName(
+          version, exceptions.get(i), "exception name at index " + i);
     }
     CheckMethodAdapter checkMethodAdapter;
     if (checkDataFlow) {
@@ -1009,7 +1017,7 @@ public class CheckClassAdapter extends ClassVisitor {
       final PrintWriter printWriter) {
     ClassNode classNode = new ClassNode();
     classReader.accept(
-        new CheckClassAdapter(Opcodes.ASM7, classNode, false) {}, ClassReader.SKIP_DEBUG);
+        new CheckClassAdapter(Opcodes.ASM8, classNode, false) {}, ClassReader.SKIP_DEBUG);
 
     Type syperType = classNode.superName == null ? null : Type.getObjectType(classNode.superName);
     List<MethodNode> methods = classNode.methods;

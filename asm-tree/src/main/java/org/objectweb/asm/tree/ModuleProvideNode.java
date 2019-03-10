@@ -28,6 +28,7 @@
 package org.objectweb.asm.tree;
 
 import java.util.List;
+import org.objectweb.asm.Collections;
 import org.objectweb.asm.ModuleVisitor;
 
 /**
@@ -61,6 +62,6 @@ public class ModuleProvideNode {
    * @param moduleVisitor a module visitor.
    */
   public void accept(final ModuleVisitor moduleVisitor) {
-    moduleVisitor.visitProvide(service, providers.toArray(new String[0]));
+    moduleVisitor.visitProvide(service, Collections.toStringArray(providers));
   }
 }

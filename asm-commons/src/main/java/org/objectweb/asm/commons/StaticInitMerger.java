@@ -27,6 +27,7 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 package org.objectweb.asm.commons;
 
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -61,7 +62,7 @@ public class StaticInitMerger extends ClassVisitor {
    *     null.
    */
   public StaticInitMerger(final String prefix, final ClassVisitor classVisitor) {
-    this(Opcodes.ASM7, prefix, classVisitor);
+    this(Opcodes.ASM8, prefix, classVisitor);
   }
 
   /**
@@ -85,7 +86,13 @@ public class StaticInitMerger extends ClassVisitor {
       final String name,
       final String signature,
       final String superName,
-      final String[] interfaces) {
+      final Array<String> interfaces) {
+    if (api < Opcodes.ASM8 && interfaces.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visit(version, access, name, signature, superName, interfaces);
+      return;
+    }
+
     super.visit(version, access, name, signature, superName, interfaces);
     this.owner = name;
   }
@@ -96,7 +103,12 @@ public class StaticInitMerger extends ClassVisitor {
       final String name,
       final String descriptor,
       final String signature,
-      final String[] exceptions) {
+      final Array<String> exceptions) {
+    if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      return super.visitMethod(access, name, descriptor, signature, exceptions);
+    }
+
     MethodVisitor methodVisitor;
     if ("<clinit>".equals(name)) {
       int newAccess = Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC;
@@ -104,7 +116,9 @@ public class StaticInitMerger extends ClassVisitor {
       methodVisitor = super.visitMethod(newAccess, newName, descriptor, signature, exceptions);
 
       if (mergedClinitVisitor == null) {
-        mergedClinitVisitor = super.visitMethod(newAccess, name, descriptor, null, null);
+        // TODO andSource?
+        mergedClinitVisitor =
+            super.visitMethod(newAccess, name, descriptor, null, Opcodes.NO_EXCEPTIONS);
       }
       mergedClinitVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, owner, newName, descriptor, false);
     } else {

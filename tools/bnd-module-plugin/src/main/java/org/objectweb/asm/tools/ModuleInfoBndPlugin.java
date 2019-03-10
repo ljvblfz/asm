@@ -52,7 +52,8 @@ public class ModuleInfoBndPlugin implements AnalyzerPlugin {
   @Override
   public boolean analyzeJar(final Analyzer analyzer) throws Exception {
     ClassWriter classWriter = new ClassWriter(0);
-    classWriter.visit(Opcodes.V9, Opcodes.ACC_MODULE, "module-info", null, null, null);
+    classWriter.visit(
+        Opcodes.V9, Opcodes.ACC_MODULE, "module-info", null, null, Opcodes.NO_INTERFACES);
     String moduleName =
         analyzer.getProperty(MODULE_NAME, analyzer.getProperty(Constants.BUNDLE_SYMBOLICNAME));
     String moduleVersion =
@@ -83,7 +84,7 @@ public class ModuleInfoBndPlugin implements AnalyzerPlugin {
         if (packageName.endsWith("*")) {
           throw new IllegalStateException("Unsupported wildcard packages " + packageName);
         }
-        moduleVisitor.visitExport(packageName.replace('.', '/'), 0);
+        moduleVisitor.visitExport(packageName.replace('.', '/'), 0, Opcodes.NO_MODULES);
       }
     }
     moduleVisitor.visitEnd();

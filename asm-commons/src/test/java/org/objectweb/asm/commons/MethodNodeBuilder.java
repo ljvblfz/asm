@@ -27,7 +27,9 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 package org.objectweb.asm.commons;
 
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -191,18 +193,18 @@ final class MethodNodeBuilder {
   MethodNodeBuilder switchto(
       final Label defaultLabel, final int key, final Label target, final boolean useTableSwitch) {
     if (useTableSwitch) {
-      methodNode.visitTableSwitchInsn(key, key, defaultLabel, new Label[] {target});
+      methodNode.visitTableSwitchInsn(key, key, defaultLabel, Array.of(target));
     } else {
-      methodNode.visitLookupSwitchInsn(defaultLabel, new int[] {key}, new Label[] {target});
+      methodNode.visitLookupSwitchInsn(defaultLabel, IntArray.of(key), Array.of(target));
     }
     return this;
   }
 
   MethodNodeBuilder switchto(final Label label0, final Label label1, final boolean useTableSwitch) {
     if (useTableSwitch) {
-      methodNode.visitTableSwitchInsn(0, 1, label0, new Label[] {label0, label1});
+      methodNode.visitTableSwitchInsn(0, 1, label0, Array.of(label0, label1));
     } else {
-      methodNode.visitLookupSwitchInsn(label0, new int[] {1}, new Label[] {label1});
+      methodNode.visitLookupSwitchInsn(label0, IntArray.of(1), Array.of(label1));
     }
     return this;
   }
@@ -250,10 +252,11 @@ final class MethodNodeBuilder {
 
   static ClassFile buildClassWithMethod(final MethodNode methodNode) {
     ClassWriter classWriter = new ClassWriter(0);
-    classWriter.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", null);
+    classWriter.visit(
+        Opcodes.V1_5, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", Opcodes.NO_INTERFACES);
     classWriter.visitField(Opcodes.ACC_STATIC, "f", "[[I", null, null);
     MethodVisitor methodVisitor =
-        classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+        classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitCode();
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
     methodVisitor.visitMethodInsn(

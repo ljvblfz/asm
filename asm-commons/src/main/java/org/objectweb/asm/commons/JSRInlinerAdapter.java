@@ -98,7 +98,7 @@ public class JSRInlinerAdapter extends MethodNode implements Opcodes {
       final String descriptor,
       final String signature,
       final String[] exceptions) {
-    this(Opcodes.ASM7, methodVisitor, access, name, descriptor, signature, exceptions);
+    this(Opcodes.ASM8, methodVisitor, access, name, descriptor, signature, exceptions);
     if (getClass() != JSRInlinerAdapter.class) {
       throw new IllegalStateException();
     }

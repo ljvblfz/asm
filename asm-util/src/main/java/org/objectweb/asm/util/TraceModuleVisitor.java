@@ -27,6 +27,7 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 package org.objectweb.asm.util;
 
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -57,7 +58,7 @@ public final class TraceModuleVisitor extends ModuleVisitor {
    * @param printer the printer to convert the visited module into text.
    */
   public TraceModuleVisitor(final ModuleVisitor moduleVisitor, final Printer printer) {
-    super(Opcodes.ASM7, moduleVisitor);
+    super(Opcodes.ASM8, moduleVisitor);
     this.p = printer;
   }
 
@@ -80,14 +81,14 @@ public final class TraceModuleVisitor extends ModuleVisitor {
   }
 
   @Override
-  public void visitExport(final String packaze, final int access, final String... modules) {
-    p.visitExport(packaze, access, modules);
+  public void visitExport(final String packaze, final int access, final Array<String> modules) {
+    p.visitExport(packaze, access, modules.toArray());
     super.visitExport(packaze, access, modules);
   }
 
   @Override
-  public void visitOpen(final String packaze, final int access, final String... modules) {
-    p.visitOpen(packaze, access, modules);
+  public void visitOpen(final String packaze, final int access, final Array<String> modules) {
+    p.visitOpen(packaze, access, modules.toArray());
     super.visitOpen(packaze, access, modules);
   }
 
@@ -98,8 +99,8 @@ public final class TraceModuleVisitor extends ModuleVisitor {
   }
 
   @Override
-  public void visitProvide(final String service, final String... providers) {
-    p.visitProvide(service, providers);
+  public void visitProvide(final String service, final Array<String> providers) {
+    p.visitProvide(service, providers.toArray());
     super.visitProvide(service, providers);
   }
 

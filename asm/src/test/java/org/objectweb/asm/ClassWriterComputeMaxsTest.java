@@ -924,7 +924,7 @@ public class ClassWriterComputeMaxsTest {
             // and the instructions in between (without any control flow graph construction or
             // algorithm).
             .label(label0)
-            .frame(Opcodes.F_SAME, 0, null, 0, null)
+            .frame(Opcodes.F_SAME, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES)
             .aconst_null()
             .vreturn();
 
@@ -943,7 +943,7 @@ public class ClassWriterComputeMaxsTest {
             .push2()
             .go(label0)
             .label(label0)
-            .frame(Opcodes.F_NEW, 0, null, 1, new Object[] {Opcodes.LONG})
+            .frame(Opcodes.F_NEW, 0, Opcodes.NO_TYPES, 1, Array.of(Opcodes.LONG))
             .aconst_null()
             .vreturn();
 
@@ -959,16 +959,16 @@ public class ClassWriterComputeMaxsTest {
     AtomicReference<MethodInfo> methodInfo = new AtomicReference<>();
     ClassReader classReader = new ClassReader(classFile);
     classReader.accept(
-        new ClassVisitor(Opcodes.ASM5) {
+        new ClassVisitor(Opcodes.ASM8) {
           @Override
           public MethodVisitor visitMethod(
               final int access,
               final String name,
               final String descriptor,
               final String signature,
-              final String[] exceptions) {
+              final Array<String> exceptions) {
             if (name.equals("m")) {
-              return new MethodVisitor(Opcodes.ASM5) {
+              return new MethodVisitor(Opcodes.ASM8) {
                 @Override
                 public void visitMaxs(final int maxStack, final int maxLocals) {
                   methodInfo.set(new MethodInfo(maxStack, maxLocals));
@@ -1020,9 +1020,10 @@ public class ClassWriterComputeMaxsTest {
 
     TestCaseBuilder(final int classVersion) {
       classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-      classWriter.visit(classVersion, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", null);
+      classWriter.visit(
+          classVersion, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", Opcodes.NO_INTERFACES);
       MethodVisitor constructor =
-          classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+          classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, Opcodes.NO_EXCEPTIONS);
       constructor.visitCode();
       constructor.visitVarInsn(Opcodes.ALOAD, 0);
       constructor.visitMethodInsn(
@@ -1030,7 +1031,8 @@ public class ClassWriterComputeMaxsTest {
       constructor.visitInsn(Opcodes.RETURN);
       constructor.visitMaxs(1, 1);
       constructor.visitEnd();
-      methodVisitor = classWriter.visitMethod(Opcodes.ACC_PUBLIC, "m", "()V", null, null);
+      methodVisitor =
+          classWriter.visitMethod(Opcodes.ACC_PUBLIC, "m", "()V", null, Opcodes.NO_EXCEPTIONS);
       methodVisitor.visitCode();
       start = new Label();
       label(start);
@@ -1114,9 +1116,9 @@ public class ClassWriterComputeMaxsTest {
     TestCaseBuilder frame(
         final int type,
         final int numLocal,
-        final Object[] local,
+        final Array<Object> local,
         final int numStack,
-        final Object[] stack) {
+        final Array<Object> stack) {
       methodVisitor.visitFrame(type, numLocal, local, numStack, stack);
       return this;
     }

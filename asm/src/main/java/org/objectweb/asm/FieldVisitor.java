@@ -59,12 +59,17 @@ public abstract class FieldVisitor {
    * Constructs a new {@link FieldVisitor}.
    *
    * @param api the ASM API version implemented by this visitor. Must be one of {@link
-   *     Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or {@link Opcodes#ASM7}.
+   *     Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6}, {@link Opcodes#ASM7} or {@link
+   *     Opcodes#ASM8}.
    * @param fieldVisitor the field visitor to which this visitor must delegate method calls. May be
    *     null.
    */
   public FieldVisitor(final int api, final FieldVisitor fieldVisitor) {
-    if (api != Opcodes.ASM7 && api != Opcodes.ASM6 && api != Opcodes.ASM5 && api != Opcodes.ASM4) {
+    if (api != Opcodes.ASM8
+        && api != Opcodes.ASM7
+        && api != Opcodes.ASM6
+        && api != Opcodes.ASM5
+        && api != Opcodes.ASM4) {
       throw new IllegalArgumentException("Unsupported api " + api);
     }
     this.api = api;

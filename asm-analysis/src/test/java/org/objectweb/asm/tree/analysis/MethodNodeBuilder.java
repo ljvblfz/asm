@@ -211,9 +211,10 @@ final class MethodNodeBuilder {
 
   static ClassFile buildClassWithMethod(final MethodNode methodNode) {
     ClassWriter classWriter = new ClassWriter(0);
-    classWriter.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", null);
+    classWriter.visit(
+        Opcodes.V1_5, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", Opcodes.NO_INTERFACES);
     MethodVisitor methodVisitor =
-        classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+        classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitCode();
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
     methodVisitor.visitMethodInsn(

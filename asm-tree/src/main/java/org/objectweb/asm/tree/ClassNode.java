@@ -30,8 +30,10 @@ package org.objectweb.asm.tree;
 import java.util.ArrayList;
 import java.util.List;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Collections;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
@@ -139,7 +141,7 @@ public class ClassNode extends ClassVisitor {
    * @throws IllegalStateException If a subclass calls this constructor.
    */
   public ClassNode() {
-    this(Opcodes.ASM7);
+    this(Opcodes.ASM8);
     if (getClass() != ClassNode.class) {
       throw new IllegalStateException();
     }
@@ -170,13 +172,19 @@ public class ClassNode extends ClassVisitor {
       final String name,
       final String signature,
       final String superName,
-      final String[] interfaces) {
+      final Array<String> interfaces) {
+    if (api < Opcodes.ASM8 && interfaces.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visit(version, access, name, signature, superName, interfaces);
+      return;
+    }
+
     this.version = version;
     this.access = access;
     this.name = name;
     this.signature = signature;
     this.superName = superName;
-    this.interfaces = Util.asArrayList(interfaces);
+    this.interfaces = Collections.toArrayList(interfaces);
   }
 
   @Override
@@ -261,8 +269,13 @@ public class ClassNode extends ClassVisitor {
       final String name,
       final String descriptor,
       final String signature,
-      final String[] exceptions) {
-    MethodNode method = new MethodNode(access, name, descriptor, signature, exceptions);
+      final Array<String> exceptions) {
+    if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      return super.visitMethod(access, name, descriptor, signature, exceptions);
+    }
+
+    MethodNode method = new MethodNode(access, name, descriptor, signature, exceptions.toArray());
     methods.add(method);
     return method;
   }
@@ -335,9 +348,8 @@ public class ClassNode extends ClassVisitor {
    */
   public void accept(final ClassVisitor classVisitor) {
     // Visit the header.
-    String[] interfacesArray = new String[this.interfaces.size()];
-    this.interfaces.toArray(interfacesArray);
-    classVisitor.visit(version, access, name, signature, superName, interfacesArray);
+    classVisitor.visit(
+        version, access, name, signature, superName, Collections.toStringArray(interfaces));
     // Visit the source.
     if (sourceFile != null || sourceDebug != null) {
       classVisitor.visitSource(sourceFile, sourceDebug);

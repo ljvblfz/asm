@@ -848,7 +848,7 @@ public class GeneratorAdapterTest {
       textifier = new Textifier();
       generatorAdapter =
           new GeneratorAdapter(
-              Opcodes.ASM7, new TraceMethodVisitor(textifier), access, name, descriptor);
+              Opcodes.ASM8, new TraceMethodVisitor(textifier), access, name, descriptor);
     }
 
     public String push(final boolean value) {

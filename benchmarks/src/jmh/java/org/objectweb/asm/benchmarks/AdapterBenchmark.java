@@ -89,7 +89,7 @@ public class AdapterBenchmark extends AbstractBenchmark {
         || !asm6dot0.getVersion().equals("ASM6")
         || !asm7dot0.getVersion().equals("ASM7")
         || !asm7dot1.getVersion().equals("ASM7")
-        || !asmCurrent.getVersion().equals("ASM7")) {
+        || !asmCurrent.getVersion().equals("ASM8")) {
       throw new IllegalStateException();
     }
 

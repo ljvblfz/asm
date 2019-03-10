@@ -40,7 +40,7 @@ public class AsmGenerator extends Generator {
 
   @Override
   public String getVersion() {
-    for (int i = 7; i >= 4; --i) {
+    for (int i = 8; i >= 4; --i) {
       try {
         String version = "ASM" + i;
         if (Opcodes.class.getField(version) != null) {
@@ -58,11 +58,16 @@ public class AsmGenerator extends Generator {
     ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 
     classWriter.visit(
-        Opcodes.V1_1, Opcodes.ACC_PUBLIC, "HelloWorld", null, "java/lang/Object", null);
+        Opcodes.V1_1,
+        Opcodes.ACC_PUBLIC,
+        "HelloWorld",
+        null,
+        "java/lang/Object",
+        Opcodes.NO_INTERFACES);
     classWriter.visitSource("HelloWorld.java", null);
 
     MethodVisitor methodVisitor =
-        classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+        classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
     methodVisitor.visitMethodInsn(
         Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
@@ -72,7 +77,11 @@ public class AsmGenerator extends Generator {
 
     methodVisitor =
         classWriter.visitMethod(
-            Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
+            Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC,
+            "main",
+            "([Ljava/lang/String;)V",
+            null,
+            Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitFieldInsn(
         Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
     methodVisitor.visitLdcInsn("Hello world!");

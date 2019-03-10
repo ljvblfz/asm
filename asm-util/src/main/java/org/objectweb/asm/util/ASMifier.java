@@ -70,10 +70,10 @@ public class ASMifier extends Printer {
   private static final String ANNOTATION_VISITOR = "annotationVisitor";
   private static final String ANNOTATION_VISITOR0 = "annotationVisitor0 = ";
   private static final String COMMA = "\", \"";
-  private static final String END_ARRAY = " });\n";
+  private static final String BEGIN_ARRAY = ", Array.of(";
+  private static final String END_ARRAY = "));\n";
   private static final String END_PARAMETERS = ");\n\n";
-  private static final String NEW_OBJECT_ARRAY = ", new Object[] {";
-  private static final String VISIT_END = ".visitEnd();\n";
+  private static final String visitEND = ".visitEnd();\n";
 
   private static final List<String> FRAME_TYPES =
       Collections.unmodifiableList(
@@ -122,7 +122,7 @@ public class ASMifier extends Printer {
    * @throws IllegalStateException If a subclass calls this constructor.
    */
   public ASMifier() {
-    this(Opcodes.ASM7, "classWriter", 0);
+    this(Opcodes.ASM8, "classWriter", 0);
     if (getClass() != ASMifier.class) {
       throw new IllegalStateException();
     }
@@ -195,12 +195,14 @@ public class ASMifier extends Printer {
       }
     }
     text.add("import org.objectweb.asm.AnnotationVisitor;\n");
+    text.add("import org.objectweb.asm.Array;\n");
     text.add("import org.objectweb.asm.Attribute;\n");
     text.add("import org.objectweb.asm.ClassReader;\n");
     text.add("import org.objectweb.asm.ClassWriter;\n");
     text.add("import org.objectweb.asm.ConstantDynamic;\n");
     text.add("import org.objectweb.asm.FieldVisitor;\n");
     text.add("import org.objectweb.asm.Handle;\n");
+    text.add("import org.objectweb.asm.IntArray;\n");
     text.add("import org.objectweb.asm.Label;\n");
     text.add("import org.objectweb.asm.MethodVisitor;\n");
     text.add("import org.objectweb.asm.Opcodes;\n");
@@ -230,15 +232,15 @@ public class ASMifier extends Printer {
     stringBuilder.append(", ");
     appendConstant(superName);
     stringBuilder.append(", ");
-    if (interfaces != null && interfaces.length > 0) {
-      stringBuilder.append("new String[] {");
+    if (interfaces.length > 0) {
+      stringBuilder.append("Array.of(");
       for (int i = 0; i < interfaces.length; ++i) {
         stringBuilder.append(i == 0 ? " " : ", ");
         appendConstant(interfaces[i]);
       }
-      stringBuilder.append(" }");
+      stringBuilder.append(")");
     } else {
-      stringBuilder.append("null");
+      stringBuilder.append("Opcodes.NO_INTERFACES");
     }
     stringBuilder.append(END_PARAMETERS);
     text.add(stringBuilder.toString());
@@ -380,15 +382,15 @@ public class ASMifier extends Printer {
     stringBuilder.append(", ");
     appendConstant(signature);
     stringBuilder.append(", ");
-    if (exceptions != null && exceptions.length > 0) {
-      stringBuilder.append("new String[] {");
+    if (exceptions.length > 0) {
+      stringBuilder.append("Array.of(");
       for (int i = 0; i < exceptions.length; ++i) {
         stringBuilder.append(i == 0 ? " " : ", ");
         appendConstant(exceptions[i]);
       }
-      stringBuilder.append(" }");
+      stringBuilder.append(")");
     } else {
-      stringBuilder.append("null");
+      stringBuilder.append("Opcodes.NO_EXCEPTIONS");
     }
     stringBuilder.append(");\n");
     text.add(stringBuilder.toString());
@@ -459,12 +461,12 @@ public class ASMifier extends Printer {
     stringBuilder.append(", ");
     appendAccessFlags(access | ACCESS_MODULE);
     if (modules != null && modules.length > 0) {
-      stringBuilder.append(", new String[] {");
+      stringBuilder.append(", Array.of(");
       for (int i = 0; i < modules.length; ++i) {
         stringBuilder.append(i == 0 ? " " : ", ");
         appendConstant(modules[i]);
       }
-      stringBuilder.append(" }");
+      stringBuilder.append(")");
     }
     stringBuilder.append(");\n");
     text.add(stringBuilder.toString());
@@ -484,12 +486,16 @@ public class ASMifier extends Printer {
     stringBuilder.setLength(0);
     stringBuilder.append("moduleVisitor.visitProvide(");
     appendConstant(service);
-    stringBuilder.append(",  new String[] {");
-    for (int i = 0; i < providers.length; ++i) {
-      stringBuilder.append(i == 0 ? " " : ", ");
-      appendConstant(providers[i]);
+    if (providers.length > 0) {
+      stringBuilder.append(BEGIN_ARRAY);
+      for (int i = 0; i < providers.length; ++i) {
+        stringBuilder.append(i == 0 ? " " : ", ");
+        appendConstant(providers[i]);
+      }
+      stringBuilder.append(END_ARRAY);
+    } else {
+      stringBuilder.append(", Opcodes.NO_MODULES);\n");
     }
-    stringBuilder.append(END_ARRAY);
     text.add(stringBuilder.toString());
   }
 
@@ -568,7 +574,7 @@ public class ASMifier extends Printer {
   @Override
   public void visitAnnotationEnd() {
     stringBuilder.setLength(0);
-    stringBuilder.append(ANNOTATION_VISITOR).append(id).append(VISIT_END);
+    stringBuilder.append(ANNOTATION_VISITOR).append(id).append(visitEND);
     text.add(stringBuilder.toString());
   }
 
@@ -595,7 +601,7 @@ public class ASMifier extends Printer {
   @Override
   public void visitFieldEnd() {
     stringBuilder.setLength(0);
-    stringBuilder.append(name).append(VISIT_END);
+    stringBuilder.append(name).append(visitEND);
     text.add(stringBuilder.toString());
   }
 
@@ -701,11 +707,20 @@ public class ASMifier extends Printer {
         } else {
           stringBuilder.append(name).append(".visitFrame(Opcodes.F_FULL, ");
         }
-        stringBuilder.append(numLocal).append(NEW_OBJECT_ARRAY);
-        appendFrameTypes(numLocal, local);
-        stringBuilder.append("}, ").append(numStack).append(NEW_OBJECT_ARRAY);
-        appendFrameTypes(numStack, stack);
-        stringBuilder.append('}');
+        if (numLocal > 0) {
+          stringBuilder.append(numLocal).append(BEGIN_ARRAY);
+          appendFrameTypes(numLocal, local);
+          stringBuilder.append("), ");
+        } else {
+          stringBuilder.append("Opcodes.NO_TYPES, ");
+        }
+        if (numStack > 0) {
+          stringBuilder.append(numStack).append(BEGIN_ARRAY);
+          appendFrameTypes(numStack, stack);
+          stringBuilder.append(')');
+        } else {
+          stringBuilder.append("Opcodes.NO_TYPES");
+        }
         break;
       case Opcodes.F_APPEND:
         declareFrameTypes(numLocal, local);
@@ -713,27 +728,29 @@ public class ASMifier extends Printer {
             .append(name)
             .append(".visitFrame(Opcodes.F_APPEND,")
             .append(numLocal)
-            .append(NEW_OBJECT_ARRAY);
+            .append(BEGIN_ARRAY);
         appendFrameTypes(numLocal, local);
-        stringBuilder.append("}, 0, null");
+        stringBuilder.append("), 0, Opcodes.NO_TYPES");
         break;
       case Opcodes.F_CHOP:
         stringBuilder
             .append(name)
             .append(".visitFrame(Opcodes.F_CHOP,")
             .append(numLocal)
-            .append(", null, 0, null");
+            .append(", Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES");
         break;
       case Opcodes.F_SAME:
-        stringBuilder.append(name).append(".visitFrame(Opcodes.F_SAME, 0, null, 0, null");
+        stringBuilder
+            .append(name)
+            .append(".visitFrame(Opcodes.F_SAME, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES");
         break;
       case Opcodes.F_SAME1:
         declareFrameTypes(1, stack);
         stringBuilder
             .append(name)
-            .append(".visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[] {");
+            .append(".visitFrame(Opcodes.F_SAME1, 0, Opcodes.NO_TYPES, 1, Array.of((Object) ");
         appendFrameTypes(1, stack);
-        stringBuilder.append('}');
+        stringBuilder.append(')');
         break;
       default:
         throw new IllegalArgumentException();
@@ -905,12 +922,16 @@ public class ASMifier extends Printer {
         .append(max)
         .append(", ");
     appendLabel(dflt);
-    stringBuilder.append(", new Label[] {");
-    for (int i = 0; i < labels.length; ++i) {
-      stringBuilder.append(i == 0 ? " " : ", ");
-      appendLabel(labels[i]);
+    if (labels.length > 0) {
+      stringBuilder.append(BEGIN_ARRAY);
+      for (int i = 0; i < labels.length; ++i) {
+        stringBuilder.append(i == 0 ? " " : ", ");
+        appendLabel(labels[i]);
+      }
+      stringBuilder.append(END_ARRAY);
+    } else {
+      stringBuilder.append(", Opcodes.NO_LABELS);\n");
     }
-    stringBuilder.append(END_ARRAY);
     text.add(stringBuilder.toString());
   }
 
@@ -924,16 +945,25 @@ public class ASMifier extends Printer {
 
     stringBuilder.append(name).append(".visitLookupSwitchInsn(");
     appendLabel(dflt);
-    stringBuilder.append(", new int[] {");
-    for (int i = 0; i < keys.length; ++i) {
-      stringBuilder.append(i == 0 ? " " : ", ").append(keys[i]);
+    if (keys.length > 0) {
+      stringBuilder.append(", IntArray.of(");
+      for (int i = 0; i < keys.length; ++i) {
+        stringBuilder.append(i == 0 ? " " : ", ").append(keys[i]);
+      }
+      stringBuilder.append(')');
+    } else {
+      stringBuilder.append(", IntArray.EMPTY");
     }
-    stringBuilder.append(" }, new Label[] {");
-    for (int i = 0; i < labels.length; ++i) {
-      stringBuilder.append(i == 0 ? " " : ", ");
-      appendLabel(labels[i]);
+    if (labels.length > 0) {
+      stringBuilder.append(BEGIN_ARRAY);
+      for (int i = 0; i < labels.length; ++i) {
+        stringBuilder.append(i == 0 ? " " : ", ");
+        appendLabel(labels[i]);
+      }
+      stringBuilder.append(END_ARRAY);
+    } else {
+      stringBuilder.append(", Opcodes.NO_LABELS);\n");
     }
-    stringBuilder.append(END_ARRAY);
     text.add(stringBuilder.toString());
   }
 
@@ -1021,21 +1051,35 @@ public class ASMifier extends Printer {
     } else {
       stringBuilder.append(", TypePath.fromString(\"").append(typePath).append("\"), ");
     }
-    stringBuilder.append("new Label[] {");
-    for (int i = 0; i < start.length; ++i) {
-      stringBuilder.append(i == 0 ? " " : ", ");
-      appendLabel(start[i]);
+    if (start.length > 0) {
+      stringBuilder.append("Array.of(");
+      for (int i = 0; i < start.length; ++i) {
+        stringBuilder.append(i == 0 ? " " : ", ");
+        appendLabel(start[i]);
+      }
+      stringBuilder.append("), ");
+    } else {
+      stringBuilder.append("Opcodes.NO_LABELS, ");
     }
-    stringBuilder.append(" }, new Label[] {");
-    for (int i = 0; i < end.length; ++i) {
-      stringBuilder.append(i == 0 ? " " : ", ");
-      appendLabel(end[i]);
+    if (end.length > 0) {
+      stringBuilder.append("Array.of(");
+      for (int i = 0; i < end.length; ++i) {
+        stringBuilder.append(i == 0 ? " " : ", ");
+        appendLabel(end[i]);
+      }
+      stringBuilder.append("), ");
+    } else {
+      stringBuilder.append("Opcodes.NO_LABELS, ");
     }
-    stringBuilder.append(" }, new int[] {");
-    for (int i = 0; i < index.length; ++i) {
-      stringBuilder.append(i == 0 ? " " : ", ").append(index[i]);
+    if (index.length > 0) {
+      stringBuilder.append("IntArray.of(");
+      for (int i = 0; i < index.length; ++i) {
+        stringBuilder.append(i == 0 ? " " : ", ").append(index[i]);
+      }
+      stringBuilder.append("), ");
+    } else {
+      stringBuilder.append("IntArray.EMPTY, ");
     }
-    stringBuilder.append(" }, ");
     appendConstant(descriptor);
     stringBuilder.append(", ").append(visible).append(");\n");
     text.add(stringBuilder.toString());
@@ -1070,7 +1114,7 @@ public class ASMifier extends Printer {
   @Override
   public void visitMethodEnd() {
     stringBuilder.setLength(0);
-    stringBuilder.append(name).append(VISIT_END);
+    stringBuilder.append(name).append(visitEND);
     text.add(stringBuilder.toString());
   }
 
@@ -1387,7 +1431,7 @@ public class ASMifier extends Printer {
       stringBuilder.append(constantDynamic.getName()).append(COMMA);
       stringBuilder.append(constantDynamic.getDescriptor()).append("\", ");
       appendConstant(constantDynamic.getBootstrapMethod());
-      stringBuilder.append(NEW_OBJECT_ARRAY);
+      stringBuilder.append(", new Object[] {");
       int bootstrapMethodArgumentCount = constantDynamic.getBootstrapMethodArgumentCount();
       for (int i = 0; i < bootstrapMethodArgumentCount; ++i) {
         appendConstant(constantDynamic.getBootstrapMethodArgument(i));

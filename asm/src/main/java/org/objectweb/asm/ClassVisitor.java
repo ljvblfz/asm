@@ -61,12 +61,17 @@ public abstract class ClassVisitor {
    * Constructs a new {@link ClassVisitor}.
    *
    * @param api the ASM API version implemented by this visitor. Must be one of {@link
-   *     Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or {@link Opcodes#ASM7}.
+   *     Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6}, {@link Opcodes#ASM7} or {@link
+   *     Opcodes#ASM8}.
    * @param classVisitor the class visitor to which this visitor must delegate method calls. May be
    *     null.
    */
   public ClassVisitor(final int api, final ClassVisitor classVisitor) {
-    if (api != Opcodes.ASM7 && api != Opcodes.ASM6 && api != Opcodes.ASM5 && api != Opcodes.ASM4) {
+    if (api != Opcodes.ASM8
+        && api != Opcodes.ASM7
+        && api != Opcodes.ASM6
+        && api != Opcodes.ASM5
+        && api != Opcodes.ASM4) {
       throw new IllegalArgumentException("Unsupported api " + api);
     }
     this.api = api;
@@ -88,7 +93,9 @@ public abstract class ClassVisitor {
    *     {@link Object} class.
    * @param interfaces the internal names of the class's interfaces (see {@link
    *     Type#getInternalName()}). May be {@literal null}.
+   * @deprecated Use {@link #visit(int, int, String, String, String, Array)} instead.
    */
+  @Deprecated
   public void visit(
       final int version,
       final int access,
@@ -96,8 +103,38 @@ public abstract class ClassVisitor {
       final String signature,
       final String superName,
       final String[] interfaces) {
+    visit(version, access, name, signature, superName, Array.of(interfaces, api >= Opcodes.ASM8));
+  }
+
+  /**
+   * Visits the header of the class.
+   *
+   * @param version the class version. The minor version is stored in the 16 most significant bits,
+   *     and the major version in the 16 least significant bits.
+   * @param access the class's access flags (see {@link Opcodes}). This parameter also indicates if
+   *     the class is deprecated.
+   * @param name the internal name of the class (see {@link Type#getInternalName()}).
+   * @param signature the signature of this class. May be {@literal null} if the class is not a
+   *     generic one, and does not extend or implement generic classes or interfaces.
+   * @param superName the internal of name of the super class (see {@link Type#getInternalName()}).
+   *     For interfaces, the super class is {@link Object}. May be {@literal null}, but only for the
+   *     {@link Object} class.
+   * @param interfaces the internal names of the class's interfaces (see {@link
+   *     Type#getInternalName()}).
+   */
+  public void visit(
+      final int version,
+      final int access,
+      final String name,
+      final String signature,
+      final String superName,
+      final Array<String> interfaces) {
+    if (api < Opcodes.ASM8 && interfaces.isPublic()) {
+      visit(version, access, name, signature, superName, interfaces.toArray());
+      return;
+    }
     if (cv != null) {
-      cv.visit(version, access, name, signature, superName, interfaces);
+      cv.visit(version, access, name, signature, superName, interfaces.toPublic());
     }
   }
 
@@ -304,15 +341,46 @@ public abstract class ClassVisitor {
    *     Type#getInternalName()}). May be {@literal null}.
    * @return an object to visit the byte code of the method, or {@literal null} if this class
    *     visitor is not interested in visiting the code of this method.
+   * @deprecated Use {@link #visitMethod(int, String, String, String, Array)} instead.
    */
+  @Deprecated
   public MethodVisitor visitMethod(
       final int access,
       final String name,
       final String descriptor,
       final String signature,
       final String[] exceptions) {
+    return visitMethod(
+        access, name, descriptor, signature, Array.of(exceptions, api >= Opcodes.ASM8));
+  }
+
+  /**
+   * Visits a method of the class. This method <i>must</i> return a new {@link MethodVisitor}
+   * instance (or {@literal null}) each time it is called, i.e., it should not return a previously
+   * returned visitor.
+   *
+   * @param access the method's access flags (see {@link Opcodes}). This parameter also indicates if
+   *     the method is synthetic and/or deprecated.
+   * @param name the method's name.
+   * @param descriptor the method's descriptor (see {@link Type}).
+   * @param signature the method's signature. May be {@literal null} if the method parameters,
+   *     return type and exceptions do not use generic types.
+   * @param exceptions the internal names of the method's exception classes (see {@link
+   *     Type#getInternalName()}).
+   * @return an object to visit the byte code of the method, or {@literal null} if this class
+   *     visitor is not interested in visiting the code of this method.
+   */
+  public MethodVisitor visitMethod(
+      final int access,
+      final String name,
+      final String descriptor,
+      final String signature,
+      final Array<String> exceptions) {
+    if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+      return visitMethod(access, name, descriptor, signature, exceptions.toArray());
+    }
     if (cv != null) {
-      return cv.visitMethod(access, name, descriptor, signature, exceptions);
+      return cv.visitMethod(access, name, descriptor, signature, exceptions.toPublic());
     }
     return null;
   }

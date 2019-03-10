@@ -36,6 +36,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -150,7 +151,7 @@ public class SerialVersionUIDAdder extends ClassVisitor {
    * @throws IllegalStateException If a subclass calls this constructor.
    */
   public SerialVersionUIDAdder(final ClassVisitor classVisitor) {
-    this(Opcodes.ASM7, classVisitor);
+    this(Opcodes.ASM8, classVisitor);
     if (getClass() != SerialVersionUIDAdder.class) {
       throw new IllegalStateException();
     }
@@ -178,7 +179,13 @@ public class SerialVersionUIDAdder extends ClassVisitor {
       final String name,
       final String signature,
       final String superName,
-      final String[] interfaces) {
+      final Array<String> interfaces) {
+    if (api < Opcodes.ASM8 && interfaces.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visit(version, access, name, signature, superName, interfaces);
+      return;
+    }
+
     // Get the class name, access flags, and interfaces information (step 1, 2 and 3) for SVUID
     // computation.
     computeSvuid = (access & Opcodes.ACC_ENUM) == 0;
@@ -186,11 +193,10 @@ public class SerialVersionUIDAdder extends ClassVisitor {
     if (computeSvuid) {
       this.name = name;
       this.access = access;
-      this.interfaces = new String[interfaces.length];
+      this.interfaces = interfaces.toArray();
       this.svuidFields = new ArrayList<>();
       this.svuidConstructors = new ArrayList<>();
       this.svuidMethods = new ArrayList<>();
-      System.arraycopy(interfaces, 0, this.interfaces, 0, interfaces.length);
     }
 
     super.visit(version, access, name, signature, superName, interfaces);
@@ -202,7 +208,12 @@ public class SerialVersionUIDAdder extends ClassVisitor {
       final String name,
       final String descriptor,
       final String signature,
-      final String[] exceptions) {
+      final Array<String> exceptions) {
+    if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      return super.visitMethod(access, name, descriptor, signature, exceptions);
+    }
+
     // Get constructor and method information (step 5 and 7). Also determine if there is a class
     // initializer (step 6).
     if (computeSvuid) {

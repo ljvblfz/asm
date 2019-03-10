@@ -31,8 +31,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -493,7 +495,13 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes 
       final String name,
       final String descriptor,
       final Handle bootstrapMethodHandle,
-      final Object... bootstrapMethodArguments) {
+      final Array<Object> bootstrapMethodArguments) {
+    if (api < Opcodes.ASM8 && bootstrapMethodArguments.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitInvokeDynamicInsn(
+          name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+      return;
+    }
     super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
     doVisitMethodInsn(Opcodes.INVOKEDYNAMIC, descriptor);
   }
@@ -535,7 +543,14 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes 
   }
 
   @Override
-  public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
+  public void visitLookupSwitchInsn(
+      final Label dflt, final IntArray keys, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitLookupSwitchInsn(dflt, keys, labels);
+      return;
+    }
+
     super.visitLookupSwitchInsn(dflt, keys, labels);
     if (isConstructor && !superClassConstructorCalled) {
       popValue();
@@ -545,7 +560,13 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes 
 
   @Override
   public void visitTableSwitchInsn(
-      final int min, final int max, final Label dflt, final Label... labels) {
+      final int min, final int max, final Label dflt, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitTableSwitchInsn(min, max, dflt, labels);
+      return;
+    }
+
     super.visitTableSwitchInsn(min, max, dflt, labels);
     if (isConstructor && !superClassConstructorCalled) {
       popValue();
@@ -572,10 +593,10 @@ public abstract class AdviceAdapter extends GeneratorAdapter implements Opcodes 
     }
   }
 
-  private void addForwardJumps(final Label dflt, final Label[] labels) {
+  private void addForwardJumps(final Label dflt, final Array<Label> labels) {
     addForwardJump(dflt);
-    for (Label label : labels) {
-      addForwardJump(label);
+    for (int i = 0; i < labels.size(); ++i) {
+      addForwardJump(labels.get(i));
     }
   }
 

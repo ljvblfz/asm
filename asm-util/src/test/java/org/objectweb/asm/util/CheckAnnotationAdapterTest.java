@@ -44,7 +44,7 @@ import org.objectweb.asm.test.AsmTest;
 public class CheckAnnotationAdapterTest extends AsmTest implements Opcodes {
 
   @Test
-  public void testVisit_illegalAnnotationName() {
+  public void testvisitillegalAnnotationName() {
     CheckAnnotationAdapter checkAnnotationAdapter = new CheckAnnotationAdapter(null);
 
     Executable visit = () -> checkAnnotationAdapter.visit(null, Integer.valueOf(0));
@@ -54,7 +54,7 @@ public class CheckAnnotationAdapterTest extends AsmTest implements Opcodes {
   }
 
   @Test
-  public void testVisit_illegalAnnotationValue1() {
+  public void testvisitillegalAnnotationValue1() {
     CheckAnnotationAdapter checkAnnotationAdapter = new CheckAnnotationAdapter(null);
 
     Executable visit = () -> checkAnnotationAdapter.visit("name", new Object());
@@ -64,7 +64,7 @@ public class CheckAnnotationAdapterTest extends AsmTest implements Opcodes {
   }
 
   @Test
-  public void testVisit_illegalAnnotationValue2() {
+  public void testvisitillegalAnnotationValue2() {
     CheckAnnotationAdapter checkAnnotationAdapter = new CheckAnnotationAdapter(null);
 
     Executable visit = () -> checkAnnotationAdapter.visit("name", Type.getMethodType("()V"));
@@ -74,7 +74,7 @@ public class CheckAnnotationAdapterTest extends AsmTest implements Opcodes {
   }
 
   @Test
-  public void testVisit_afterEnd() {
+  public void testvisitafterEnd() {
     CheckAnnotationAdapter checkAnnotationAdapter = new CheckAnnotationAdapter(null);
     checkAnnotationAdapter.visitEnd();
 

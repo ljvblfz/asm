@@ -38,10 +38,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Collections;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -69,7 +72,8 @@ public class AnalyzerAdapterTest extends AsmTest {
     AnalyzerAdapter analyzerAdapter =
         new AnalyzerAdapter("pkg/Class", Opcodes.ACC_PUBLIC, "name", "()V", null);
 
-    Executable visitFrame = () -> analyzerAdapter.visitFrame(Opcodes.F_NEW, 0, null, 0, null);
+    Executable visitFrame =
+        () -> analyzerAdapter.visitFrame(Opcodes.F_NEW, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
 
     assertDoesNotThrow(visitFrame);
   }
@@ -79,7 +83,8 @@ public class AnalyzerAdapterTest extends AsmTest {
     AnalyzerAdapter analyzerAdapter =
         new AnalyzerAdapter("pkg/Class", Opcodes.ACC_PUBLIC, "name", "()V", null);
 
-    Executable visitFrame = () -> analyzerAdapter.visitFrame(Opcodes.F_FULL, 0, null, 0, null);
+    Executable visitFrame =
+        () -> analyzerAdapter.visitFrame(Opcodes.F_FULL, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
 
     Exception exception = assertThrows(IllegalArgumentException.class, visitFrame);
     assertEquals(
@@ -142,9 +147,14 @@ public class AnalyzerAdapterTest extends AsmTest {
         final String name,
         final String signature,
         final String superName,
-        final String[] interfaces) {
-      owner = name;
+        final Array<String> interfaces) {
+      if (api < Opcodes.ASM8 && interfaces.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        super.visit(version, access, name, signature, superName, interfaces);
+        return;
+      }
       super.visit(version, access, name, signature, superName, interfaces);
+      owner = name;
     }
 
     @Override
@@ -153,7 +163,12 @@ public class AnalyzerAdapterTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
+      if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitMethod(access, name, descriptor, signature, exceptions);
+      }
+
       MethodVisitor methodVisitor =
           super.visitMethod(access, name, descriptor, signature, exceptions);
       AnalyzedFramesInserter inserter = new AnalyzedFramesInserter(methodVisitor);
@@ -181,7 +196,7 @@ public class AnalyzerAdapterTest extends AsmTest {
     private boolean hasOriginalFrame;
 
     AnalyzedFramesInserter(final MethodVisitor methodVisitor) {
-      super(Opcodes.ASM7, methodVisitor);
+      super(Opcodes.ASM8, methodVisitor);
     }
 
     void setAnalyzerAdapter(final AnalyzerAdapter analyzerAdapter) {
@@ -192,9 +207,9 @@ public class AnalyzerAdapterTest extends AsmTest {
     public void visitFrame(
         final int type,
         final int numLocal,
-        final Object[] local,
+        final Array<Object> local,
         final int numStack,
-        final Object[] stack) {
+        final Array<Object> stack) {
       super.visitFrame(type, numLocal, local, numStack, stack);
       hasOriginalFrame = true;
     }
@@ -206,7 +221,11 @@ public class AnalyzerAdapterTest extends AsmTest {
           ArrayList<Object> local = toFrameTypes(analyzerAdapter.locals);
           ArrayList<Object> stack = toFrameTypes(analyzerAdapter.stack);
           super.visitFrame(
-              Opcodes.F_NEW, local.size(), local.toArray(), stack.size(), stack.toArray());
+              Opcodes.F_NEW,
+              local.size(),
+              Collections.toObjectArray(local),
+              stack.size(),
+              Collections.toObjectArray(stack));
         }
       }
       hasOriginalFrame = false;
@@ -273,7 +292,7 @@ public class AnalyzerAdapterTest extends AsmTest {
         final String name,
         final String descriptor,
         final Handle bootstrapMethodHandle,
-        final Object... bootstrapMethodArguments) {
+        final Array<Object> bootstrapMethodArguments) {
       maybeInsertFrame();
       super.visitInvokeDynamicInsn(
           name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
@@ -299,13 +318,14 @@ public class AnalyzerAdapterTest extends AsmTest {
 
     @Override
     public void visitTableSwitchInsn(
-        final int min, final int max, final Label dflt, final Label... labels) {
+        final int min, final int max, final Label dflt, final Array<Label> labels) {
       maybeInsertFrame();
       super.visitTableSwitchInsn(min, max, dflt, labels);
     }
 
     @Override
-    public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
+    public void visitLookupSwitchInsn(
+        final Label dflt, final IntArray keys, final Array<Label> labels) {
       maybeInsertFrame();
       super.visitLookupSwitchInsn(dflt, keys, labels);
     }

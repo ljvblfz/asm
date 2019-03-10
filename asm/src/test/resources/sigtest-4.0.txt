@@ -108,8 +108,6 @@ meth public !varargs int newInvokeDynamic(java.lang.String,java.lang.String,org.
 meth public byte[] toByteArray()
 meth public final org.objectweb.asm.AnnotationVisitor visitAnnotation(java.lang.String,boolean)
 meth public final org.objectweb.asm.FieldVisitor visitField(int,java.lang.String,java.lang.String,java.lang.String,java.lang.Object)
-meth public final org.objectweb.asm.MethodVisitor visitMethod(int,java.lang.String,java.lang.String,java.lang.String,java.lang.String[])
-meth public final void visit(int,int,java.lang.String,java.lang.String,java.lang.String,java.lang.String[])
 meth public final void visitAttribute(org.objectweb.asm.Attribute)
 meth public final void visitEnd()
 meth public final void visitInnerClass(java.lang.String,java.lang.String,java.lang.String,int)

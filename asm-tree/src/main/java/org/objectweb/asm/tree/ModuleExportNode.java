@@ -28,6 +28,7 @@
 package org.objectweb.asm.tree;
 
 import java.util.List;
+import org.objectweb.asm.Collections;
 import org.objectweb.asm.ModuleVisitor;
 
 /**
@@ -73,7 +74,6 @@ public class ModuleExportNode {
    * @param moduleVisitor a module visitor.
    */
   public void accept(final ModuleVisitor moduleVisitor) {
-    moduleVisitor.visitExport(
-        packaze, access, modules == null ? null : modules.toArray(new String[0]));
+    moduleVisitor.visitExport(packaze, access, Collections.toStringArray(modules));
   }
 }

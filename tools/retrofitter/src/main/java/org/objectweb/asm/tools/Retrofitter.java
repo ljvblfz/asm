@@ -38,6 +38,7 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.zip.GZIPInputStream;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -146,7 +147,7 @@ public class Retrofitter {
   static class ClassRetrofitter extends ClassVisitor {
 
     public ClassRetrofitter(final ClassVisitor classVisitor) {
-      super(Opcodes.ASM7, classVisitor);
+      super(Opcodes.ASM8, classVisitor);
     }
 
     @Override
@@ -156,7 +157,7 @@ public class Retrofitter {
         final String name,
         final String signature,
         final String superName,
-        final String[] interfaces) {
+        final Array<String> interfaces) {
       super.visit(Opcodes.V1_5, access, name, signature, superName, interfaces);
     }
 
@@ -166,7 +167,7 @@ public class Retrofitter {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
       return new MethodVisitor(
           api, super.visitMethod(access, name, descriptor, signature, exceptions)) {
 
@@ -211,6 +212,7 @@ public class Retrofitter {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void visit(
         final int version,
         final int access,
@@ -226,6 +228,7 @@ public class Retrofitter {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public MethodVisitor visitMethod(
         final int access,
         final String name,
@@ -245,13 +248,9 @@ public class Retrofitter {
 
         @Override
         public void visitMethodInsn(
-            final int opcode,
-            final String owner,
-            final String name,
-            final String descriptor,
-            final boolean isInterface) {
+            final int opcode, final String owner, final String name, final String descriptor) {
           check(owner, name + descriptor);
-          super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+          super.visitMethodInsn(opcode, owner, name, descriptor);
         }
 
         @Override

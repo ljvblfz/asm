@@ -139,7 +139,12 @@ public class AnnotationVisitorTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
+      if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitMethod(access, name, descriptor, signature, exceptions);
+      }
+
       return new MethodVisitor(
           api, super.visitMethod(access, name, descriptor, signature, exceptions)) {
 
@@ -190,11 +195,17 @@ public class AnnotationVisitorTest extends AsmTest {
         public AnnotationVisitor visitLocalVariableAnnotation(
             final int typeRef,
             final TypePath typePath,
-            final Label[] start,
-            final Label[] end,
-            final int[] index,
+            final Array<Label> start,
+            final Array<Label> end,
+            final IntArray index,
             final String descriptor,
             final boolean visible) {
+          if (api < Opcodes.ASM8 && start.isPublic()) {
+            // Redirect the call to the deprecated version of this method.
+            return super.visitLocalVariableAnnotation(
+                typeRef, typePath, start, end, index, descriptor, visible);
+          }
+
           return new EmptyAnnotationVisitor(api);
         }
       };
@@ -227,7 +238,12 @@ public class AnnotationVisitorTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
+      if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitMethod(access, name, descriptor, signature, exceptions);
+      }
+
       return new MethodVisitor(
           api, super.visitMethod(access, name, descriptor, signature, exceptions)) {
 
@@ -278,11 +294,17 @@ public class AnnotationVisitorTest extends AsmTest {
         public AnnotationVisitor visitLocalVariableAnnotation(
             final int typeRef,
             final TypePath typePath,
-            final Label[] start,
-            final Label[] end,
-            final int[] index,
+            final Array<Label> start,
+            final Array<Label> end,
+            final IntArray index,
             final String descriptor,
             final boolean visible) {
+          if (api < Opcodes.ASM8 && start.isPublic()) {
+            // Redirect the call to the deprecated version of this method.
+            return super.visitLocalVariableAnnotation(
+                typeRef, typePath, start, end, index, descriptor, visible);
+          }
+
           return null;
         }
       };

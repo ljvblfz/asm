@@ -84,7 +84,8 @@ public class MethodVisitorTest extends AsmTest {
     MethodVisitor methodVisitor = new MethodVisitor(Opcodes.ASM4, null) {};
 
     Executable visitInvokeDynamicInsn =
-        () -> methodVisitor.visitInvokeDynamicInsn(null, null, null);
+        () ->
+            methodVisitor.visitInvokeDynamicInsn(null, null, null, Opcodes.NO_BOOTSTRAP_ARGUMENTS);
 
     Exception exception = assertThrows(UnsupportedOperationException.class, visitInvokeDynamicInsn);
     assertTrue(exception.getMessage().matches(UNSUPPORTED_OPERATION_MESSAGE_PATTERN));
@@ -117,7 +118,9 @@ public class MethodVisitorTest extends AsmTest {
     MethodVisitor methodVisitor = new MethodVisitor(Opcodes.ASM4, null) {};
 
     Executable visitLocalVariableAnnotation =
-        () -> methodVisitor.visitLocalVariableAnnotation(0, null, null, null, null, null, false);
+        () ->
+            methodVisitor.visitLocalVariableAnnotation(
+                0, null, Opcodes.NO_LABELS, Opcodes.NO_LABELS, IntArray.EMPTY, null, false);
 
     Exception exception =
         assertThrows(UnsupportedOperationException.class, visitLocalVariableAnnotation);
@@ -127,11 +130,12 @@ public class MethodVisitorTest extends AsmTest {
   @Test
   public void testVisitFrame_consecutiveFrames_sameFrame() {
     MethodVisitor methodVisitor =
-        new ClassWriter(0).visitMethod(Opcodes.ACC_STATIC, "m", "()V", null, null);
+        new ClassWriter(0).visitMethod(Opcodes.ACC_STATIC, "m", "()V", null, Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitCode();
-    methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+    methodVisitor.visitFrame(Opcodes.F_SAME, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
 
-    Executable visitFrame = () -> methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+    Executable visitFrame =
+        () -> methodVisitor.visitFrame(Opcodes.F_SAME, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
 
     assertDoesNotThrow(visitFrame);
   }
@@ -139,13 +143,14 @@ public class MethodVisitorTest extends AsmTest {
   @Test
   public void testVisitFrame_consecutiveFrames() {
     MethodVisitor methodVisitor =
-        new ClassWriter(0).visitMethod(Opcodes.ACC_STATIC, "m", "()V", null, null);
+        new ClassWriter(0).visitMethod(Opcodes.ACC_STATIC, "m", "()V", null, Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitCode();
-    methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+    methodVisitor.visitFrame(Opcodes.F_SAME, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
 
     Executable visitFrame =
         () ->
-            methodVisitor.visitFrame(Opcodes.F_APPEND, 1, new Object[] {Opcodes.INTEGER}, 0, null);
+            methodVisitor.visitFrame(
+                Opcodes.F_APPEND, 1, Array.of(Opcodes.INTEGER), 0, Opcodes.NO_TYPES);
 
     assertThrows(IllegalStateException.class, visitFrame);
   }
@@ -523,7 +528,7 @@ public class MethodVisitorTest extends AsmTest {
     private final StringWriter log;
 
     LogMethodVisitor(final StringWriter log) {
-      super(Opcodes.ASM7);
+      super(Opcodes.ASM8);
       this.log = log;
     }
 

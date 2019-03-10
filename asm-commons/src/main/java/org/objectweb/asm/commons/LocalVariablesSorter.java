@@ -28,6 +28,8 @@
 package org.objectweb.asm.commons;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Array;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -81,7 +83,7 @@ public class LocalVariablesSorter extends MethodVisitor {
    */
   public LocalVariablesSorter(
       final int access, final String descriptor, final MethodVisitor methodVisitor) {
-    this(Opcodes.ASM7, access, descriptor, methodVisitor);
+    this(Opcodes.ASM8, access, descriptor, methodVisitor);
     if (getClass() != LocalVariablesSorter.class) {
       throw new IllegalStateException();
     }
@@ -163,27 +165,39 @@ public class LocalVariablesSorter extends MethodVisitor {
   public AnnotationVisitor visitLocalVariableAnnotation(
       final int typeRef,
       final TypePath typePath,
-      final Label[] start,
-      final Label[] end,
-      final int[] index,
+      final Array<Label> start,
+      final Array<Label> end,
+      final IntArray index,
       final String descriptor,
       final boolean visible) {
+    if (api < Opcodes.ASM8 && start.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      return super.visitLocalVariableAnnotation(
+          typeRef, typePath, start, end, index, descriptor, visible);
+    }
+
     Type type = Type.getType(descriptor);
-    int[] remappedIndex = new int[index.length];
-    for (int i = 0; i < remappedIndex.length; ++i) {
-      remappedIndex[i] = remap(index[i], type);
+    IntArray.Builder remappedIndex = index.toBuilder();
+    for (int i = 0; i < index.size(); ++i) {
+      remappedIndex.set(i, remap(index.get(i), type));
     }
     return super.visitLocalVariableAnnotation(
-        typeRef, typePath, start, end, remappedIndex, descriptor, visible);
+        typeRef, typePath, start, end, remappedIndex.build(), descriptor, visible);
   }
 
   @Override
   public void visitFrame(
       final int type,
       final int numLocal,
-      final Object[] local,
+      final Array<Object> local,
       final int numStack,
-      final Object[] stack) {
+      final Array<Object> stack) {
+    if (api < Opcodes.ASM8 && stack.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitFrame(type, numLocal, local, numStack, stack);
+      return;
+    }
+
     if (type != Opcodes.F_NEW) { // Uncompressed frame.
       throw new IllegalArgumentException(
           "LocalVariablesSorter only accepts expanded frames (see ClassReader.EXPAND_FRAMES)");
@@ -199,7 +213,7 @@ public class LocalVariablesSorter extends MethodVisitor {
     // variables added with 'newLocal'.
     int oldVar = 0; // Old local variable index.
     for (int i = 0; i < numLocal; ++i) {
-      Object localType = local[i];
+      Object localType = local.get(i);
       if (localType != Opcodes.TOP) {
         Type varType = OBJECT_TYPE;
         if (localType == Opcodes.INTEGER) {
@@ -234,7 +248,7 @@ public class LocalVariablesSorter extends MethodVisitor {
     }
 
     // Visit the remapped frame.
-    super.visitFrame(type, remappedNumLocal, remappedLocalTypes, numStack, stack);
+    super.visitFrame(type, remappedNumLocal, Array.of(remappedLocalTypes), numStack, stack);
 
     // Restore the original value of 'remappedLocals'.
     remappedLocalTypes = oldRemappedLocals;

@@ -28,6 +28,7 @@
 package org.objectweb.asm.util;
 
 import java.util.HashSet;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -71,7 +72,7 @@ public class CheckModuleAdapter extends ModuleVisitor {
    * @throws IllegalStateException If a subclass calls this constructor.
    */
   public CheckModuleAdapter(final ModuleVisitor moduleVisitor, final boolean isOpen) {
-    this(Opcodes.ASM7, moduleVisitor, isOpen);
+    this(Opcodes.ASM8, moduleVisitor, isOpen);
     if (getClass() != CheckModuleAdapter.class) {
       throw new IllegalStateException();
     }
@@ -128,21 +129,31 @@ public class CheckModuleAdapter extends ModuleVisitor {
   }
 
   @Override
-  public void visitExport(final String packaze, final int access, final String... modules) {
+  public void visitExport(final String packaze, final int access, final Array<String> modules) {
+    if (api < Opcodes.ASM8 && modules.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitExport(packaze, access, modules);
+      return;
+    }
+
     checkVisitEndNotCalled();
     CheckMethodAdapter.checkInternalName(Opcodes.V9, packaze, "package name");
     exportedPackages.checkNameNotAlreadyDeclared(packaze);
     CheckClassAdapter.checkAccess(access, Opcodes.ACC_SYNTHETIC | Opcodes.ACC_MANDATED);
-    if (modules != null) {
-      for (String module : modules) {
-        CheckClassAdapter.checkFullyQualifiedName(Opcodes.V9, module, "module export to");
-      }
+    for (int i = 0; i < modules.size(); ++i) {
+      CheckClassAdapter.checkFullyQualifiedName(Opcodes.V9, modules.get(i), "module export to");
     }
     super.visitExport(packaze, access, modules);
   }
 
   @Override
-  public void visitOpen(final String packaze, final int access, final String... modules) {
+  public void visitOpen(final String packaze, final int access, final Array<String> modules) {
+    if (api < Opcodes.ASM8 && modules.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitOpen(packaze, access, modules);
+      return;
+    }
+
     checkVisitEndNotCalled();
     if (isOpen) {
       throw new UnsupportedOperationException("An open module can not use open directive");
@@ -150,10 +161,8 @@ public class CheckModuleAdapter extends ModuleVisitor {
     CheckMethodAdapter.checkInternalName(Opcodes.V9, packaze, "package name");
     openedPackages.checkNameNotAlreadyDeclared(packaze);
     CheckClassAdapter.checkAccess(access, Opcodes.ACC_SYNTHETIC | Opcodes.ACC_MANDATED);
-    if (modules != null) {
-      for (String module : modules) {
-        CheckClassAdapter.checkFullyQualifiedName(Opcodes.V9, module, "module open to");
-      }
+    for (int i = 0; i < modules.size(); ++i) {
+      CheckClassAdapter.checkFullyQualifiedName(Opcodes.V9, modules.get(i), "module open to");
     }
     super.visitOpen(packaze, access, modules);
   }
@@ -167,15 +176,21 @@ public class CheckModuleAdapter extends ModuleVisitor {
   }
 
   @Override
-  public void visitProvide(final String service, final String... providers) {
+  public void visitProvide(final String service, final Array<String> providers) {
+    if (api < Opcodes.ASM8 && providers.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitProvide(service, providers);
+      return;
+    }
+
     checkVisitEndNotCalled();
     CheckMethodAdapter.checkInternalName(Opcodes.V9, service, "service");
     providedServices.checkNameNotAlreadyDeclared(service);
-    if (providers == null || providers.length == 0) {
-      throw new IllegalArgumentException("Providers cannot be null or empty");
+    if (providers.size() == 0) {
+      throw new IllegalArgumentException("Providers cannot be empty");
     }
-    for (String provider : providers) {
-      CheckMethodAdapter.checkInternalName(Opcodes.V9, provider, "provider");
+    for (int i = 0; i < providers.size(); ++i) {
+      CheckMethodAdapter.checkInternalName(Opcodes.V9, providers.get(i), "provider");
     }
     super.visitProvide(service, providers);
   }

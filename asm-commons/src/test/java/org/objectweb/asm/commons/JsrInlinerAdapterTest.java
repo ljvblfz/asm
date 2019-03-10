@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -1530,11 +1531,16 @@ public class JsrInlinerAdapterTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
+      if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitMethod(access, name, descriptor, signature, exceptions);
+      }
+
       MethodVisitor methodVisitor =
           super.visitMethod(access, name, descriptor, signature, exceptions);
       return new JSRInlinerAdapter(
-          api, methodVisitor, access, name, descriptor, signature, exceptions);
+          api, methodVisitor, access, name, descriptor, signature, exceptions.toArray());
     }
   }
 }

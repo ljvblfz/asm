@@ -134,4 +134,38 @@ final class Context {
    * MethodVisitor#visitFrame}.
    */
   Object[] currentFrameStackTypes;
+
+  void visitFrame(final MethodVisitor methodVisitor, final boolean expand) {
+    int frameType;
+    int numLocal;
+    if (expand) {
+      frameType = Opcodes.F_NEW;
+      numLocal = currentFrameLocalCount;
+    } else {
+      frameType = currentFrameType;
+      numLocal = currentFrameLocalCountDelta;
+    }
+
+    int localArrayLength = frameType == Opcodes.F_CHOP ? 0 : numLocal;
+    Array<Object> localArray;
+    if (localArrayLength == 0) {
+      localArray = Array.PUBLIC_EMPTY_OBJECT_ARRAY;
+    } else {
+      Object[] localTypes = new Object[localArrayLength];
+      System.arraycopy(currentFrameLocalTypes, 0, localTypes, 0, localArrayLength);
+      localArray = Array.of(localTypes, true);
+    }
+
+    int numStack = currentFrameStackCount;
+    Array<Object> stackArray;
+    if (numStack == 0) {
+      stackArray = Array.PUBLIC_EMPTY_OBJECT_ARRAY;
+    } else {
+      Object[] stackTypes = new Object[numStack];
+      System.arraycopy(currentFrameStackTypes, 0, stackTypes, 0, numStack);
+      stackArray = Array.of(stackTypes, true);
+    }
+
+    methodVisitor.visitFrame(frameType, numLocal, localArray, numStack, stackArray);
+  }
 }

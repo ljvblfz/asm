@@ -47,6 +47,7 @@ public interface Opcodes {
   int ASM5 = 5 << 16 | 0 << 8;
   int ASM6 = 6 << 16 | 0 << 8;
   int ASM7 = 7 << 16 | 0 << 8;
+  int ASM8 = 8 << 16 | 0 << 8;
 
   /*
    * Internal flags used to redirect calls to deprecated methods. For instance, if a visitOldStuff
@@ -380,6 +381,15 @@ public interface Opcodes {
   Integer LONG = Frame.ITEM_LONG;
   Integer NULL = Frame.ITEM_NULL;
   Integer UNINITIALIZED_THIS = Frame.ITEM_UNINITIALIZED_THIS;
+
+  // TODO
+
+  Array<Label> NO_LABELS = Array.PUBLIC_EMPTY_LABEL_ARRAY;
+  Array<Object> NO_BOOTSTRAP_ARGUMENTS = Array.PUBLIC_EMPTY_OBJECT_ARRAY;
+  Array<Object> NO_TYPES = Array.PUBLIC_EMPTY_OBJECT_ARRAY;
+  Array<String> NO_EXCEPTIONS = Array.PUBLIC_EMPTY_STRING_ARRAY;
+  Array<String> NO_INTERFACES = Array.PUBLIC_EMPTY_STRING_ARRAY;
+  Array<String> NO_MODULES = Array.PUBLIC_EMPTY_STRING_ARRAY;
 
   // The JVM opcode values (with the MethodVisitor method name used to visit them in comment, and
   // where '-' means 'same method name as on the previous line').

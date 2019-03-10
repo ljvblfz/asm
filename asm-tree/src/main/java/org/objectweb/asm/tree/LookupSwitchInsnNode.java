@@ -29,6 +29,8 @@ package org.objectweb.asm.tree;
 
 import java.util.List;
 import java.util.Map;
+import org.objectweb.asm.Array;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -71,15 +73,14 @@ public class LookupSwitchInsnNode extends AbstractInsnNode {
 
   @Override
   public void accept(final MethodVisitor methodVisitor) {
-    int[] keysArray = new int[this.keys.size()];
-    for (int i = 0, n = keysArray.length; i < n; ++i) {
-      keysArray[i] = this.keys.get(i).intValue();
+    int size = keys.size();
+    IntArray.Builder keysArray = IntArray.newBuilder(size);
+    Array.Builder<Label> labelsArray = Array.newLabels(size);
+    for (int i = 0; i < size; ++i) {
+      keysArray.set(i, keys.get(i).intValue());
+      labelsArray.set(i, labels.get(i).getLabel());
     }
-    Label[] labelsArray = new Label[this.labels.size()];
-    for (int i = 0, n = labelsArray.length; i < n; ++i) {
-      labelsArray[i] = this.labels.get(i).getLabel();
-    }
-    methodVisitor.visitLookupSwitchInsn(dflt.getLabel(), keysArray, labelsArray);
+    methodVisitor.visitLookupSwitchInsn(dflt.getLabel(), keysArray.build(), labelsArray.build());
     acceptAnnotations(methodVisitor);
   }
 

@@ -28,11 +28,12 @@
 package org.objectweb.asm.commons;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -201,7 +202,7 @@ public class GeneratorAdapter extends LocalVariablesSorter {
       final int access,
       final String name,
       final String descriptor) {
-    this(Opcodes.ASM7, methodVisitor, access, name, descriptor);
+    this(Opcodes.ASM8, methodVisitor, access, name, descriptor);
     if (getClass() != GeneratorAdapter.class) {
       throw new IllegalStateException();
     }
@@ -269,7 +270,7 @@ public class GeneratorAdapter extends LocalVariablesSorter {
             method.getName(),
             method.getDescriptor(),
             signature,
-            exceptions == null ? null : getInternalNames(exceptions)));
+            exceptions == null ? Opcodes.NO_EXCEPTIONS : getInternalNames(exceptions)));
   }
 
   /**
@@ -278,12 +279,12 @@ public class GeneratorAdapter extends LocalVariablesSorter {
    * @param types a set of types.
    * @return the internal names of the given types.
    */
-  private static String[] getInternalNames(final Type[] types) {
-    String[] names = new String[types.length];
-    for (int i = 0; i < names.length; ++i) {
-      names[i] = types[i].getInternalName();
+  private static Array<String> getInternalNames(final Type[] types) {
+    Array.Builder<String> names = Array.newStrings(types.length);
+    for (int i = 0; i < types.length; ++i) {
+      names.set(i, types[i].getInternalName());
     }
-    return names;
+    return names.build();
   }
 
   public int getAccess() {
@@ -1073,27 +1074,31 @@ public class GeneratorAdapter extends LocalVariablesSorter {
         int min = keys[0];
         int max = keys[numKeys - 1];
         int range = max - min + 1;
-        Label[] labels = new Label[range];
-        Arrays.fill(labels, defaultLabel);
-        for (int i = 0; i < numKeys; ++i) {
-          labels[keys[i] - min] = newLabel();
+        Array.Builder<Label> labelsBuilder = Array.newLabels(range);
+        for (int i = 0; i < range; ++i) {
+          labelsBuilder.set(i, defaultLabel);
         }
+        for (int i = 0; i < numKeys; ++i) {
+          labelsBuilder.set(keys[i] - min, newLabel());
+        }
+        Array<Label> labels = labelsBuilder.build();
         mv.visitTableSwitchInsn(min, max, defaultLabel, labels);
         for (int i = 0; i < range; ++i) {
-          Label label = labels[i];
+          Label label = labels.get(i);
           if (label != defaultLabel) {
             mark(label);
             generator.generateCase(i + min, endLabel);
           }
         }
       } else {
-        Label[] labels = new Label[numKeys];
+        Array.Builder<Label> labelsBuilder = Array.newLabels(numKeys);
         for (int i = 0; i < numKeys; ++i) {
-          labels[i] = newLabel();
+          labelsBuilder.set(i, newLabel());
         }
-        mv.visitLookupSwitchInsn(defaultLabel, keys, labels);
+        Array<Label> labels = labelsBuilder.build();
+        mv.visitLookupSwitchInsn(defaultLabel, IntArray.of(keys), labels);
         for (int i = 0; i < numKeys; ++i) {
-          mark(labels[i]);
+          mark(labels.get(i));
           generator.generateCase(keys[i], endLabel);
         }
       }
@@ -1243,7 +1248,8 @@ public class GeneratorAdapter extends LocalVariablesSorter {
       final String descriptor,
       final Handle bootstrapMethodHandle,
       final Object... bootstrapMethodArguments) {
-    mv.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+    mv.visitInvokeDynamicInsn(
+        name, descriptor, bootstrapMethodHandle, Array.of(bootstrapMethodArguments));
   }
 
   // -----------------------------------------------------------------------------------------------

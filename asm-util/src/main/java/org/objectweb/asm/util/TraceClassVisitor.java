@@ -29,6 +29,7 @@ package org.objectweb.asm.util;
 
 import java.io.PrintWriter;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -118,7 +119,7 @@ public final class TraceClassVisitor extends ClassVisitor {
    */
   public TraceClassVisitor(
       final ClassVisitor classVisitor, final Printer printer, final PrintWriter printWriter) {
-    super(Opcodes.ASM7, classVisitor);
+    super(Opcodes.ASM8, classVisitor);
     this.printWriter = printWriter;
     this.p = printer;
   }
@@ -130,8 +131,8 @@ public final class TraceClassVisitor extends ClassVisitor {
       final String name,
       final String signature,
       final String superName,
-      final String[] interfaces) {
-    p.visit(version, access, name, signature, superName, interfaces);
+      final Array<String> interfaces) {
+    p.visit(version, access, name, signature, superName, interfaces.toArray());
     super.visit(version, access, name, signature, superName, interfaces);
   }
 
@@ -211,8 +212,9 @@ public final class TraceClassVisitor extends ClassVisitor {
       final String name,
       final String descriptor,
       final String signature,
-      final String[] exceptions) {
-    Printer methodPrinter = p.visitMethod(access, name, descriptor, signature, exceptions);
+      final Array<String> exceptions) {
+    Printer methodPrinter =
+        p.visitMethod(access, name, descriptor, signature, exceptions.toArray());
     return new TraceMethodVisitor(
         super.visitMethod(access, name, descriptor, signature, exceptions), methodPrinter);
   }

@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -70,7 +71,10 @@ public class LocalVariablesSorterTest extends AsmTest {
     LocalVariablesSorter localVariablesSorter =
         new LocalVariablesSorter(Opcodes.ACC_PUBLIC, "()V", new MethodNode());
 
-    Executable visitFrame = () -> localVariablesSorter.visitFrame(Opcodes.F_NEW, 0, null, 0, null);
+    Executable visitFrame =
+        () ->
+            localVariablesSorter.visitFrame(
+                Opcodes.F_NEW, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
 
     assertDoesNotThrow(visitFrame);
   }
@@ -80,7 +84,10 @@ public class LocalVariablesSorterTest extends AsmTest {
     LocalVariablesSorter localVariablesSorter =
         new LocalVariablesSorter(Opcodes.ACC_PUBLIC, "()V", new MethodNode());
 
-    Executable visitFrame = () -> localVariablesSorter.visitFrame(Opcodes.F_FULL, 0, null, 0, null);
+    Executable visitFrame =
+        () ->
+            localVariablesSorter.visitFrame(
+                Opcodes.F_FULL, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
 
     Exception exception = assertThrows(IllegalArgumentException.class, visitFrame);
     assertEquals(
@@ -218,7 +225,7 @@ public class LocalVariablesSorterTest extends AsmTest {
         new ClassReader(Files.newInputStream(Paths.get("src/test/resources/Issue317586.class")));
     ClassWriter classWriter = new ClassWriter(0);
     ClassVisitor localVariablesSorter =
-        new LocalVariablesSorterClassAdapter(Opcodes.ASM7, classWriter);
+        new LocalVariablesSorterClassAdapter(Opcodes.ASM8, classWriter);
 
     classReader.accept(localVariablesSorter, ClassReader.EXPAND_FRAMES);
 
@@ -237,7 +244,12 @@ public class LocalVariablesSorterTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
+      if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitMethod(access, name, descriptor, signature, exceptions);
+      }
+
       MethodVisitor methodVisitor =
           super.visitMethod(access, name, descriptor, signature, exceptions);
       return new LocalVariablesSorter(api, access, descriptor, methodVisitor);

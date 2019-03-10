@@ -48,7 +48,7 @@ public class ModuleNodeTest extends AsmTest {
   public void testConstructor() {
     ModuleNode moduleNode1 = new ModuleNode("module1", 123, "1.0");
     ModuleNode moduleNode2 =
-        new ModuleNode(Opcodes.ASM7, "module2", 456, "2.0", null, null, null, null, null);
+        new ModuleNode(Opcodes.ASM8, "module2", 456, "2.0", null, null, null, null, null);
 
     assertEquals("module1", moduleNode1.name);
     assertEquals(123, moduleNode1.access);
@@ -70,7 +70,7 @@ public class ModuleNodeTest extends AsmTest {
     ModuleNode moduleNode = new ModuleNode("module", 123, "1.0");
     ModuleNode dstModuleNode = new ModuleNode("", 0, "");
     ClassVisitor copyModuleVisitor =
-        new ClassVisitor(Opcodes.ASM7) {
+        new ClassVisitor(Opcodes.ASM8) {
           @Override
           public ModuleVisitor visitModule(
               final String name, final int access, final String version) {

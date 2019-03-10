@@ -31,8 +31,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -116,7 +118,7 @@ public class AnalyzerAdapter extends MethodVisitor {
       final String name,
       final String descriptor,
       final MethodVisitor methodVisitor) {
-    this(Opcodes.ASM7, owner, access, name, descriptor, methodVisitor);
+    this(Opcodes.ASM8, owner, access, name, descriptor, methodVisitor);
     if (getClass() != AnalyzerAdapter.class) {
       throw new IllegalStateException();
     }
@@ -191,14 +193,19 @@ public class AnalyzerAdapter extends MethodVisitor {
   public void visitFrame(
       final int type,
       final int numLocal,
-      final Object[] local,
+      final Array<Object> local,
       final int numStack,
-      final Object[] stack) {
+      final Array<Object> stack) {
+    if (api < Opcodes.ASM8 && stack.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitFrame(type, numLocal, local, numStack, stack);
+      return;
+    }
+
     if (type != Opcodes.F_NEW) { // Uncompressed frame.
       throw new IllegalArgumentException(
           "AnalyzerAdapter only accepts expanded frames (see ClassReader.EXPAND_FRAMES)");
     }
-
     super.visitFrame(type, numLocal, local, numStack, stack);
 
     if (this.locals != null) {
@@ -215,9 +222,9 @@ public class AnalyzerAdapter extends MethodVisitor {
   }
 
   private static void visitFrameTypes(
-      final int numTypes, final Object[] frameTypes, final List<Object> result) {
+      final int numTypes, final Array<Object> frameTypes, final List<Object> result) {
     for (int i = 0; i < numTypes; ++i) {
-      Object frameType = frameTypes[i];
+      Object frameType = frameTypes.get(i);
       result.add(frameType);
       if (frameType == Opcodes.LONG || frameType == Opcodes.DOUBLE) {
         result.add(Opcodes.TOP);
@@ -329,7 +336,14 @@ public class AnalyzerAdapter extends MethodVisitor {
       final String name,
       final String descriptor,
       final Handle bootstrapMethodHandle,
-      final Object... bootstrapMethodArguments) {
+      final Array<Object> bootstrapMethodArguments) {
+    if (api < Opcodes.ASM8 && bootstrapMethodArguments.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitInvokeDynamicInsn(
+          name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+      return;
+    }
+
     super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
     if (this.locals == null) {
       labels = null;
@@ -406,7 +420,13 @@ public class AnalyzerAdapter extends MethodVisitor {
 
   @Override
   public void visitTableSwitchInsn(
-      final int min, final int max, final Label dflt, final Label... labels) {
+      final int min, final int max, final Label dflt, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitTableSwitchInsn(min, max, dflt, labels);
+      return;
+    }
+
     super.visitTableSwitchInsn(min, max, dflt, labels);
     execute(Opcodes.TABLESWITCH, 0, null);
     this.locals = null;
@@ -414,7 +434,14 @@ public class AnalyzerAdapter extends MethodVisitor {
   }
 
   @Override
-  public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
+  public void visitLookupSwitchInsn(
+      final Label dflt, final IntArray keys, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitLookupSwitchInsn(dflt, keys, labels);
+      return;
+    }
+
     super.visitLookupSwitchInsn(dflt, keys, labels);
     execute(Opcodes.LOOKUPSWITCH, 0, null);
     this.locals = null;

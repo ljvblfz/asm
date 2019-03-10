@@ -28,8 +28,10 @@
 
 package org.objectweb.asm.commons;
 
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -53,7 +55,7 @@ public class InstructionAdapter extends MethodVisitor {
    * @throws IllegalStateException If a subclass calls this constructor.
    */
   public InstructionAdapter(final MethodVisitor methodVisitor) {
-    this(Opcodes.ASM7, methodVisitor);
+    this(Opcodes.ASM8, methodVisitor);
     if (getClass() != InstructionAdapter.class) {
       throw new IllegalStateException();
     }
@@ -543,8 +545,15 @@ public class InstructionAdapter extends MethodVisitor {
       final String name,
       final String descriptor,
       final Handle bootstrapMethodHandle,
-      final Object... bootstrapMethodArguments) {
-    invokedynamic(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+      final Array<Object> bootstrapMethodArguments) {
+    if (api < Opcodes.ASM8 && bootstrapMethodArguments.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitInvokeDynamicInsn(
+          name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+      return;
+    }
+
+    invokedynamic(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments.toArray());
   }
 
   @Override
@@ -621,7 +630,7 @@ public class InstructionAdapter extends MethodVisitor {
             || (value instanceof Type && ((Type) value).getSort() == Type.METHOD))) {
       throw new UnsupportedOperationException("This feature requires ASM5");
     }
-    if (api != Opcodes.ASM7 && value instanceof ConstantDynamic) {
+    if (api < Opcodes.ASM7 && value instanceof ConstantDynamic) {
       throw new UnsupportedOperationException("This feature requires ASM7");
     }
     if (value instanceof Integer) {
@@ -660,13 +669,26 @@ public class InstructionAdapter extends MethodVisitor {
 
   @Override
   public void visitTableSwitchInsn(
-      final int min, final int max, final Label dflt, final Label... labels) {
-    tableswitch(min, max, dflt, labels);
+      final int min, final int max, final Label dflt, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitTableSwitchInsn(min, max, dflt, labels);
+      return;
+    }
+
+    tableswitch(min, max, dflt, labels.toArray());
   }
 
   @Override
-  public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
-    lookupswitch(dflt, keys, labels);
+  public void visitLookupSwitchInsn(
+      final Label dflt, final IntArray keys, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitLookupSwitchInsn(dflt, keys, labels);
+      return;
+    }
+
+    lookupswitch(dflt, keys.toArray(), labels.toArray());
   }
 
   @Override
@@ -1033,11 +1055,11 @@ public class InstructionAdapter extends MethodVisitor {
   }
 
   public void tableswitch(final int min, final int max, final Label dflt, final Label... labels) {
-    mv.visitTableSwitchInsn(min, max, dflt, labels);
+    mv.visitTableSwitchInsn(min, max, dflt, Array.of(labels));
   }
 
   public void lookupswitch(final Label dflt, final int[] keys, final Label[] labels) {
-    mv.visitLookupSwitchInsn(dflt, keys, labels);
+    mv.visitLookupSwitchInsn(dflt, IntArray.of(keys), Array.of(labels));
   }
 
   public void areturn(final Type type) {
@@ -1074,7 +1096,7 @@ public class InstructionAdapter extends MethodVisitor {
       invokevirtual(owner, name, descriptor, false);
       return;
     }
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, owner, name, descriptor);
+    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, owner, name, descriptor, false);
   }
 
   /**
@@ -1202,7 +1224,8 @@ public class InstructionAdapter extends MethodVisitor {
       final String descriptor,
       final Handle bootstrapMethodHandle,
       final Object[] bootstrapMethodArguments) {
-    mv.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+    mv.visitInvokeDynamicInsn(
+        name, descriptor, bootstrapMethodHandle, Array.of(bootstrapMethodArguments));
   }
 
   public void anew(final Type type) {

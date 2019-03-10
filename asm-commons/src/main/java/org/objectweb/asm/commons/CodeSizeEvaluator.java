@@ -27,8 +27,10 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 package org.objectweb.asm.commons;
 
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -47,7 +49,7 @@ public class CodeSizeEvaluator extends MethodVisitor implements Opcodes {
   private int maxSize;
 
   public CodeSizeEvaluator(final MethodVisitor methodVisitor) {
-    this(Opcodes.ASM7, methodVisitor);
+    this(Opcodes.ASM8, methodVisitor);
   }
 
   protected CodeSizeEvaluator(final int api, final MethodVisitor methodVisitor) {
@@ -140,7 +142,14 @@ public class CodeSizeEvaluator extends MethodVisitor implements Opcodes {
       final String name,
       final String descriptor,
       final Handle bootstrapMethodHandle,
-      final Object... bootstrapMethodArguments) {
+      final Array<Object> bootstrapMethodArguments) {
+    if (api < Opcodes.ASM8 && bootstrapMethodArguments.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitInvokeDynamicInsn(
+          name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+      return;
+    }
+
     minSize += 5;
     maxSize += 5;
     super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
@@ -185,16 +194,29 @@ public class CodeSizeEvaluator extends MethodVisitor implements Opcodes {
 
   @Override
   public void visitTableSwitchInsn(
-      final int min, final int max, final Label dflt, final Label... labels) {
-    minSize += 13 + labels.length * 4;
-    maxSize += 16 + labels.length * 4;
+      final int min, final int max, final Label dflt, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitTableSwitchInsn(min, max, dflt, labels);
+      return;
+    }
+
+    minSize += 13 + labels.size() * 4;
+    maxSize += 16 + labels.size() * 4;
     super.visitTableSwitchInsn(min, max, dflt, labels);
   }
 
   @Override
-  public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
-    minSize += 9 + keys.length * 8;
-    maxSize += 12 + keys.length * 8;
+  public void visitLookupSwitchInsn(
+      final Label dflt, final IntArray keys, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitLookupSwitchInsn(dflt, keys, labels);
+      return;
+    }
+
+    minSize += 9 + keys.size() * 8;
+    maxSize += 12 + keys.size() * 8;
     super.visitLookupSwitchInsn(dflt, keys, labels);
   }
 

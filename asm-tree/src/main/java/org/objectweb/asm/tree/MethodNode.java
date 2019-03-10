@@ -30,10 +30,13 @@ package org.objectweb.asm.tree;
 import java.util.ArrayList;
 import java.util.List;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Collections;
 import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -155,7 +158,7 @@ public class MethodNode extends MethodVisitor {
    * @throws IllegalStateException If a subclass calls this constructor.
    */
   public MethodNode() {
-    this(Opcodes.ASM7);
+    this(Opcodes.ASM8);
     if (getClass() != MethodNode.class) {
       throw new IllegalStateException();
     }
@@ -324,16 +327,18 @@ public class MethodNode extends MethodVisitor {
   public void visitFrame(
       final int type,
       final int numLocal,
-      final Object[] local,
+      final Array<Object> local,
       final int numStack,
-      final Object[] stack) {
+      final Array<Object> stack) {
+    if (api < Opcodes.ASM8 && stack.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitFrame(type, numLocal, local, numStack, stack);
+      return;
+    }
+
     instructions.add(
         new FrameNode(
-            type,
-            numLocal,
-            local == null ? null : getLabelNodes(local),
-            numStack,
-            stack == null ? null : getLabelNodes(stack)));
+            type, numLocal, convertFrameTypes(local), numStack, convertFrameTypes(stack)));
   }
 
   @Override
@@ -384,10 +389,17 @@ public class MethodNode extends MethodVisitor {
       final String name,
       final String descriptor,
       final Handle bootstrapMethodHandle,
-      final Object... bootstrapMethodArguments) {
+      final Array<Object> bootstrapMethodArguments) {
+    if (api < Opcodes.ASM8 && bootstrapMethodArguments.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitInvokeDynamicInsn(
+          name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+      return;
+    }
+
     instructions.add(
         new InvokeDynamicInsnNode(
-            name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments));
+            name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments.toArray()));
   }
 
   @Override
@@ -412,13 +424,27 @@ public class MethodNode extends MethodVisitor {
 
   @Override
   public void visitTableSwitchInsn(
-      final int min, final int max, final Label dflt, final Label... labels) {
+      final int min, final int max, final Label dflt, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitTableSwitchInsn(min, max, dflt, labels);
+      return;
+    }
+
     instructions.add(new TableSwitchInsnNode(min, max, getLabelNode(dflt), getLabelNodes(labels)));
   }
 
   @Override
-  public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
-    instructions.add(new LookupSwitchInsnNode(getLabelNode(dflt), keys, getLabelNodes(labels)));
+  public void visitLookupSwitchInsn(
+      final Label dflt, final IntArray keys, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitLookupSwitchInsn(dflt, keys, labels);
+      return;
+    }
+
+    instructions.add(
+        new LookupSwitchInsnNode(getLabelNode(dflt), keys.toArray(), getLabelNodes(labels)));
   }
 
   @Override
@@ -487,14 +513,25 @@ public class MethodNode extends MethodVisitor {
   public AnnotationVisitor visitLocalVariableAnnotation(
       final int typeRef,
       final TypePath typePath,
-      final Label[] start,
-      final Label[] end,
-      final int[] index,
+      final Array<Label> start,
+      final Array<Label> end,
+      final IntArray index,
       final String descriptor,
       final boolean visible) {
+    if (api < Opcodes.ASM8 && start.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      return super.visitLocalVariableAnnotation(
+          typeRef, typePath, start, end, index, descriptor, visible);
+    }
+
     LocalVariableAnnotationNode localVariableAnnotation =
         new LocalVariableAnnotationNode(
-            typeRef, typePath, getLabelNodes(start), getLabelNodes(end), index, descriptor);
+            typeRef,
+            typePath,
+            getLabelNodes(start),
+            getLabelNodes(end),
+            index.toArray(),
+            descriptor);
     if (visible) {
       visibleLocalVariableAnnotations =
           Util.add(visibleLocalVariableAnnotations, localVariableAnnotation);
@@ -536,18 +573,20 @@ public class MethodNode extends MethodVisitor {
     return (LabelNode) label.info;
   }
 
-  private LabelNode[] getLabelNodes(final Label[] labels) {
-    LabelNode[] labelNodes = new LabelNode[labels.length];
-    for (int i = 0, n = labels.length; i < n; ++i) {
-      labelNodes[i] = getLabelNode(labels[i]);
+  private LabelNode[] getLabelNodes(final Array<Label> labels) {
+    int size = labels.size();
+    LabelNode[] labelNodes = new LabelNode[size];
+    for (int i = 0; i < size; ++i) {
+      labelNodes[i] = getLabelNode(labels.get(i));
     }
     return labelNodes;
   }
 
-  private Object[] getLabelNodes(final Object[] objects) {
-    Object[] labelNodes = new Object[objects.length];
-    for (int i = 0, n = objects.length; i < n; ++i) {
-      Object o = objects[i];
+  private Object[] convertFrameTypes(final Array<Object> objects) {
+    int size = objects.size();
+    Object[] labelNodes = new Object[size];
+    for (int i = 0; i < size; ++i) {
+      Object o = objects.get(i);
       if (o instanceof Label) {
         o = getLabelNode((Label) o);
       }
@@ -621,7 +660,7 @@ public class MethodNode extends MethodVisitor {
         throw new UnsupportedClassVersionException();
       }
     }
-    if (api != Opcodes.ASM7) {
+    if (api < Opcodes.ASM7) {
       for (int i = instructions.size() - 1; i >= 0; --i) {
         AbstractInsnNode insn = instructions.get(i);
         if (insn instanceof LdcInsnNode) {
@@ -640,9 +679,9 @@ public class MethodNode extends MethodVisitor {
    * @param classVisitor a class visitor.
    */
   public void accept(final ClassVisitor classVisitor) {
-    String[] exceptionsArray = exceptions == null ? null : exceptions.toArray(new String[0]);
     MethodVisitor methodVisitor =
-        classVisitor.visitMethod(access, name, desc, signature, exceptionsArray);
+        classVisitor.visitMethod(
+            access, name, desc, signature, Collections.toStringArray(exceptions));
     if (methodVisitor != null) {
       accept(methodVisitor);
     }

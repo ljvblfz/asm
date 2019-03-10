@@ -30,14 +30,15 @@ package org.objectweb.asm.tree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Collections;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -53,7 +54,7 @@ public class MethodNodeTest extends AsmTest {
 
   @Test
   public void testConstructor() {
-    MethodNode methodNode = new MethodNode(123, "method", "()V", null, null);
+    MethodNode methodNode = new MethodNode(123, "method", "()V", null, (String[]) null);
 
     assertEquals(123, methodNode.access);
     assertEquals("method", methodNode.name);
@@ -75,7 +76,7 @@ public class MethodNodeTest extends AsmTest {
     byte[] classFile = classParameter.getBytes();
     ClassReader classReader = new ClassReader(classFile);
     ClassNode classNode =
-        new ClassNode(apiParameter.value()) {
+        new ClassNode(Opcodes.ASM8) {
 
           @Override
           public MethodVisitor visitMethod(
@@ -83,13 +84,13 @@ public class MethodNodeTest extends AsmTest {
               final String name,
               final String descriptor,
               final String signature,
-              final String[] exceptions) {
+              final Array<String> exceptions) {
             MethodNode method = new MethodNode();
             method.access = access;
             method.name = name;
             method.desc = descriptor;
             method.signature = signature;
-            method.exceptions = exceptions == null ? null : Arrays.asList(exceptions);
+            method.exceptions = Collections.toArrayList(exceptions);
             methods.add(method);
             return method;
           }

@@ -154,7 +154,7 @@ public class ClassReaderTest extends AsmTest implements Opcodes {
     assertNotNull(classReader.getInterfaces());
     AtomicInteger classVersion = new AtomicInteger(0);
     classReader.accept(
-        new ClassVisitor(apiParameter.value()) {
+        new ClassVisitor(Opcodes.ASM8) {
           @Override
           public void visit(
               final int version,
@@ -162,7 +162,7 @@ public class ClassReaderTest extends AsmTest implements Opcodes {
               final String name,
               final String signature,
               final String superName,
-              final String[] interfaces) {
+              final Array<String> interfaces) {
             classVersion.set(version);
           }
         },
@@ -387,7 +387,11 @@ public class ClassReaderTest extends AsmTest implements Opcodes {
               final String name,
               final String descriptor,
               final String signature,
-              final String[] exceptions) {
+              final Array<String> exceptions) {
+            if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+              // Redirect the call to the deprecated version of this method.
+              return super.visitMethod(access, name, descriptor, signature, exceptions);
+            }
             return null;
           }
 
@@ -412,7 +416,7 @@ public class ClassReaderTest extends AsmTest implements Opcodes {
             || invalidClass == InvalidClass.INVALID_CP_INFO_TAG);
     ClassReader classReader = new ClassReader(invalidClass.getBytes());
 
-    Executable accept = () -> classReader.accept(new EmptyClassVisitor(ASM7), 0);
+    Executable accept = () -> classReader.accept(new EmptyClassVisitor(ASM8), 0);
 
     if (invalidClass == InvalidClass.INVALID_CONSTANT_POOL_INDEX
         || invalidClass == InvalidClass.INVALID_CONSTANT_POOL_REFERENCE
@@ -497,7 +501,11 @@ public class ClassReaderTest extends AsmTest implements Opcodes {
               final String name,
               final String descriptor,
               final String signature,
-              final String[] exceptions) {
+              final Array<String> exceptions) {
+            if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+              // Redirect the call to the deprecated version of this method.
+              return super.visitMethod(access, name, descriptor, signature, exceptions);
+            }
             return new MethodVisitor(api) {};
           }
         };
@@ -517,14 +525,14 @@ public class ClassReaderTest extends AsmTest implements Opcodes {
     ClassReader classReader = new ClassReader(PrecompiledClass.JDK5_LOCAL_CLASS.getBytes());
     AtomicInteger parameterIndex = new AtomicInteger(-1);
     ClassVisitor readParameterIndexVisitor =
-        new ClassVisitor(Opcodes.ASM7) {
+        new ClassVisitor(Opcodes.ASM8) {
           @Override
           public MethodVisitor visitMethod(
               final int access,
               final String name,
               final String descriptor,
               final String signature,
-              final String[] exceptions) {
+              final Array<String> exceptions) {
             return new MethodVisitor(api, null) {
               @Override
               public AnnotationVisitor visitParameterAnnotation(
@@ -548,7 +556,7 @@ public class ClassReaderTest extends AsmTest implements Opcodes {
     ClassReader classReader = new ClassReader(PrecompiledClass.JDK11_ALL_INSTRUCTIONS.getBytes());
     AtomicInteger classVersion = new AtomicInteger(0);
     ClassVisitor readVersionVisitor =
-        new ClassVisitor(Opcodes.ASM7) {
+        new ClassVisitor(Opcodes.ASM8) {
           @Override
           public void visit(
               final int version,
@@ -556,7 +564,7 @@ public class ClassReaderTest extends AsmTest implements Opcodes {
               final String name,
               final String signature,
               final String superName,
-              final String[] interfaces) {
+              final Array<String> interfaces) {
             classVersion.set(version);
           }
         };
@@ -631,7 +639,12 @@ public class ClassReaderTest extends AsmTest implements Opcodes {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
+      if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitMethod(access, name, descriptor, signature, exceptions);
+      }
+
       return new MethodVisitor(api) {
 
         @Override
@@ -681,11 +694,17 @@ public class ClassReaderTest extends AsmTest implements Opcodes {
         public AnnotationVisitor visitLocalVariableAnnotation(
             final int typeRef,
             final TypePath typePath,
-            final Label[] start,
-            final Label[] end,
-            final int[] index,
+            final Array<Label> start,
+            final Array<Label> end,
+            final IntArray index,
             final String descriptor,
             final boolean visible) {
+          if (api < Opcodes.ASM8 && start.isPublic()) {
+            // Redirect the call to the deprecated version of this method.
+            return super.visitLocalVariableAnnotation(
+                typeRef, typePath, start, end, index, descriptor, visible);
+          }
+
           return annotationVisitor;
         }
       };

@@ -28,6 +28,7 @@
 
 package org.objectweb.asm.commons;
 
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -49,7 +50,7 @@ public class ModuleRemapper extends ModuleVisitor {
    * @param remapper the remapper to use to remap the types in the visited module.
    */
   public ModuleRemapper(final ModuleVisitor moduleVisitor, final Remapper remapper) {
-    this(Opcodes.ASM7, moduleVisitor, remapper);
+    this(Opcodes.ASM8, moduleVisitor, remapper);
   }
 
   /**
@@ -83,27 +84,31 @@ public class ModuleRemapper extends ModuleVisitor {
   }
 
   @Override
-  public void visitExport(final String packaze, final int access, final String... modules) {
-    String[] remappedModules = null;
-    if (modules != null) {
-      remappedModules = new String[modules.length];
-      for (int i = 0; i < modules.length; ++i) {
-        remappedModules[i] = remapper.mapModuleName(modules[i]);
-      }
+  public void visitExport(final String packaze, final int access, final Array<String> modules) {
+    if (api < Opcodes.ASM8 && modules.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitExport(packaze, access, modules);
+      return;
     }
-    super.visitExport(remapper.mapPackageName(packaze), access, remappedModules);
+    Array.Builder<String> remappedModules = modules.toBuilder();
+    for (int i = 0; i < modules.size(); ++i) {
+      remappedModules.set(i, remapper.mapModuleName(modules.get(i)));
+    }
+    super.visitExport(remapper.mapPackageName(packaze), access, remappedModules.build());
   }
 
   @Override
-  public void visitOpen(final String packaze, final int access, final String... modules) {
-    String[] remappedModules = null;
-    if (modules != null) {
-      remappedModules = new String[modules.length];
-      for (int i = 0; i < modules.length; ++i) {
-        remappedModules[i] = remapper.mapModuleName(modules[i]);
-      }
+  public void visitOpen(final String packaze, final int access, final Array<String> modules) {
+    if (api < Opcodes.ASM8 && modules.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitOpen(packaze, access, modules);
+      return;
     }
-    super.visitOpen(remapper.mapPackageName(packaze), access, remappedModules);
+    Array.Builder<String> remappedModules = modules.toBuilder();
+    for (int i = 0; i < modules.size(); ++i) {
+      remappedModules.set(i, remapper.mapModuleName(modules.get(i)));
+    }
+    super.visitOpen(remapper.mapPackageName(packaze), access, remappedModules.build());
   }
 
   @Override
@@ -112,11 +117,16 @@ public class ModuleRemapper extends ModuleVisitor {
   }
 
   @Override
-  public void visitProvide(final String service, final String... providers) {
-    String[] remappedProviders = new String[providers.length];
-    for (int i = 0; i < providers.length; ++i) {
-      remappedProviders[i] = remapper.mapType(providers[i]);
+  public void visitProvide(final String service, final Array<String> providers) {
+    if (api < Opcodes.ASM8 && providers.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitProvide(service, providers);
+      return;
     }
-    super.visitProvide(remapper.mapType(service), remappedProviders);
+    Array.Builder<String> remappedProviders = providers.toBuilder();
+    for (int i = 0; i < providers.size(); ++i) {
+      remappedProviders.set(i, remapper.mapModuleName(providers.get(i)));
+    }
+    super.visitProvide(remapper.mapType(service), remappedProviders.build());
   }
 }

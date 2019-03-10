@@ -158,7 +158,6 @@ public class ConstantsTest {
     assertEquals(opcodes.size(), opcodeValues.size());
     for (int opcode : opcodeValues) {
       assertEquals(0, opcode & ~0xFF);
-      assertEquals(0, opcode & Opcodes.SOURCE_MASK);
     }
   }
 
@@ -175,6 +174,7 @@ public class ConstantsTest {
       case "ASM5":
       case "ASM6":
       case "ASM7":
+      case "ASM8":
         return ConstantType.ASM_VERSION;
       case "V_PREVIEW":
       case "V1_1":
@@ -480,6 +480,12 @@ public class ConstantsTest {
       case "ASM_IFNULL_OPCODE_DELTA":
       case "SOURCE_DEPRECATED":
       case "SOURCE_MASK":
+      case "NO_LABELS":
+      case "NO_BOOTSTRAP_ARGUMENTS":
+      case "NO_TYPES":
+      case "NO_EXCEPTIONS":
+      case "NO_INTERFACES":
+      case "NO_MODULES":
         return ConstantType.OTHER;
       default:
         throw new IllegalArgumentException("Unknown constant " + field.getName());

@@ -132,7 +132,7 @@ public class Textifier extends Printer {
    * @throws IllegalStateException If a subclass calls this constructor.
    */
   public Textifier() {
-    this(Opcodes.ASM7);
+    this(Opcodes.ASM8);
     if (getClass() != Textifier.class) {
       throw new IllegalStateException();
     }

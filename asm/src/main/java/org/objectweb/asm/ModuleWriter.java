@@ -94,7 +94,7 @@ final class ModuleWriter extends ModuleVisitor {
   private int mainClassIndex;
 
   ModuleWriter(final SymbolTable symbolTable, final int name, final int access, final int version) {
-    super(Opcodes.ASM7);
+    super(Opcodes.ASM8);
     this.symbolTable = symbolTable;
     this.moduleNameIndex = name;
     this.moduleFlags = access;
@@ -128,29 +128,28 @@ final class ModuleWriter extends ModuleVisitor {
   }
 
   @Override
-  public void visitExport(final String packaze, final int access, final String... modules) {
-    exports.putShort(symbolTable.addConstantPackage(packaze).index).putShort(access);
-    if (modules == null) {
-      exports.putShort(0);
-    } else {
-      exports.putShort(modules.length);
-      for (String module : modules) {
-        exports.putShort(symbolTable.addConstantModule(module).index);
-      }
+  public void visitExport(
+      final String packaze, final int access, final Array<String> modulesArray) {
+    String[] modules = modulesArray.elements;
+    exports
+        .putShort(symbolTable.addConstantPackage(packaze).index)
+        .putShort(access)
+        .putShort(modules.length);
+    for (String module : modules) {
+      exports.putShort(symbolTable.addConstantModule(module).index);
     }
     exportsCount++;
   }
 
   @Override
-  public void visitOpen(final String packaze, final int access, final String... modules) {
-    opens.putShort(symbolTable.addConstantPackage(packaze).index).putShort(access);
-    if (modules == null) {
-      opens.putShort(0);
-    } else {
-      opens.putShort(modules.length);
-      for (String module : modules) {
-        opens.putShort(symbolTable.addConstantModule(module).index);
-      }
+  public void visitOpen(final String packaze, final int access, final Array<String> modulesArray) {
+    String[] modules = modulesArray.elements;
+    opens
+        .putShort(symbolTable.addConstantPackage(packaze).index)
+        .putShort(access)
+        .putShort(modules.length);
+    for (String module : modules) {
+      opens.putShort(symbolTable.addConstantModule(module).index);
     }
     opensCount++;
   }
@@ -162,9 +161,9 @@ final class ModuleWriter extends ModuleVisitor {
   }
 
   @Override
-  public void visitProvide(final String service, final String... providers) {
-    provides.putShort(symbolTable.addConstantClass(service).index);
-    provides.putShort(providers.length);
+  public void visitProvide(final String service, final Array<String> providersArray) {
+    String[] providers = providersArray.elements;
+    provides.putShort(symbolTable.addConstantClass(service).index).putShort(providers.length);
     for (String provider : providers) {
       provides.putShort(symbolTable.addConstantClass(provider).index);
     }

@@ -75,12 +75,17 @@ public abstract class MethodVisitor {
    * Constructs a new {@link MethodVisitor}.
    *
    * @param api the ASM API version implemented by this visitor. Must be one of {@link
-   *     Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or {@link Opcodes#ASM7}.
+   *     Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6}, {@link Opcodes#ASM7} or {@link
+   *     Opcodes#ASM8}.
    * @param methodVisitor the method visitor to which this visitor must delegate method calls. May
    *     be null.
    */
   public MethodVisitor(final int api, final MethodVisitor methodVisitor) {
-    if (api != Opcodes.ASM7 && api != Opcodes.ASM6 && api != Opcodes.ASM5 && api != Opcodes.ASM4) {
+    if (api != Opcodes.ASM8
+        && api != Opcodes.ASM7
+        && api != Opcodes.ASM6
+        && api != Opcodes.ASM5
+        && api != Opcodes.ASM4) {
       throw new IllegalArgumentException("Unsupported api " + api);
     }
     this.api = api;
@@ -280,15 +285,87 @@ public abstract class MethodVisitor {
    * @throws IllegalStateException if a frame is visited just after another one, without any
    *     instruction between the two (unless this frame is a Opcodes#F_SAME frame, in which case it
    *     is silently ignored).
+   * @deprecated Use {@link #visitFrame(int, int, Array, int, Array)} instead.
    */
+  @Deprecated
   public void visitFrame(
       final int type,
       final int numLocal,
       final Object[] local,
       final int numStack,
       final Object[] stack) {
+    boolean isPublic = api >= Opcodes.ASM8;
+    visitFrame(type, numLocal, Array.of(local, true), numStack, Array.of(stack, isPublic));
+  }
+
+  /**
+   * Visits the current state of the local variables and operand stack elements. This method must(*)
+   * be called <i>just before</i> any instruction <b>i</b> that follows an unconditional branch
+   * instruction such as GOTO or THROW, that is the target of a jump instruction, or that starts an
+   * exception handler block. The visited types must describe the values of the local variables and
+   * of the operand stack elements <i>just before</i> <b>i</b> is executed.<br>
+   * <br>
+   * (*) this is mandatory only for classes whose version is greater than or equal to {@link
+   * Opcodes#V1_6}. <br>
+   * <br>
+   * The frames of a method must be given either in expanded form, or in compressed form (all frames
+   * must use the same format, i.e. you must not mix expanded and compressed frames within a single
+   * method):
+   *
+   * <ul>
+   *   <li>In expanded form, all frames must have the F_NEW type.
+   *   <li>In compressed form, frames are basically "deltas" from the state of the previous frame:
+   *       <ul>
+   *         <li>{@link Opcodes#F_SAME} representing frame with exactly the same locals as the
+   *             previous frame and with the empty stack.
+   *         <li>{@link Opcodes#F_SAME1} representing frame with exactly the same locals as the
+   *             previous frame and with single value on the stack ( <code>numStack</code> is 1 and
+   *             <code>stack[0]</code> contains value for the type of the stack item).
+   *         <li>{@link Opcodes#F_APPEND} representing frame with current locals are the same as the
+   *             locals in the previous frame, except that additional locals are defined (<code>
+   *             numLocal</code> is 1, 2 or 3 and <code>local</code> elements contains values
+   *             representing added types).
+   *         <li>{@link Opcodes#F_CHOP} representing frame with current locals are the same as the
+   *             locals in the previous frame, except that the last 1-3 locals are absent and with
+   *             the empty stack (<code>numLocal</code> is 1, 2 or 3).
+   *         <li>{@link Opcodes#F_FULL} representing complete frame data.
+   *       </ul>
+   * </ul>
+   *
+   * <br>
+   * In both cases the first frame, corresponding to the method's parameters and access flags, is
+   * implicit and must not be visited. Also, it is illegal to visit two or more frames for the same
+   * code location (i.e., at least one instruction must be visited between two calls to visitFrame).
+   *
+   * @param type the type of this stack map frame. Must be {@link Opcodes#F_NEW} for expanded
+   *     frames, or {@link Opcodes#F_FULL}, {@link Opcodes#F_APPEND}, {@link Opcodes#F_CHOP}, {@link
+   *     Opcodes#F_SAME} or {@link Opcodes#F_APPEND}, {@link Opcodes#F_SAME1} for compressed frames.
+   * @param numLocal the number of local variables in the visited frame.
+   * @param local the local variable types in this frame. Primitive types are represented by {@link
+   *     Opcodes#TOP}, {@link Opcodes#INTEGER}, {@link Opcodes#FLOAT}, {@link Opcodes#LONG}, {@link
+   *     Opcodes#DOUBLE}, {@link Opcodes#NULL} or {@link Opcodes#UNINITIALIZED_THIS} (long and
+   *     double are represented by a single element). Reference types are represented by String
+   *     objects (representing internal names), and uninitialized types by Label objects (this label
+   *     designates the NEW instruction that created this uninitialized value).
+   * @param numStack the number of operand stack elements in the visited frame.
+   * @param stack the operand stack types in this frame. Its content has the same format as the
+   *     "local" array.
+   * @throws IllegalStateException if a frame is visited just after another one, without any
+   *     instruction between the two (unless this frame is a Opcodes#F_SAME frame, in which case it
+   *     is silently ignored).
+   */
+  public void visitFrame(
+      final int type,
+      final int numLocal,
+      final Array<Object> local,
+      final int numStack,
+      final Array<Object> stack) {
+    if (api < Opcodes.ASM8 && stack.isPublic()) {
+      visitFrame(type, numLocal, local.toArray(), numStack, stack.toArray());
+      return;
+    }
     if (mv != null) {
-      mv.visitFrame(type, numLocal, local, numStack, stack);
+      mv.visitFrame(type, numLocal, local, numStack, stack.toPublic());
     }
   }
 
@@ -440,17 +517,48 @@ public abstract class MethodVisitor {
    *     an {@link Integer}, {@link Float}, {@link Long}, {@link Double}, {@link String}, {@link
    *     Type}, {@link Handle} or {@link ConstantDynamic} value. This method is allowed to modify
    *     the content of the array so a caller should expect that this array may change.
+   * @deprecated Use {@link #visitInvokeDynamicInsn(String, String, Handle, Array)} instead.
    */
+  @Deprecated
   public void visitInvokeDynamicInsn(
       final String name,
       final String descriptor,
       final Handle bootstrapMethodHandle,
       final Object... bootstrapMethodArguments) {
+    visitInvokeDynamicInsn(
+        name,
+        descriptor,
+        bootstrapMethodHandle,
+        Array.of(bootstrapMethodArguments, api >= Opcodes.ASM8));
+  }
+
+  /**
+   * Visits an invokedynamic instruction.
+   *
+   * @param name the method's name.
+   * @param descriptor the method's descriptor (see {@link Type}).
+   * @param bootstrapMethodHandle the bootstrap method.
+   * @param bootstrapMethodArguments the bootstrap method constant arguments. Each argument must be
+   *     an {@link Integer}, {@link Float}, {@link Long}, {@link Double}, {@link String}, {@link
+   *     Type}, {@link Handle} or {@link ConstantDynamic} value.
+   */
+  public void visitInvokeDynamicInsn(
+      final String name,
+      final String descriptor,
+      final Handle bootstrapMethodHandle,
+      final Array<Object> bootstrapMethodArguments) {
+    if (api < Opcodes.ASM8 && bootstrapMethodArguments.isPublic()) {
+      visitInvokeDynamicInsn(
+          name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments.toArray());
+      return;
+    }
+
     if (api < Opcodes.ASM5) {
       throw new UnsupportedOperationException(REQUIRES_ASM5);
     }
     if (mv != null) {
-      mv.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+      mv.visitInvokeDynamicInsn(
+          name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments.toPublic());
     }
   }
 
@@ -534,7 +642,8 @@ public abstract class MethodVisitor {
             || (value instanceof Type && ((Type) value).getSort() == Type.METHOD))) {
       throw new UnsupportedOperationException(REQUIRES_ASM5);
     }
-    if (api != Opcodes.ASM7 && value instanceof ConstantDynamic) {
+
+    if (api < Opcodes.ASM7 && value instanceof ConstantDynamic) {
       throw new UnsupportedOperationException("This feature requires ASM7");
     }
     if (mv != null) {
@@ -562,11 +671,32 @@ public abstract class MethodVisitor {
    * @param dflt beginning of the default handler block.
    * @param labels beginnings of the handler blocks. {@code labels[i]} is the beginning of the
    *     handler block for the {@code min + i} key.
+   * @deprecated Use {@link #visitTableSwitchInsn(int, int, Label, Array)} instead.
    */
+  @Deprecated
   public void visitTableSwitchInsn(
       final int min, final int max, final Label dflt, final Label... labels) {
+    visitTableSwitchInsn(min, max, dflt, Array.of(labels, api >= Opcodes.ASM8));
+  }
+
+  /**
+   * Visits a TABLESWITCH instruction.
+   *
+   * @param min the minimum key value.
+   * @param max the maximum key value.
+   * @param dflt beginning of the default handler block.
+   * @param labels beginnings of the handler blocks. {@code labels[i]} is the beginning of the
+   *     handler block for the {@code min + i} key.
+   */
+  public void visitTableSwitchInsn(
+      final int min, final int max, final Label dflt, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      visitTableSwitchInsn(min, max, dflt, labels.toArray());
+      return;
+    }
+
     if (mv != null) {
-      mv.visitTableSwitchInsn(min, max, dflt, labels);
+      mv.visitTableSwitchInsn(min, max, dflt, labels.toPublic());
     }
   }
 
@@ -577,10 +707,30 @@ public abstract class MethodVisitor {
    * @param keys the values of the keys.
    * @param labels beginnings of the handler blocks. {@code labels[i]} is the beginning of the
    *     handler block for the {@code keys[i]} key.
+   * @deprecated Use {@link #visitLookupSwitchInsn(Label, IntArray, Array)} instead.
    */
+  @Deprecated
   public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
+    visitLookupSwitchInsn(dflt, new IntArray(keys), Array.of(labels, api >= Opcodes.ASM8));
+  }
+
+  /**
+   * Visits a LOOKUPSWITCH instruction.
+   *
+   * @param dflt beginning of the default handler block.
+   * @param keys the values of the keys.
+   * @param labels beginnings of the handler blocks. {@code labels[i]} is the beginning of the
+   *     handler block for the {@code keys[i]} key.
+   */
+  public void visitLookupSwitchInsn(
+      final Label dflt, final IntArray keys, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      visitLookupSwitchInsn(dflt, keys.toArray(), labels.toArray());
+      return;
+    }
+
     if (mv != null) {
-      mv.visitLookupSwitchInsn(dflt, keys, labels);
+      mv.visitLookupSwitchInsn(dflt, keys, labels.toPublic());
     }
   }
 
@@ -719,7 +869,10 @@ public abstract class MethodVisitor {
    * @param visible {@literal true} if the annotation is visible at runtime.
    * @return a visitor to visit the annotation values, or {@literal null} if this visitor is not
    *     interested in visiting this annotation.
+   * @deprecated Use {@link #visitLocalVariableAnnotation(int, TypePath, Array, Array, IntArray,
+   *     String, boolean)} instead.
    */
+  @Deprecated
   public AnnotationVisitor visitLocalVariableAnnotation(
       final int typeRef,
       final TypePath typePath,
@@ -728,12 +881,55 @@ public abstract class MethodVisitor {
       final int[] index,
       final String descriptor,
       final boolean visible) {
+    return visitLocalVariableAnnotation(
+        typeRef,
+        typePath,
+        Array.of(start, api >= Opcodes.ASM8),
+        Array.of(end, true),
+        new IntArray(index),
+        descriptor,
+        visible);
+  }
+
+  /**
+   * Visits an annotation on a local variable type.
+   *
+   * @param typeRef a reference to the annotated type. The sort of this type reference must be
+   *     {@link TypeReference#LOCAL_VARIABLE} or {@link TypeReference#RESOURCE_VARIABLE}. See {@link
+   *     TypeReference}.
+   * @param typePath the path to the annotated type argument, wildcard bound, array element type, or
+   *     static inner type within 'typeRef'. May be {@literal null} if the annotation targets
+   *     'typeRef' as a whole.
+   * @param start the fist instructions corresponding to the continuous ranges that make the scope
+   *     of this local variable (inclusive).
+   * @param end the last instructions corresponding to the continuous ranges that make the scope of
+   *     this local variable (exclusive). This array must have the same size as the 'start' array.
+   * @param index the local variable's index in each range. This array must have the same size as
+   *     the 'start' array.
+   * @param descriptor the class descriptor of the annotation class.
+   * @param visible {@literal true} if the annotation is visible at runtime.
+   * @return a visitor to visit the annotation values, or {@literal null} if this visitor is not
+   *     interested in visiting this annotation.
+   */
+  public AnnotationVisitor visitLocalVariableAnnotation(
+      final int typeRef,
+      final TypePath typePath,
+      final Array<Label> start,
+      final Array<Label> end,
+      final IntArray index,
+      final String descriptor,
+      final boolean visible) {
+    if (api < Opcodes.ASM8 && start.isPublic()) {
+      return visitLocalVariableAnnotation(
+          typeRef, typePath, start.toArray(), end.toArray(), index.toArray(), descriptor, visible);
+    }
+
     if (api < Opcodes.ASM5) {
       throw new UnsupportedOperationException(REQUIRES_ASM5);
     }
     if (mv != null) {
       return mv.visitLocalVariableAnnotation(
-          typeRef, typePath, start, end, index, descriptor, visible);
+          typeRef, typePath, start.toPublic(), end, index, descriptor, visible);
     }
     return null;
   }

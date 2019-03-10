@@ -41,6 +41,7 @@ import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -519,8 +520,8 @@ public class AdviceAdapterTest extends AsmTest {
     MethodNode outputMethod = new MethodNode(Opcodes.ACC_PUBLIC, "<init>", "(I)V", null, null);
     AdviceAdapter adviceAdapter =
         new AdviceAdapter(
-            Opcodes.ASM7,
-            new MethodVisitor(Opcodes.ASM7, outputMethod) {},
+            Opcodes.ASM8,
+            new MethodVisitor(Opcodes.ASM8, outputMethod) {},
             Opcodes.ACC_PUBLIC,
             "<init>",
             "()V") {
@@ -578,7 +579,7 @@ public class AdviceAdapterTest extends AsmTest {
   private static class BasicAdviceAdapter extends AdviceAdapter {
 
     BasicAdviceAdapter(final MethodVisitor methodVisitor) {
-      super(Opcodes.ASM7, methodVisitor, Opcodes.ACC_PUBLIC, "<init>", "(I)V");
+      super(Opcodes.ASM8, methodVisitor, Opcodes.ACC_PUBLIC, "<init>", "(I)V");
     }
 
     @Override
@@ -683,7 +684,12 @@ public class AdviceAdapterTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
+      if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitMethod(access, name, descriptor, signature, exceptions);
+      }
+
       MethodVisitor methodVisitor =
           super.visitMethod(access, name, descriptor, signature, exceptions);
       if (methodVisitor == null || (access & (Opcodes.ACC_ABSTRACT | Opcodes.ACC_NATIVE)) > 0) {

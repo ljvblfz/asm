@@ -29,6 +29,8 @@
 package org.objectweb.asm.tree;
 
 import java.util.List;
+import org.objectweb.asm.Array;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -84,7 +86,7 @@ public class LocalVariableAnnotationNode extends TypeAnnotationNode {
       final LabelNode[] end,
       final int[] index,
       final String descriptor) {
-    this(Opcodes.ASM7, typeRef, typePath, start, end, index, descriptor);
+    this(Opcodes.ASM8, typeRef, typePath, start, end, index, descriptor);
   }
 
   /**
@@ -125,16 +127,23 @@ public class LocalVariableAnnotationNode extends TypeAnnotationNode {
    * @param visible {@literal true} if the annotation is visible at runtime.
    */
   public void accept(final MethodVisitor methodVisitor, final boolean visible) {
-    Label[] startLabels = new Label[this.start.size()];
-    Label[] endLabels = new Label[this.end.size()];
-    int[] indices = new int[this.index.size()];
-    for (int i = 0, n = startLabels.length; i < n; ++i) {
-      startLabels[i] = this.start.get(i).getLabel();
-      endLabels[i] = this.end.get(i).getLabel();
-      indices[i] = this.index.get(i);
+    int size = this.start.size();
+    Array.Builder<Label> startLabels = Array.newLabels(size);
+    Array.Builder<Label> endLabels = Array.newLabels(size);
+    IntArray.Builder indices = IntArray.newBuilder(size);
+    for (int i = 0; i < size; ++i) {
+      startLabels.set(i, this.start.get(i).getLabel());
+      endLabels.set(i, this.end.get(i).getLabel());
+      indices.set(i, this.index.get(i));
     }
     accept(
         methodVisitor.visitLocalVariableAnnotation(
-            typeRef, typePath, startLabels, endLabels, indices, desc, visible));
+            typeRef,
+            typePath,
+            startLabels.build(),
+            endLabels.build(),
+            indices.build(),
+            desc,
+            visible));
   }
 }

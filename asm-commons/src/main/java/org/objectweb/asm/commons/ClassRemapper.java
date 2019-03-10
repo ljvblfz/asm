@@ -30,6 +30,7 @@ package org.objectweb.asm.commons;
 
 import java.util.List;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -59,7 +60,7 @@ public class ClassRemapper extends ClassVisitor {
    * @param remapper the remapper to use to remap the types in the visited class.
    */
   public ClassRemapper(final ClassVisitor classVisitor, final Remapper remapper) {
-    this(Opcodes.ASM7, classVisitor, remapper);
+    this(Opcodes.ASM8, classVisitor, remapper);
   }
 
   /**
@@ -83,7 +84,13 @@ public class ClassRemapper extends ClassVisitor {
       final String name,
       final String signature,
       final String superName,
-      final String[] interfaces) {
+      final Array<String> interfaces) {
+    if (api < Opcodes.ASM8 && interfaces.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visit(version, access, name, signature, superName, interfaces);
+      return;
+    }
+
     this.className = name;
     super.visit(
         version,
@@ -91,7 +98,7 @@ public class ClassRemapper extends ClassVisitor {
         remapper.mapType(name),
         remapper.mapSignature(signature, false),
         remapper.mapType(superName),
-        interfaces == null ? null : remapper.mapTypes(interfaces));
+        remapper.mapTypes(interfaces));
   }
 
   @Override
@@ -150,7 +157,12 @@ public class ClassRemapper extends ClassVisitor {
       final String name,
       final String descriptor,
       final String signature,
-      final String[] exceptions) {
+      final Array<String> exceptions) {
+    if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      return super.visitMethod(access, name, descriptor, signature, exceptions);
+    }
+
     String remappedDescriptor = remapper.mapMethodDesc(descriptor);
     MethodVisitor methodVisitor =
         super.visitMethod(
@@ -158,7 +170,7 @@ public class ClassRemapper extends ClassVisitor {
             remapper.mapMethodName(className, name, descriptor),
             remappedDescriptor,
             remapper.mapSignature(signature, false),
-            exceptions == null ? null : remapper.mapTypes(exceptions));
+            remapper.mapTypes(exceptions));
     return methodVisitor == null ? null : createMethodRemapper(methodVisitor);
   }
 

@@ -294,7 +294,8 @@ public class ClassWriterTest extends AsmTest {
     String methodName = "m";
     String descriptor = "()V";
     MethodVisitor methodVisitor =
-        classWriter.visitMethod(Opcodes.ACC_STATIC, methodName, descriptor, null, null);
+        classWriter.visitMethod(
+            Opcodes.ACC_STATIC, methodName, descriptor, null, Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitCode();
     for (int i = 0; i < methodCodeSize - 1; ++i) {
       methodVisitor.visitInsn(Opcodes.NOP);
@@ -350,10 +351,11 @@ public class ClassWriterTest extends AsmTest {
   @Test
   public void testToByteArray_computeFrames_mergeLongOrDouble() {
     ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-    classWriter.visit(Opcodes.V1_7, Opcodes.ACC_PUBLIC, "A", null, "java/lang/Object", null);
+    classWriter.visit(
+        Opcodes.V1_7, Opcodes.ACC_PUBLIC, "A", null, "java/lang/Object", Opcodes.NO_INTERFACES);
     // Generate a default constructor, so that we can instantiate the class.
     MethodVisitor methodVisitor =
-        classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+        classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitCode();
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
     methodVisitor.visitMethodInsn(
@@ -364,7 +366,8 @@ public class ClassWriterTest extends AsmTest {
     // A method with a long local variable using slots 0 and 1, with an int stored in slot 1 in a
     // branch. At the end of the method, the stack map frame should contain 'TOP' for slot 0,
     // otherwise the class instantiation fails with a verification error.
-    methodVisitor = classWriter.visitMethod(Opcodes.ACC_STATIC, "m", "(J)V", null, null);
+    methodVisitor =
+        classWriter.visitMethod(Opcodes.ACC_STATIC, "m", "(J)V", null, Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitCode();
     methodVisitor.visitInsn(Opcodes.ICONST_0);
     Label label = new Label();
@@ -385,14 +388,15 @@ public class ClassWriterTest extends AsmTest {
   @Test
   public void testToByteArray_computeFrames_highDimensionArrays() {
     ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-    classWriter.visit(Opcodes.V1_7, Opcodes.ACC_PUBLIC, "A", null, "java/lang/Object", null);
+    classWriter.visit(
+        Opcodes.V1_7, Opcodes.ACC_PUBLIC, "A", null, "java/lang/Object", Opcodes.NO_INTERFACES);
     MethodVisitor methodVisitor =
         classWriter.visitMethod(
             Opcodes.ACC_STATIC,
             "m",
             "(I[[[[[[[[Ljava/lang/Integer;[[[[[[[[Ljava/lang/Long;)Ljava/lang/Object;",
             null,
-            null);
+            Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitCode();
     methodVisitor.visitVarInsn(Opcodes.ILOAD, 0);
     Label thenLabel = new Label();
@@ -710,7 +714,8 @@ public class ClassWriterTest extends AsmTest {
 
   private static ClassWriter newEmptyClassWriter() {
     ClassWriter classWriter = new ClassWriter(0);
-    classWriter.visit(Opcodes.V1_1, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", null);
+    classWriter.visit(
+        Opcodes.V1_1, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", Opcodes.NO_INTERFACES);
     return classWriter;
   }
 
@@ -741,7 +746,13 @@ public class ClassWriterTest extends AsmTest {
         final String name,
         final String signature,
         final String superName,
-        final String[] interfaces) {
+        final Array<String> interfaces) {
+      if (api < Opcodes.ASM8 && interfaces.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        super.visit(version, access, name, signature, superName, interfaces);
+        return;
+      }
+
       className = name;
       // Set V1_7 version to prevent fallback to old verifier.
       super.visit(
@@ -759,7 +770,12 @@ public class ClassWriterTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
+      if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitMethod(access, name, descriptor, signature, exceptions);
+      }
+
       int seed = (className + "." + name + descriptor).hashCode();
       return new MethodDeadCodeInserter(
           api, seed, super.visitMethod(access, name, descriptor, signature, exceptions));
@@ -809,12 +825,18 @@ public class ClassWriterTest extends AsmTest {
 
     @Override
     public void visitMethodInsn(
-        final int opcode,
+        final int opcodeAndSource,
         final String owner,
         final String name,
         final String descriptor,
         final boolean isInterface) {
-      super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+      if (api < Opcodes.ASM5 && (opcodeAndSource & Opcodes.SOURCE_DEPRECATED) == 0) {
+        // Redirect the call to the deprecated version of this method.
+        super.visitMethodInsn(opcodeAndSource, owner, name, descriptor, isInterface);
+        return;
+      }
+
+      super.visitMethodInsn(opcodeAndSource, owner, name, descriptor, isInterface);
       maybeInsertDeadCode();
     }
 
@@ -823,7 +845,14 @@ public class ClassWriterTest extends AsmTest {
         final String name,
         final String descriptor,
         final Handle bootstrapMethodHandle,
-        final Object... bootstrapMethodArguments) {
+        final Array<Object> bootstrapMethodArguments) {
+      if (api < Opcodes.ASM8 && bootstrapMethodArguments.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        super.visitInvokeDynamicInsn(
+            name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+        return;
+      }
+
       super.visitInvokeDynamicInsn(
           name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
       maybeInsertDeadCode();
@@ -866,13 +895,26 @@ public class ClassWriterTest extends AsmTest {
 
     @Override
     public void visitTableSwitchInsn(
-        final int min, final int max, final Label dflt, final Label... labels) {
+        final int min, final int max, final Label dflt, final Array<Label> labels) {
+      if (api < Opcodes.ASM8 && labels.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        super.visitTableSwitchInsn(min, max, dflt, labels);
+        return;
+      }
+
       super.visitTableSwitchInsn(min, max, dflt, labels);
       maybeInsertDeadCode();
     }
 
     @Override
-    public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
+    public void visitLookupSwitchInsn(
+        final Label dflt, final IntArray keys, final Array<Label> labels) {
+      if (api < Opcodes.ASM8 && labels.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        super.visitLookupSwitchInsn(dflt, keys, labels);
+        return;
+      }
+
       super.visitLookupSwitchInsn(dflt, keys, labels);
       maybeInsertDeadCode();
     }
@@ -922,7 +964,12 @@ public class ClassWriterTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
+      if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitMethod(access, name, descriptor, signature, exceptions);
+      }
+
       return new MethodVisitor(
           api, super.visitMethod(access, name, descriptor, signature, exceptions)) {
         private final HashSet<Label> labels = new HashSet<>();
@@ -964,7 +1011,13 @@ public class ClassWriterTest extends AsmTest {
         final String name,
         final String signature,
         final String superName,
-        final String[] interfaces) {
+        final Array<String> interfaces) {
+      if (api < Opcodes.ASM8 && interfaces.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        super.visit(version, access, name, signature, superName, interfaces);
+        return;
+      }
+
       needFrames = (version & 0xFFFF) >= Opcodes.V1_7;
       super.visit(version, access, name, signature, superName, interfaces);
     }
@@ -975,7 +1028,12 @@ public class ClassWriterTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
+      if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitMethod(access, name, descriptor, signature, exceptions);
+      }
+
       return new MethodVisitor(
           api, super.visitMethod(access, name, descriptor, signature, exceptions)) {
 
@@ -987,14 +1045,14 @@ public class ClassWriterTest extends AsmTest {
             visitJumpInsn(Opcodes.GOTO, startLabel);
             if (needFrames) {
               visitLabel(new Label());
-              visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+              visitFrame(Opcodes.F_SAME, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
             }
             for (int i = 0; i <= Short.MAX_VALUE; ++i) {
               visitInsn(Opcodes.NOP);
             }
             visitLabel(startLabel);
             if (needFrames) {
-              visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+              visitFrame(Opcodes.F_SAME, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
               visitInsn(Opcodes.NOP);
             }
             transformed = true;

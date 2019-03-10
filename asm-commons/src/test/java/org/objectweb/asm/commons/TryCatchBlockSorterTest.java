@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -64,21 +65,21 @@ public class TryCatchBlockSorterTest extends AsmTest {
     ClassReader classReader = new ClassReader(classParameter.getBytes());
     ClassWriter classWriter = new ClassWriter(0);
     ClassVisitor classVisitor =
-        new ClassVisitor(apiParameter.value(), classWriter) {
+        new ClassVisitor(Opcodes.ASM8, classWriter) {
           @Override
           public MethodVisitor visitMethod(
               final int access,
               final String name,
               final String descriptor,
               final String signature,
-              final String[] exceptions) {
+              final Array<String> exceptions) {
             return new TryCatchBlockSorter(
                 super.visitMethod(access, name, descriptor, signature, exceptions),
                 access,
                 name,
                 descriptor,
                 signature,
-                exceptions);
+                exceptions.toArray());
           }
         };
 

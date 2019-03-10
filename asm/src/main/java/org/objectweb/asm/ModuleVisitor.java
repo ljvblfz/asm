@@ -60,13 +60,13 @@ public abstract class ModuleVisitor {
   /**
    * Constructs a new {@link ModuleVisitor}.
    *
-   * @param api the ASM API version implemented by this visitor. Must be one of {@link Opcodes#ASM6}
-   *     or {@link Opcodes#ASM7}.
+   * @param api the ASM API version implemented by this visitor. Must be one of {@link
+   *     Opcodes#ASM6}, {@link Opcodes#ASM7} or {@link Opcodes#ASM8}.
    * @param moduleVisitor the module visitor to which this visitor must delegate method calls. May
    *     be null.
    */
   public ModuleVisitor(final int api, final ModuleVisitor moduleVisitor) {
-    if (api != Opcodes.ASM7 && api != Opcodes.ASM6) {
+    if (api != Opcodes.ASM8 && api != Opcodes.ASM7 && api != Opcodes.ASM6) {
       throw new IllegalArgumentException("Unsupported api " + api);
     }
     this.api = api;
@@ -117,10 +117,30 @@ public abstract class ModuleVisitor {
    *     ACC_SYNTHETIC} and {@code ACC_MANDATED}.
    * @param modules the fully qualified names (using dots) of the modules that can access the public
    *     classes of the exported package, or {@literal null}.
+   * @deprecated Use {@link #visitExport(String, int, Array)} instead.
    */
+  @Deprecated
   public void visitExport(final String packaze, final int access, final String... modules) {
+    visitExport(packaze, access, Array.of(modules, api >= Opcodes.ASM8));
+  }
+
+  /**
+   * Visit an exported package of the current module.
+   *
+   * @param packaze the internal name of the exported package.
+   * @param access the access flag of the exported package, valid values are among {@code
+   *     ACC_SYNTHETIC} and {@code ACC_MANDATED}.
+   * @param modules the fully qualified names (using dots) of the modules that can access the public
+   *     classes of the exported package.
+   */
+  public void visitExport(final String packaze, final int access, final Array<String> modules) {
+    if (api < Opcodes.ASM8 && modules.isPublic()) {
+      visitExport(packaze, access, modules.toArray());
+      return;
+    }
+
     if (mv != null) {
-      mv.visitExport(packaze, access, modules);
+      mv.visitExport(packaze, access, modules.toPublic());
     }
   }
 
@@ -132,10 +152,30 @@ public abstract class ModuleVisitor {
    *     ACC_SYNTHETIC} and {@code ACC_MANDATED}.
    * @param modules the fully qualified names (using dots) of the modules that can use deep
    *     reflection to the classes of the open package, or {@literal null}.
+   * @deprecated Use {@link #visitOpen(String, int, Array)} instead.
    */
+  @Deprecated
   public void visitOpen(final String packaze, final int access, final String... modules) {
+    visitOpen(packaze, access, Array.of(modules, api >= Opcodes.ASM8));
+  }
+
+  /**
+   * Visit an open package of the current module.
+   *
+   * @param packaze the internal name of the opened package.
+   * @param access the access flag of the opened package, valid values are among {@code
+   *     ACC_SYNTHETIC} and {@code ACC_MANDATED}.
+   * @param modules the fully qualified names (using dots) of the modules that can use deep
+   *     reflection to the classes of the open package.
+   */
+  public void visitOpen(final String packaze, final int access, final Array<String> modules) {
+    if (api < Opcodes.ASM8 && modules.isPublic()) {
+      visitOpen(packaze, access, modules.toArray());
+      return;
+    }
+
     if (mv != null) {
-      mv.visitOpen(packaze, access, modules);
+      mv.visitOpen(packaze, access, modules.toPublic());
     }
   }
 
@@ -157,10 +197,28 @@ public abstract class ModuleVisitor {
    * @param service the internal name of the service.
    * @param providers the internal names of the implementations of the service (there is at least
    *     one provider).
+   * @deprecated Use {@link #visitProvide(String, Array)} instead.
    */
+  @Deprecated
   public void visitProvide(final String service, final String... providers) {
+    visitProvide(service, Array.of(providers, api >= Opcodes.ASM8));
+  }
+
+  /**
+   * Visit an implementation of a service.
+   *
+   * @param service the internal name of the service.
+   * @param providers the internal names of the implementations of the service (there is at least
+   *     one provider).
+   */
+  public void visitProvide(final String service, final Array<String> providers) {
+    if (api < Opcodes.ASM8 && providers.isPublic()) {
+      visitProvide(service, providers.toArray());
+      return;
+    }
+
     if (mv != null) {
-      mv.visitProvide(service, providers);
+      mv.visitProvide(service, providers.toPublic());
     }
   }
 

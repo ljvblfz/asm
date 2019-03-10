@@ -28,6 +28,7 @@
 
 package org.objectweb.asm.commons;
 
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
@@ -117,6 +118,24 @@ public abstract class Remapper {
       }
     }
     return remappedInternalNames != null ? remappedInternalNames : internalNames;
+  }
+
+  /**
+   * Returns the given internal names, remapped with {@link #map(String)}.
+   *
+   * @param internalNames the internal names (or array type descriptors) of some (array) classes.
+   * @return the given internal name, remapped with {@link #map(String)}.
+   */
+  public Array<String> mapTypes(final Array<String> internalNames) {
+    int size = internalNames.size();
+    if (size == 0) {
+      return internalNames;
+    }
+    Array.Builder<String> remappedInternalNames = internalNames.toBuilder();
+    for (int i = 0; i < size; ++i) {
+      remappedInternalNames.set(i, mapType(internalNames.get(i)));
+    }
+    return remappedInternalNames.build();
   }
 
   /**

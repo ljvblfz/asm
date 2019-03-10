@@ -28,6 +28,7 @@
 package org.objectweb.asm.tree;
 
 import java.util.Map;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -81,7 +82,7 @@ public class InvokeDynamicInsnNode extends AbstractInsnNode {
 
   @Override
   public void accept(final MethodVisitor methodVisitor) {
-    methodVisitor.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
+    methodVisitor.visitInvokeDynamicInsn(name, desc, bsm, new Array<>(bsmArgs));
     acceptAnnotations(methodVisitor);
   }
 

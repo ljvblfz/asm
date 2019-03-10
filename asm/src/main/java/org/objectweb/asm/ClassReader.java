@@ -531,7 +531,12 @@ public class ClassReader {
     // Visit the class declaration. The minor_version and major_version fields start 6 bytes before
     // the first constant pool entry, which itself starts at cpInfoOffsets[1] - 1 (by definition).
     classVisitor.visit(
-        readInt(cpInfoOffsets[1] - 7), accessFlags, thisClass, signature, superClass, interfaces);
+        readInt(cpInfoOffsets[1] - 7),
+        accessFlags,
+        thisClass,
+        signature,
+        superClass,
+        Array.of(interfaces, true));
 
     // Visit the SourceFile and SourceDebugExtenstion attributes.
     if ((parsingOptions & SKIP_DEBUG) == 0
@@ -772,7 +777,7 @@ public class ClassReader {
           currentOffset += 2;
         }
       }
-      moduleVisitor.visitExport(exports, exportsFlags, exportsTo);
+      moduleVisitor.visitExport(exports, exportsFlags, Array.of(exportsTo, true));
     }
 
     // Reads the 'opens_count' and 'opens' fields.
@@ -792,7 +797,7 @@ public class ClassReader {
           currentOffset += 2;
         }
       }
-      moduleVisitor.visitOpen(opens, opensFlags, opensTo);
+      moduleVisitor.visitOpen(opens, opensFlags, Array.of(opensTo, true));
     }
 
     // Read the 'uses_count' and 'uses' fields.
@@ -816,7 +821,7 @@ public class ClassReader {
         providesWith[i] = readClass(currentOffset, buffer);
         currentOffset += 2;
       }
-      moduleVisitor.visitProvide(provides, providesWith);
+      moduleVisitor.visitProvide(provides, Array.of(providesWith, true));
     }
 
     // Visit the end of the module attributes.
@@ -1125,7 +1130,7 @@ public class ClassReader {
             context.currentMethodName,
             context.currentMethodDescriptor,
             signatureIndex == 0 ? null : readUtf(signatureIndex, charBuffer),
-            exceptions);
+            Array.of(exceptions, true));
     if (methodVisitor == null) {
       return currentOffset;
     }
@@ -1786,7 +1791,7 @@ public class ClassReader {
       // For this, MethodWriter needs to know maxLocals before the first instruction is visited. To
       // ensure this, we visit the implicit first frame here (passing only maxLocals - the rest is
       // computed in MethodWriter).
-      methodVisitor.visitFrame(Opcodes.F_NEW, maxLocals, null, 0, null);
+      methodVisitor.visitFrame(Opcodes.F_NEW, maxLocals, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
     }
 
     // Visit the bytecode instructions. First, introduce state variables for the incremental parsing
@@ -1831,21 +1836,7 @@ public class ClassReader {
         // If there is a stack map frame for this offset, make methodVisitor visit it, and read the
         // next stack map frame if there is one.
         if (context.currentFrameOffset != -1) {
-          if (!compressedFrames || expandFrames) {
-            methodVisitor.visitFrame(
-                Opcodes.F_NEW,
-                context.currentFrameLocalCount,
-                context.currentFrameLocalTypes,
-                context.currentFrameStackCount,
-                context.currentFrameStackTypes);
-          } else {
-            methodVisitor.visitFrame(
-                context.currentFrameType,
-                context.currentFrameLocalCountDelta,
-                context.currentFrameLocalTypes,
-                context.currentFrameStackCount,
-                context.currentFrameStackTypes);
-          }
+          context.visitFrame(methodVisitor, !compressedFrames || expandFrames);
           // Since there is already a stack map frame for this bytecode offset, there is no need to
           // insert a new one.
           insertFrame = false;
@@ -1862,7 +1853,7 @@ public class ClassReader {
       // true during the previous iteration. The actual frame content is computed in MethodWriter.
       if (insertFrame) {
         if ((context.parsingOptions & EXPAND_FRAMES) != 0) {
-          methodVisitor.visitFrame(Constants.F_INSERT, 0, null, 0, null);
+          methodVisitor.visitFrame(Constants.F_INSERT, 0, Opcodes.NO_TYPES, 0, Opcodes.NO_TYPES);
         }
         insertFrame = false;
       }
@@ -2140,7 +2131,7 @@ public class ClassReader {
               table[i] = labels[currentBytecodeOffset + readInt(currentOffset)];
               currentOffset += 4;
             }
-            methodVisitor.visitTableSwitchInsn(low, high, defaultLabel, table);
+            methodVisitor.visitTableSwitchInsn(low, high, defaultLabel, Array.of(table, true));
             break;
           }
         case Constants.LOOKUPSWITCH:
@@ -2158,7 +2149,8 @@ public class ClassReader {
               values[i] = labels[currentBytecodeOffset + readInt(currentOffset + 4)];
               currentOffset += 8;
             }
-            methodVisitor.visitLookupSwitchInsn(defaultLabel, keys, values);
+            methodVisitor.visitLookupSwitchInsn(
+                defaultLabel, new IntArray(keys), Array.of(values, true));
             break;
           }
         case Constants.ILOAD:
@@ -2239,7 +2231,7 @@ public class ClassReader {
               bootstrapMethodOffset += 2;
             }
             methodVisitor.visitInvokeDynamicInsn(
-                name, descriptor, handle, bootstrapMethodArguments);
+                name, descriptor, handle, Array.of(bootstrapMethodArguments, true));
             currentOffset += 5;
             break;
           }
@@ -2379,9 +2371,9 @@ public class ClassReader {
               methodVisitor.visitLocalVariableAnnotation(
                   context.currentTypeAnnotationTarget,
                   context.currentTypeAnnotationTargetPath,
-                  context.currentLocalVariableAnnotationRangeStarts,
-                  context.currentLocalVariableAnnotationRangeEnds,
-                  context.currentLocalVariableAnnotationRangeIndices,
+                  Array.of(context.currentLocalVariableAnnotationRangeStarts, true),
+                  Array.of(context.currentLocalVariableAnnotationRangeEnds, true),
+                  new IntArray(context.currentLocalVariableAnnotationRangeIndices),
                   annotationDescriptor,
                   /* visible = */ true),
               currentOffset,
@@ -2407,9 +2399,9 @@ public class ClassReader {
               methodVisitor.visitLocalVariableAnnotation(
                   context.currentTypeAnnotationTarget,
                   context.currentTypeAnnotationTargetPath,
-                  context.currentLocalVariableAnnotationRangeStarts,
-                  context.currentLocalVariableAnnotationRangeEnds,
-                  context.currentLocalVariableAnnotationRangeIndices,
+                  Array.of(context.currentLocalVariableAnnotationRangeStarts, true),
+                  Array.of(context.currentLocalVariableAnnotationRangeEnds, true),
+                  new IntArray(context.currentLocalVariableAnnotationRangeIndices),
                   annotationDescriptor,
                   /* visible = */ false),
               currentOffset,

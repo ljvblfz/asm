@@ -880,7 +880,7 @@ final class SymbolTable {
       final String name,
       final String descriptor,
       final Handle bootstrapMethodHandle,
-      final Object... bootstrapMethodArguments) {
+      final Object[] bootstrapMethodArguments) {
     Symbol bootstrapMethod = addBootstrapMethod(bootstrapMethodHandle, bootstrapMethodArguments);
     return addConstantDynamicOrInvokeDynamicReference(
         Symbol.CONSTANT_DYNAMIC_TAG, name, descriptor, bootstrapMethod.index);
@@ -901,7 +901,7 @@ final class SymbolTable {
       final String name,
       final String descriptor,
       final Handle bootstrapMethodHandle,
-      final Object... bootstrapMethodArguments) {
+      final Object[] bootstrapMethodArguments) {
     Symbol bootstrapMethod = addBootstrapMethod(bootstrapMethodHandle, bootstrapMethodArguments);
     return addConstantDynamicOrInvokeDynamicReference(
         Symbol.CONSTANT_INVOKE_DYNAMIC_TAG, name, descriptor, bootstrapMethod.index);
@@ -1036,7 +1036,7 @@ final class SymbolTable {
    * @return a new or already existing Symbol with the given value.
    */
   Symbol addBootstrapMethod(
-      final Handle bootstrapMethodHandle, final Object... bootstrapMethodArguments) {
+      final Handle bootstrapMethodHandle, final Object[] bootstrapMethodArguments) {
     ByteVector bootstrapMethodsAttribute = bootstrapMethods;
     if (bootstrapMethodsAttribute == null) {
       bootstrapMethodsAttribute = bootstrapMethods = new ByteVector();

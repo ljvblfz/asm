@@ -29,6 +29,7 @@ package org.objectweb.asm.tree;
 
 import java.util.List;
 import java.util.Map;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -77,11 +78,12 @@ public class TableSwitchInsnNode extends AbstractInsnNode {
 
   @Override
   public void accept(final MethodVisitor methodVisitor) {
-    Label[] labelsArray = new Label[this.labels.size()];
-    for (int i = 0, n = labelsArray.length; i < n; ++i) {
-      labelsArray[i] = this.labels.get(i).getLabel();
+    int size = labels.size();
+    Array.Builder<Label> labelsArray = Array.newLabels(size);
+    for (int i = 0; i < size; ++i) {
+      labelsArray.set(i, labels.get(i).getLabel());
     }
-    methodVisitor.visitTableSwitchInsn(min, max, dflt.getLabel(), labelsArray);
+    methodVisitor.visitTableSwitchInsn(min, max, dflt.getLabel(), labelsArray.build());
     acceptAnnotations(methodVisitor);
   }
 

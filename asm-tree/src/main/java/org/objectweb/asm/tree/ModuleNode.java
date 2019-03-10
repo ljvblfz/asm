@@ -29,7 +29,9 @@ package org.objectweb.asm.tree;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Collections;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -84,7 +86,7 @@ public class ModuleNode extends ModuleVisitor {
    * @throws IllegalStateException If a subclass calls this constructor.
    */
   public ModuleNode(final String name, final int access, final String version) {
-    super(Opcodes.ASM7);
+    super(Opcodes.ASM8);
     if (getClass() != ModuleNode.class) {
       throw new IllegalStateException();
     }
@@ -152,19 +154,31 @@ public class ModuleNode extends ModuleVisitor {
   }
 
   @Override
-  public void visitExport(final String packaze, final int access, final String... modules) {
+  public void visitExport(final String packaze, final int access, final Array<String> modules) {
+    if (api < Opcodes.ASM8 && modules.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitExport(packaze, access, modules);
+      return;
+    }
+
     if (exports == null) {
       exports = new ArrayList<>(5);
     }
-    exports.add(new ModuleExportNode(packaze, access, Util.asArrayList(modules)));
+    exports.add(new ModuleExportNode(packaze, access, Collections.toArrayList(modules)));
   }
 
   @Override
-  public void visitOpen(final String packaze, final int access, final String... modules) {
+  public void visitOpen(final String packaze, final int access, final Array<String> modules) {
+    if (api < Opcodes.ASM8 && modules.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitOpen(packaze, access, modules);
+      return;
+    }
+
     if (opens == null) {
       opens = new ArrayList<>(5);
     }
-    opens.add(new ModuleOpenNode(packaze, access, Util.asArrayList(modules)));
+    opens.add(new ModuleOpenNode(packaze, access, Collections.toArrayList(modules)));
   }
 
   @Override
@@ -176,11 +190,17 @@ public class ModuleNode extends ModuleVisitor {
   }
 
   @Override
-  public void visitProvide(final String service, final String... providers) {
+  public void visitProvide(final String service, final Array<String> providers) {
+    if (api < Opcodes.ASM8 && providers.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitProvide(service, providers);
+      return;
+    }
+
     if (provides == null) {
       provides = new ArrayList<>(5);
     }
-    provides.add(new ModuleProvideNode(service, Util.asArrayList(providers)));
+    provides.add(new ModuleProvideNode(service, Collections.toArrayList(providers)));
   }
 
   @Override

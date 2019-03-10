@@ -64,7 +64,8 @@ public class ClassRemapperTest extends AsmTest {
     ClassRemapper classRemapper =
         new ClassRemapper(classNode, new SimpleRemapper("pkg/C", "new/pkg/C"));
 
-    classRemapper.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, "pkg/C", null, "java/lang/Object", null);
+    classRemapper.visit(
+        Opcodes.V1_5, Opcodes.ACC_PUBLIC, "pkg/C", null, "java/lang/Object", Opcodes.NO_INTERFACES);
 
     assertEquals("new/pkg/C", classNode.name);
   }
@@ -87,7 +88,8 @@ public class ClassRemapperTest extends AsmTest {
                 return internalName;
               }
             });
-    remapper.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, "pkg/C", null, "java/lang/Object", null);
+    remapper.visit(
+        Opcodes.V1_5, Opcodes.ACC_PUBLIC, "pkg/C", null, "java/lang/Object", Opcodes.NO_INTERFACES);
 
     remapper.visitInnerClass("pkg/C$Inner", "pkg/C", "Inner", Opcodes.ACC_PUBLIC);
 
@@ -114,7 +116,8 @@ public class ClassRemapperTest extends AsmTest {
                 return internalName;
               }
             });
-    remapper.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, "pkg/C", null, "java/lang/Object", null);
+    remapper.visit(
+        Opcodes.V1_5, Opcodes.ACC_PUBLIC, "pkg/C", null, "java/lang/Object", Opcodes.NO_INTERFACES);
 
     remapper.visitInnerClass("pkg/C$1Inner", "pkg/C", "Inner", Opcodes.ACC_PUBLIC);
 
@@ -135,7 +138,8 @@ public class ClassRemapperTest extends AsmTest {
                 return "new." + name;
               }
             });
-    classRemapper.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", null);
+    classRemapper.visit(
+        Opcodes.V1_5, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", Opcodes.NO_INTERFACES);
 
     classRemapper.visitAttribute(
         new ModuleHashesAttribute("algorithm", Arrays.asList("pkg.C"), Arrays.asList(new byte[0])));
@@ -167,9 +171,10 @@ public class ClassRemapperTest extends AsmTest {
             }) {
           /* inner class so it can access the protected constructor */
         };
-    classRemapper.visit(Opcodes.V11, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", null);
+    classRemapper.visit(
+        Opcodes.V11, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", Opcodes.NO_INTERFACES);
     MethodVisitor methodVisitor =
-        classRemapper.visitMethod(Opcodes.ACC_PUBLIC, "hello", "()V", null, null);
+        classRemapper.visitMethod(Opcodes.ACC_PUBLIC, "hello", "()V", null, Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitCode();
 
     methodVisitor.visitLdcInsn(

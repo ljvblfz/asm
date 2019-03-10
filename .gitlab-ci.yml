@@ -17,4 +17,4 @@ build:
     - $GRADLE build
     - $GRADLE test jacocoTestCoverageVerification
     - $GRADLE uploadArchives
-    - '$GRADLE sonarqube -Dsonar.host.url=$SONAR'
+

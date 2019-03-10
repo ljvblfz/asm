@@ -57,33 +57,33 @@ public class CheckSignatureAdapter extends SignatureVisitor {
   public static final int TYPE_SIGNATURE = 2;
 
   /** The valid automaton states for a {@link #visitFormalTypeParameter} method call. */
-  private static final EnumSet<State> VISIT_FORMAL_TYPE_PARAMETER_STATES =
+  private static final EnumSet<State> visitFORMAL_TYPE_PARAMETER_STATES =
       EnumSet.of(State.EMPTY, State.FORMAL, State.BOUND);
 
   /** The valid automaton states for a {@link #visitClassBound} method call. */
-  private static final EnumSet<State> VISIT_CLASS_BOUND_STATES = EnumSet.of(State.FORMAL);
+  private static final EnumSet<State> visitCLASS_BOUND_STATES = EnumSet.of(State.FORMAL);
 
   /** The valid automaton states for a {@link #visitInterfaceBound} method call. */
-  private static final EnumSet<State> VISIT_INTERFACE_BOUND_STATES =
+  private static final EnumSet<State> visitINTERFACE_BOUND_STATES =
       EnumSet.of(State.FORMAL, State.BOUND);
 
   /** The valid automaton states for a {@link #visitSuperclass} method call. */
-  private static final EnumSet<State> VISIT_SUPER_CLASS_STATES =
+  private static final EnumSet<State> visitSUPER_CLASS_STATES =
       EnumSet.of(State.EMPTY, State.FORMAL, State.BOUND);
 
   /** The valid automaton states for a {@link #visitInterface} method call. */
-  private static final EnumSet<State> VISIT_INTERFACE_STATES = EnumSet.of(State.SUPER);
+  private static final EnumSet<State> visitINTERFACE_STATES = EnumSet.of(State.SUPER);
 
   /** The valid automaton states for a {@link #visitParameterType} method call. */
-  private static final EnumSet<State> VISIT_PARAMETER_TYPE_STATES =
+  private static final EnumSet<State> visitPARAMETER_TYPE_STATES =
       EnumSet.of(State.EMPTY, State.FORMAL, State.BOUND, State.PARAM);
 
   /** The valid automaton states for a {@link #visitReturnType} method call. */
-  private static final EnumSet<State> VISIT_RETURN_TYPE_STATES =
+  private static final EnumSet<State> visitRETURN_TYPE_STATES =
       EnumSet.of(State.EMPTY, State.FORMAL, State.BOUND, State.PARAM);
 
   /** The valid automaton states for a {@link #visitExceptionType} method call. */
-  private static final EnumSet<State> VISIT_EXCEPTION_TYPE_STATES = EnumSet.of(State.RETURN);
+  private static final EnumSet<State> visitEXCEPTION_TYPE_STATES = EnumSet.of(State.RETURN);
 
   /** The possible states of the automaton used to check the order of method calls. */
   private enum State {
@@ -123,7 +123,7 @@ public class CheckSignatureAdapter extends SignatureVisitor {
    *     null}.
    */
   public CheckSignatureAdapter(final int type, final SignatureVisitor signatureVisitor) {
-    this(Opcodes.ASM7, type, signatureVisitor);
+    this(Opcodes.ASM8, type, signatureVisitor);
   }
 
   /**
@@ -148,7 +148,7 @@ public class CheckSignatureAdapter extends SignatureVisitor {
 
   @Override
   public void visitFormalTypeParameter(final String name) {
-    if (type == TYPE_SIGNATURE || !VISIT_FORMAL_TYPE_PARAMETER_STATES.contains(state)) {
+    if (type == TYPE_SIGNATURE || !visitFORMAL_TYPE_PARAMETER_STATES.contains(state)) {
       throw new IllegalStateException();
     }
     checkIdentifier(name, "formal type parameter");
@@ -160,7 +160,7 @@ public class CheckSignatureAdapter extends SignatureVisitor {
 
   @Override
   public SignatureVisitor visitClassBound() {
-    if (type == TYPE_SIGNATURE || !VISIT_CLASS_BOUND_STATES.contains(state)) {
+    if (type == TYPE_SIGNATURE || !visitCLASS_BOUND_STATES.contains(state)) {
       throw new IllegalStateException();
     }
     state = State.BOUND;
@@ -170,7 +170,7 @@ public class CheckSignatureAdapter extends SignatureVisitor {
 
   @Override
   public SignatureVisitor visitInterfaceBound() {
-    if (type == TYPE_SIGNATURE || !VISIT_INTERFACE_BOUND_STATES.contains(state)) {
+    if (type == TYPE_SIGNATURE || !visitINTERFACE_BOUND_STATES.contains(state)) {
       throw new IllegalStateException();
     }
     return new CheckSignatureAdapter(
@@ -181,7 +181,7 @@ public class CheckSignatureAdapter extends SignatureVisitor {
 
   @Override
   public SignatureVisitor visitSuperclass() {
-    if (type != CLASS_SIGNATURE || !VISIT_SUPER_CLASS_STATES.contains(state)) {
+    if (type != CLASS_SIGNATURE || !visitSUPER_CLASS_STATES.contains(state)) {
       throw new IllegalStateException();
     }
     state = State.SUPER;
@@ -191,7 +191,7 @@ public class CheckSignatureAdapter extends SignatureVisitor {
 
   @Override
   public SignatureVisitor visitInterface() {
-    if (type != CLASS_SIGNATURE || !VISIT_INTERFACE_STATES.contains(state)) {
+    if (type != CLASS_SIGNATURE || !visitINTERFACE_STATES.contains(state)) {
       throw new IllegalStateException();
     }
     return new CheckSignatureAdapter(
@@ -202,7 +202,7 @@ public class CheckSignatureAdapter extends SignatureVisitor {
 
   @Override
   public SignatureVisitor visitParameterType() {
-    if (type != METHOD_SIGNATURE || !VISIT_PARAMETER_TYPE_STATES.contains(state)) {
+    if (type != METHOD_SIGNATURE || !visitPARAMETER_TYPE_STATES.contains(state)) {
       throw new IllegalStateException();
     }
     state = State.PARAM;
@@ -212,7 +212,7 @@ public class CheckSignatureAdapter extends SignatureVisitor {
 
   @Override
   public SignatureVisitor visitReturnType() {
-    if (type != METHOD_SIGNATURE || !VISIT_RETURN_TYPE_STATES.contains(state)) {
+    if (type != METHOD_SIGNATURE || !visitRETURN_TYPE_STATES.contains(state)) {
       throw new IllegalStateException();
     }
     state = State.RETURN;
@@ -225,7 +225,7 @@ public class CheckSignatureAdapter extends SignatureVisitor {
 
   @Override
   public SignatureVisitor visitExceptionType() {
-    if (type != METHOD_SIGNATURE || !VISIT_EXCEPTION_TYPE_STATES.contains(state)) {
+    if (type != METHOD_SIGNATURE || !visitEXCEPTION_TYPE_STATES.contains(state)) {
       throw new IllegalStateException();
     }
     return new CheckSignatureAdapter(

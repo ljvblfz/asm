@@ -243,7 +243,8 @@ public abstract class AsmTest {
     ASM4("ASM4", 4 << 16),
     ASM5("ASM5", 5 << 16),
     ASM6("ASM6", 6 << 16),
-    ASM7("ASM7", 7 << 16);
+    ASM7("ASM7", 7 << 16),
+    ASM8("ASM8", 8 << 16);
 
     private final String name;
     private final int value;
@@ -293,7 +294,7 @@ public abstract class AsmTest {
    * @return all the possible (precompiledClass, ASM7) pairs, for all the precompiled classes.
    */
   public static Stream<Arguments> allClassesAndLatestApi() {
-    return classesAndApis(Api.ASM7);
+    return classesAndApis(Api.ASM8);
   }
 
   private static Stream<Arguments> classesAndApis(final Api... apis) {

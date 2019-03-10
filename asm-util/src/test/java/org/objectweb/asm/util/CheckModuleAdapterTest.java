@@ -107,28 +107,10 @@ public class CheckModuleAdapterTest {
   }
 
   @Test
-  public void testVisitExport_nullArray() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
-
-    Executable visitExport = () -> checkModuleAdapter.visitExport("package", 0, (String[]) null);
-
-    assertDoesNotThrow(visitExport);
-  }
-
-  @Test
-  public void testVisitOpen_nullArray() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
-
-    Executable visitOpen = () -> checkModuleAdapter.visitOpen("package", 0, (String[]) null);
-
-    assertDoesNotThrow(visitOpen);
-  }
-
-  @Test
   public void testVisitOpen_openModule() {
     CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ true);
 
-    Executable visitOpen = () -> checkModuleAdapter.visitOpen("package", 0, (String[]) null);
+    Executable visitOpen = () -> checkModuleAdapter.visitOpen("package", 0, Opcodes.NO_MODULES);
 
     Exception exception = assertThrows(UnsupportedOperationException.class, visitOpen);
     assertEquals("An open module can not use open directive", exception.getMessage());
@@ -158,22 +140,12 @@ public class CheckModuleAdapterTest {
   }
 
   @Test
-  public void testVisitProvide_nullProviderList() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
-
-    Executable visitProvide = () -> checkModuleAdapter.visitProvide("service2", (String[]) null);
-
-    Exception exception = assertThrows(IllegalArgumentException.class, visitProvide);
-    assertEquals("Providers cannot be null or empty", exception.getMessage());
-  }
-
-  @Test
   public void testVisitProvide_emptyProviderList() {
     CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
 
-    Executable visitProvide = () -> checkModuleAdapter.visitProvide("service1");
+    Executable visitProvide = () -> checkModuleAdapter.visitProvide("service1", Opcodes.NO_MODULES);
 
     Exception exception = assertThrows(IllegalArgumentException.class, visitProvide);
-    assertEquals("Providers cannot be null or empty", exception.getMessage());
+    assertEquals("Providers cannot be empty", exception.getMessage());
   }
 }

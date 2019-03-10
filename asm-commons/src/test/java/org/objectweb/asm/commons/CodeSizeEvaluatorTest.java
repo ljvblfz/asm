@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -44,6 +45,7 @@ import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.test.AsmTest;
 import org.objectweb.asm.test.ClassFile;
@@ -78,7 +80,9 @@ public class CodeSizeEvaluatorTest extends AsmTest {
     } else {
       assertDoesNotThrow(accept);
       for (CodeSizeEvaluation evaluation : evaluations) {
-        assertTrue(evaluation.actualSize >= evaluation.minSize);
+        assertTrue(
+            evaluation.actualSize >= evaluation.minSize,
+            evaluation.actualSize + " " + evaluation.minSize);
         assertTrue(evaluation.actualSize <= evaluation.maxSize);
       }
       assertEquals(new ClassFile(classFile), new ClassFile(classWriter.toByteArray()));
@@ -120,7 +124,12 @@ public class CodeSizeEvaluatorTest extends AsmTest {
         final String name,
         final String descriptor,
         final String signature,
-        final String[] exceptions) {
+        final Array<String> exceptions) {
+      if (api < Opcodes.ASM8 && exceptions.isPublic()) {
+        // Redirect the call to the deprecated version of this method.
+        return super.visitMethod(access, name, descriptor, signature, exceptions);
+      }
+
       MethodVisitor methodVisitor =
           super.visitMethod(access, name, descriptor, signature, exceptions);
       return new CodeSizeEvaluator(api, methodVisitor) {

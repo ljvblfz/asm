@@ -58,11 +58,12 @@ public class StaticInitMergerTest {
 
   private static ClassNode newClassWithStaticInitBlocks(final int numStaticInitBlocks) {
     ClassNode classNode = new ClassNode();
-    classNode.visit(Opcodes.V1_1, Opcodes.ACC_PUBLIC, "A", null, "java/lang/Object", null);
+    classNode.visit(
+        Opcodes.V1_1, Opcodes.ACC_PUBLIC, "A", null, "java/lang/Object", Opcodes.NO_INTERFACES);
     classNode.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "counter", "I", null, null);
     for (int i = 0; i < numStaticInitBlocks; ++i) {
       MethodVisitor methodVisitor =
-          classNode.visitMethod(Opcodes.ACC_PUBLIC, "<clinit>", "()V", null, null);
+          classNode.visitMethod(Opcodes.ACC_PUBLIC, "<clinit>", "()V", null, Opcodes.NO_EXCEPTIONS);
       methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, "A", "counter", "I");
       methodVisitor.visitInsn(Opcodes.ICONST_1);
       methodVisitor.visitInsn(Opcodes.IADD);
@@ -71,7 +72,7 @@ public class StaticInitMergerTest {
       methodVisitor.visitMaxs(0, 0);
     }
     MethodVisitor methodVisitor =
-        classNode.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+        classNode.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, Opcodes.NO_EXCEPTIONS);
     methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
     methodVisitor.visitMethodInsn(
         Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);

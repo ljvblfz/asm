@@ -36,9 +36,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -69,43 +71,43 @@ public class CheckMethodAdapter extends MethodVisitor {
 
   /** The 'generic' instruction visit methods (i.e. those that take an opcode argument). */
   private enum Method {
-    VISIT_INSN,
-    VISIT_INT_INSN,
-    VISIT_VAR_INSN,
-    VISIT_TYPE_INSN,
-    VISIT_FIELD_INSN,
-    VISIT_METHOD_INSN,
-    VISIT_JUMP_INSN
+    visitINSN,
+    visitINT_INSN,
+    visitVAR_INSN,
+    visitTYPE_INSN,
+    visitFIELD_INSN,
+    visitMETHOD_INSN,
+    visitJUMP_INSN
   }
 
   /** The method to use to visit each instruction. Only generic methods are represented here. */
   private static final Method[] OPCODE_METHODS = {
-    Method.VISIT_INSN, // NOP
-    Method.VISIT_INSN, // ACONST_NULL
-    Method.VISIT_INSN, // ICONST_M1
-    Method.VISIT_INSN, // ICONST_0
-    Method.VISIT_INSN, // ICONST_1
-    Method.VISIT_INSN, // ICONST_2
-    Method.VISIT_INSN, // ICONST_3
-    Method.VISIT_INSN, // ICONST_4
-    Method.VISIT_INSN, // ICONST_5
-    Method.VISIT_INSN, // LCONST_0
-    Method.VISIT_INSN, // LCONST_1
-    Method.VISIT_INSN, // FCONST_0
-    Method.VISIT_INSN, // FCONST_1
-    Method.VISIT_INSN, // FCONST_2
-    Method.VISIT_INSN, // DCONST_0
-    Method.VISIT_INSN, // DCONST_1
-    Method.VISIT_INT_INSN, // BIPUSH
-    Method.VISIT_INT_INSN, // SIPUSH
+    Method.visitINSN, // NOP
+    Method.visitINSN, // ACONST_NULL
+    Method.visitINSN, // ICONST_M1
+    Method.visitINSN, // ICONST_0
+    Method.visitINSN, // ICONST_1
+    Method.visitINSN, // ICONST_2
+    Method.visitINSN, // ICONST_3
+    Method.visitINSN, // ICONST_4
+    Method.visitINSN, // ICONST_5
+    Method.visitINSN, // LCONST_0
+    Method.visitINSN, // LCONST_1
+    Method.visitINSN, // FCONST_0
+    Method.visitINSN, // FCONST_1
+    Method.visitINSN, // FCONST_2
+    Method.visitINSN, // DCONST_0
+    Method.visitINSN, // DCONST_1
+    Method.visitINT_INSN, // BIPUSH
+    Method.visitINT_INSN, // SIPUSH
     null, // LDC
     null, // LDC_W
     null, // LDC2_W
-    Method.VISIT_VAR_INSN, // ILOAD
-    Method.VISIT_VAR_INSN, // LLOAD
-    Method.VISIT_VAR_INSN, // FLOAD
-    Method.VISIT_VAR_INSN, // DLOAD
-    Method.VISIT_VAR_INSN, // ALOAD
+    Method.visitVAR_INSN, // ILOAD
+    Method.visitVAR_INSN, // LLOAD
+    Method.visitVAR_INSN, // FLOAD
+    Method.visitVAR_INSN, // DLOAD
+    Method.visitVAR_INSN, // ALOAD
     null, // ILOAD_0
     null, // ILOAD_1
     null, // ILOAD_2
@@ -126,19 +128,19 @@ public class CheckMethodAdapter extends MethodVisitor {
     null, // ALOAD_1
     null, // ALOAD_2
     null, // ALOAD_3
-    Method.VISIT_INSN, // IALOAD
-    Method.VISIT_INSN, // LALOAD
-    Method.VISIT_INSN, // FALOAD
-    Method.VISIT_INSN, // DALOAD
-    Method.VISIT_INSN, // AALOAD
-    Method.VISIT_INSN, // BALOAD
-    Method.VISIT_INSN, // CALOAD
-    Method.VISIT_INSN, // SALOAD
-    Method.VISIT_VAR_INSN, // ISTORE
-    Method.VISIT_VAR_INSN, // LSTORE
-    Method.VISIT_VAR_INSN, // FSTORE
-    Method.VISIT_VAR_INSN, // DSTORE
-    Method.VISIT_VAR_INSN, // ASTORE
+    Method.visitINSN, // IALOAD
+    Method.visitINSN, // LALOAD
+    Method.visitINSN, // FALOAD
+    Method.visitINSN, // DALOAD
+    Method.visitINSN, // AALOAD
+    Method.visitINSN, // BALOAD
+    Method.visitINSN, // CALOAD
+    Method.visitINSN, // SALOAD
+    Method.visitVAR_INSN, // ISTORE
+    Method.visitVAR_INSN, // LSTORE
+    Method.visitVAR_INSN, // FSTORE
+    Method.visitVAR_INSN, // DSTORE
+    Method.visitVAR_INSN, // ASTORE
     null, // ISTORE_0
     null, // ISTORE_1
     null, // ISTORE_2
@@ -159,127 +161,127 @@ public class CheckMethodAdapter extends MethodVisitor {
     null, // ASTORE_1
     null, // ASTORE_2
     null, // ASTORE_3
-    Method.VISIT_INSN, // IASTORE
-    Method.VISIT_INSN, // LASTORE
-    Method.VISIT_INSN, // FASTORE
-    Method.VISIT_INSN, // DASTORE
-    Method.VISIT_INSN, // AASTORE
-    Method.VISIT_INSN, // BASTORE
-    Method.VISIT_INSN, // CASTORE
-    Method.VISIT_INSN, // SASTORE
-    Method.VISIT_INSN, // POP
-    Method.VISIT_INSN, // POP2
-    Method.VISIT_INSN, // DUP
-    Method.VISIT_INSN, // DUP_X1
-    Method.VISIT_INSN, // DUP_X2
-    Method.VISIT_INSN, // DUP2
-    Method.VISIT_INSN, // DUP2_X1
-    Method.VISIT_INSN, // DUP2_X2
-    Method.VISIT_INSN, // SWAP
-    Method.VISIT_INSN, // IADD
-    Method.VISIT_INSN, // LADD
-    Method.VISIT_INSN, // FADD
-    Method.VISIT_INSN, // DADD
-    Method.VISIT_INSN, // ISUB
-    Method.VISIT_INSN, // LSUB
-    Method.VISIT_INSN, // FSUB
-    Method.VISIT_INSN, // DSUB
-    Method.VISIT_INSN, // IMUL
-    Method.VISIT_INSN, // LMUL
-    Method.VISIT_INSN, // FMUL
-    Method.VISIT_INSN, // DMUL
-    Method.VISIT_INSN, // IDIV
-    Method.VISIT_INSN, // LDIV
-    Method.VISIT_INSN, // FDIV
-    Method.VISIT_INSN, // DDIV
-    Method.VISIT_INSN, // IREM
-    Method.VISIT_INSN, // LREM
-    Method.VISIT_INSN, // FREM
-    Method.VISIT_INSN, // DREM
-    Method.VISIT_INSN, // INEG
-    Method.VISIT_INSN, // LNEG
-    Method.VISIT_INSN, // FNEG
-    Method.VISIT_INSN, // DNEG
-    Method.VISIT_INSN, // ISHL
-    Method.VISIT_INSN, // LSHL
-    Method.VISIT_INSN, // ISHR
-    Method.VISIT_INSN, // LSHR
-    Method.VISIT_INSN, // IUSHR
-    Method.VISIT_INSN, // LUSHR
-    Method.VISIT_INSN, // IAND
-    Method.VISIT_INSN, // LAND
-    Method.VISIT_INSN, // IOR
-    Method.VISIT_INSN, // LOR
-    Method.VISIT_INSN, // IXOR
-    Method.VISIT_INSN, // LXOR
+    Method.visitINSN, // IASTORE
+    Method.visitINSN, // LASTORE
+    Method.visitINSN, // FASTORE
+    Method.visitINSN, // DASTORE
+    Method.visitINSN, // AASTORE
+    Method.visitINSN, // BASTORE
+    Method.visitINSN, // CASTORE
+    Method.visitINSN, // SASTORE
+    Method.visitINSN, // POP
+    Method.visitINSN, // POP2
+    Method.visitINSN, // DUP
+    Method.visitINSN, // DUP_X1
+    Method.visitINSN, // DUP_X2
+    Method.visitINSN, // DUP2
+    Method.visitINSN, // DUP2_X1
+    Method.visitINSN, // DUP2_X2
+    Method.visitINSN, // SWAP
+    Method.visitINSN, // IADD
+    Method.visitINSN, // LADD
+    Method.visitINSN, // FADD
+    Method.visitINSN, // DADD
+    Method.visitINSN, // ISUB
+    Method.visitINSN, // LSUB
+    Method.visitINSN, // FSUB
+    Method.visitINSN, // DSUB
+    Method.visitINSN, // IMUL
+    Method.visitINSN, // LMUL
+    Method.visitINSN, // FMUL
+    Method.visitINSN, // DMUL
+    Method.visitINSN, // IDIV
+    Method.visitINSN, // LDIV
+    Method.visitINSN, // FDIV
+    Method.visitINSN, // DDIV
+    Method.visitINSN, // IREM
+    Method.visitINSN, // LREM
+    Method.visitINSN, // FREM
+    Method.visitINSN, // DREM
+    Method.visitINSN, // INEG
+    Method.visitINSN, // LNEG
+    Method.visitINSN, // FNEG
+    Method.visitINSN, // DNEG
+    Method.visitINSN, // ISHL
+    Method.visitINSN, // LSHL
+    Method.visitINSN, // ISHR
+    Method.visitINSN, // LSHR
+    Method.visitINSN, // IUSHR
+    Method.visitINSN, // LUSHR
+    Method.visitINSN, // IAND
+    Method.visitINSN, // LAND
+    Method.visitINSN, // IOR
+    Method.visitINSN, // LOR
+    Method.visitINSN, // IXOR
+    Method.visitINSN, // LXOR
     null, // IINC
-    Method.VISIT_INSN, // I2L
-    Method.VISIT_INSN, // I2F
-    Method.VISIT_INSN, // I2D
-    Method.VISIT_INSN, // L2I
-    Method.VISIT_INSN, // L2F
-    Method.VISIT_INSN, // L2D
-    Method.VISIT_INSN, // F2I
-    Method.VISIT_INSN, // F2L
-    Method.VISIT_INSN, // F2D
-    Method.VISIT_INSN, // D2I
-    Method.VISIT_INSN, // D2L
-    Method.VISIT_INSN, // D2F
-    Method.VISIT_INSN, // I2B
-    Method.VISIT_INSN, // I2C
-    Method.VISIT_INSN, // I2S
-    Method.VISIT_INSN, // LCMP
-    Method.VISIT_INSN, // FCMPL
-    Method.VISIT_INSN, // FCMPG
-    Method.VISIT_INSN, // DCMPL
-    Method.VISIT_INSN, // DCMPG
-    Method.VISIT_JUMP_INSN, // IFEQ
-    Method.VISIT_JUMP_INSN, // IFNE
-    Method.VISIT_JUMP_INSN, // IFLT
-    Method.VISIT_JUMP_INSN, // IFGE
-    Method.VISIT_JUMP_INSN, // IFGT
-    Method.VISIT_JUMP_INSN, // IFLE
-    Method.VISIT_JUMP_INSN, // IF_ICMPEQ
-    Method.VISIT_JUMP_INSN, // IF_ICMPNE
-    Method.VISIT_JUMP_INSN, // IF_ICMPLT
-    Method.VISIT_JUMP_INSN, // IF_ICMPGE
-    Method.VISIT_JUMP_INSN, // IF_ICMPGT
-    Method.VISIT_JUMP_INSN, // IF_ICMPLE
-    Method.VISIT_JUMP_INSN, // IF_ACMPEQ
-    Method.VISIT_JUMP_INSN, // IF_ACMPNE
-    Method.VISIT_JUMP_INSN, // GOTO
-    Method.VISIT_JUMP_INSN, // JSR
-    Method.VISIT_VAR_INSN, // RET
+    Method.visitINSN, // I2L
+    Method.visitINSN, // I2F
+    Method.visitINSN, // I2D
+    Method.visitINSN, // L2I
+    Method.visitINSN, // L2F
+    Method.visitINSN, // L2D
+    Method.visitINSN, // F2I
+    Method.visitINSN, // F2L
+    Method.visitINSN, // F2D
+    Method.visitINSN, // D2I
+    Method.visitINSN, // D2L
+    Method.visitINSN, // D2F
+    Method.visitINSN, // I2B
+    Method.visitINSN, // I2C
+    Method.visitINSN, // I2S
+    Method.visitINSN, // LCMP
+    Method.visitINSN, // FCMPL
+    Method.visitINSN, // FCMPG
+    Method.visitINSN, // DCMPL
+    Method.visitINSN, // DCMPG
+    Method.visitJUMP_INSN, // IFEQ
+    Method.visitJUMP_INSN, // IFNE
+    Method.visitJUMP_INSN, // IFLT
+    Method.visitJUMP_INSN, // IFGE
+    Method.visitJUMP_INSN, // IFGT
+    Method.visitJUMP_INSN, // IFLE
+    Method.visitJUMP_INSN, // IF_ICMPEQ
+    Method.visitJUMP_INSN, // IF_ICMPNE
+    Method.visitJUMP_INSN, // IF_ICMPLT
+    Method.visitJUMP_INSN, // IF_ICMPGE
+    Method.visitJUMP_INSN, // IF_ICMPGT
+    Method.visitJUMP_INSN, // IF_ICMPLE
+    Method.visitJUMP_INSN, // IF_ACMPEQ
+    Method.visitJUMP_INSN, // IF_ACMPNE
+    Method.visitJUMP_INSN, // GOTO
+    Method.visitJUMP_INSN, // JSR
+    Method.visitVAR_INSN, // RET
     null, // TABLESWITCH
     null, // LOOKUPSWITCH
-    Method.VISIT_INSN, // IRETURN
-    Method.VISIT_INSN, // LRETURN
-    Method.VISIT_INSN, // FRETURN
-    Method.VISIT_INSN, // DRETURN
-    Method.VISIT_INSN, // ARETURN
-    Method.VISIT_INSN, // RETURN
-    Method.VISIT_FIELD_INSN, // GETSTATIC
-    Method.VISIT_FIELD_INSN, // PUTSTATIC
-    Method.VISIT_FIELD_INSN, // GETFIELD
-    Method.VISIT_FIELD_INSN, // PUTFIELD
-    Method.VISIT_METHOD_INSN, // INVOKEVIRTUAL
-    Method.VISIT_METHOD_INSN, // INVOKESPECIAL
-    Method.VISIT_METHOD_INSN, // INVOKESTATIC
-    Method.VISIT_METHOD_INSN, // INVOKEINTERFACE
+    Method.visitINSN, // IRETURN
+    Method.visitINSN, // LRETURN
+    Method.visitINSN, // FRETURN
+    Method.visitINSN, // DRETURN
+    Method.visitINSN, // ARETURN
+    Method.visitINSN, // RETURN
+    Method.visitFIELD_INSN, // GETSTATIC
+    Method.visitFIELD_INSN, // PUTSTATIC
+    Method.visitFIELD_INSN, // GETFIELD
+    Method.visitFIELD_INSN, // PUTFIELD
+    Method.visitMETHOD_INSN, // INVOKEVIRTUAL
+    Method.visitMETHOD_INSN, // INVOKESPECIAL
+    Method.visitMETHOD_INSN, // INVOKESTATIC
+    Method.visitMETHOD_INSN, // INVOKEINTERFACE
     null, // INVOKEDYNAMIC
-    Method.VISIT_TYPE_INSN, // NEW
-    Method.VISIT_INT_INSN, // NEWARRAY
-    Method.VISIT_TYPE_INSN, // ANEWARRAY
-    Method.VISIT_INSN, // ARRAYLENGTH
-    Method.VISIT_INSN, // ATHROW
-    Method.VISIT_TYPE_INSN, // CHECKCAST
-    Method.VISIT_TYPE_INSN, // INSTANCEOF
-    Method.VISIT_INSN, // MONITORENTER
-    Method.VISIT_INSN, // MONITOREXIT
+    Method.visitTYPE_INSN, // NEW
+    Method.visitINT_INSN, // NEWARRAY
+    Method.visitTYPE_INSN, // ANEWARRAY
+    Method.visitINSN, // ARRAYLENGTH
+    Method.visitINSN, // ATHROW
+    Method.visitTYPE_INSN, // CHECKCAST
+    Method.visitTYPE_INSN, // INSTANCEOF
+    Method.visitINSN, // MONITORENTER
+    Method.visitINSN, // MONITOREXIT
     null, // WIDE
     null, // MULTIANEWARRAY
-    Method.VISIT_JUMP_INSN, // IFNULL
-    Method.VISIT_JUMP_INSN // IFNONNULL
+    Method.visitJUMP_INSN, // IFNULL
+    Method.visitJUMP_INSN // IFNONNULL
   };
 
   private static final String INVALID = "Invalid ";
@@ -366,7 +368,7 @@ public class CheckMethodAdapter extends MethodVisitor {
    */
   public CheckMethodAdapter(
       final MethodVisitor methodVisitor, final Map<Label, Integer> labelInsnIndices) {
-    this(Opcodes.ASM7, methodVisitor, labelInsnIndices);
+    this(Opcodes.ASM8, methodVisitor, labelInsnIndices);
     if (getClass() != CheckMethodAdapter.class) {
       throw new IllegalStateException();
     }
@@ -412,7 +414,7 @@ public class CheckMethodAdapter extends MethodVisitor {
       final String descriptor,
       final MethodVisitor methodVisitor,
       final Map<Label, Integer> labelInsnIndices) {
-    this(Opcodes.ASM7, access, name, descriptor, methodVisitor, labelInsnIndices);
+    this(Opcodes.ASM8, access, name, descriptor, methodVisitor, labelInsnIndices);
     if (getClass() != CheckMethodAdapter.class) {
       throw new IllegalStateException();
     }
@@ -566,9 +568,16 @@ public class CheckMethodAdapter extends MethodVisitor {
   public void visitFrame(
       final int type,
       final int numLocal,
-      final Object[] local,
+      final Array<Object> local,
       final int numStack,
-      final Object[] stack) {
+      final Array<Object> stack) {
+    if (api < Opcodes.ASM8 && stack.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitFrame(type, numLocal, local, numStack, stack);
+      return;
+    }
+    //    Array<Object> stack = stack.toPublic();
+
     if (insnCount == lastFrameInsnIndex) {
       throw new IllegalStateException("At most one frame can be visited at a given code location.");
     }
@@ -612,18 +621,18 @@ public class CheckMethodAdapter extends MethodVisitor {
     }
 
     if (type != Opcodes.F_CHOP) {
-      if (numLocal > 0 && (local == null || local.length < numLocal)) {
+      if (numLocal > 0 && local.size() < numLocal) {
         throw new IllegalArgumentException("Array local[] is shorter than numLocal");
       }
       for (int i = 0; i < numLocal; ++i) {
-        checkFrameValue(local[i]);
+        checkFrameValue(local.get(i));
       }
     }
-    if (numStack > 0 && (stack == null || stack.length < numStack)) {
+    if (numStack > 0 && stack.size() < numStack) {
       throw new IllegalArgumentException("Array stack[] is shorter than numStack");
     }
     for (int i = 0; i < numStack; ++i) {
-      checkFrameValue(stack[i]);
+      checkFrameValue(stack.get(i));
     }
     if (type == Opcodes.F_NEW) {
       ++numExpandedFrames;
@@ -640,7 +649,7 @@ public class CheckMethodAdapter extends MethodVisitor {
   public void visitInsn(final int opcode) {
     checkVisitCodeCalled();
     checkVisitMaxsNotCalled();
-    checkOpcodeMethod(opcode, Method.VISIT_INSN);
+    checkOpcodeMethod(opcode, Method.visitINSN);
     super.visitInsn(opcode);
     ++insnCount;
   }
@@ -649,7 +658,7 @@ public class CheckMethodAdapter extends MethodVisitor {
   public void visitIntInsn(final int opcode, final int operand) {
     checkVisitCodeCalled();
     checkVisitMaxsNotCalled();
-    checkOpcodeMethod(opcode, Method.VISIT_INT_INSN);
+    checkOpcodeMethod(opcode, Method.visitINT_INSN);
     switch (opcode) {
       case Opcodes.BIPUSH:
         checkSignedByte(operand, "Invalid operand");
@@ -674,7 +683,7 @@ public class CheckMethodAdapter extends MethodVisitor {
   public void visitVarInsn(final int opcode, final int var) {
     checkVisitCodeCalled();
     checkVisitMaxsNotCalled();
-    checkOpcodeMethod(opcode, Method.VISIT_VAR_INSN);
+    checkOpcodeMethod(opcode, Method.visitVAR_INSN);
     checkUnsignedShort(var, INVALID_LOCAL_VARIABLE_INDEX);
     super.visitVarInsn(opcode, var);
     ++insnCount;
@@ -684,7 +693,7 @@ public class CheckMethodAdapter extends MethodVisitor {
   public void visitTypeInsn(final int opcode, final String type) {
     checkVisitCodeCalled();
     checkVisitMaxsNotCalled();
-    checkOpcodeMethod(opcode, Method.VISIT_TYPE_INSN);
+    checkOpcodeMethod(opcode, Method.visitTYPE_INSN);
     checkInternalName(version, type, "type");
     if (opcode == Opcodes.NEW && type.charAt(0) == '[') {
       throw new IllegalArgumentException("NEW cannot be used to create arrays: " + type);
@@ -698,7 +707,7 @@ public class CheckMethodAdapter extends MethodVisitor {
       final int opcode, final String owner, final String name, final String descriptor) {
     checkVisitCodeCalled();
     checkVisitMaxsNotCalled();
-    checkOpcodeMethod(opcode, Method.VISIT_FIELD_INSN);
+    checkOpcodeMethod(opcode, Method.visitFIELD_INSN);
     checkInternalName(version, owner, "owner");
     checkUnqualifiedName(version, name, "name");
     checkDescriptor(version, descriptor, false);
@@ -722,7 +731,7 @@ public class CheckMethodAdapter extends MethodVisitor {
 
     checkVisitCodeCalled();
     checkVisitMaxsNotCalled();
-    checkOpcodeMethod(opcode, Method.VISIT_METHOD_INSN);
+    checkOpcodeMethod(opcode, Method.visitMETHOD_INSN);
     if (opcode != Opcodes.INVOKESPECIAL || !"<init>".equals(name)) {
       checkMethodIdentifier(version, name, "name");
     }
@@ -747,7 +756,14 @@ public class CheckMethodAdapter extends MethodVisitor {
       final String name,
       final String descriptor,
       final Handle bootstrapMethodHandle,
-      final Object... bootstrapMethodArguments) {
+      final Array<Object> bootstrapMethodArguments) {
+    if (api < Opcodes.ASM8 && bootstrapMethodArguments.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitInvokeDynamicInsn(
+          name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+      return;
+    }
+
     checkVisitCodeCalled();
     checkVisitMaxsNotCalled();
     checkMethodIdentifier(version, name, "name");
@@ -756,8 +772,8 @@ public class CheckMethodAdapter extends MethodVisitor {
         && bootstrapMethodHandle.getTag() != Opcodes.H_NEWINVOKESPECIAL) {
       throw new IllegalArgumentException("invalid handle tag " + bootstrapMethodHandle.getTag());
     }
-    for (Object bootstrapMethodArgument : bootstrapMethodArguments) {
-      checkLdcConstant(bootstrapMethodArgument);
+    for (int i = 0; i < bootstrapMethodArguments.size(); ++i) {
+      checkLdcConstant(bootstrapMethodArguments.get(i));
     }
     super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
     ++insnCount;
@@ -767,7 +783,7 @@ public class CheckMethodAdapter extends MethodVisitor {
   public void visitJumpInsn(final int opcode, final Label label) {
     checkVisitCodeCalled();
     checkVisitMaxsNotCalled();
-    checkOpcodeMethod(opcode, Method.VISIT_JUMP_INSN);
+    checkOpcodeMethod(opcode, Method.visitJUMP_INSN);
     checkLabel(label, false, "label");
     super.visitJumpInsn(opcode, label);
     referencedLabels.add(label);
@@ -807,43 +823,53 @@ public class CheckMethodAdapter extends MethodVisitor {
 
   @Override
   public void visitTableSwitchInsn(
-      final int min, final int max, final Label dflt, final Label... labels) {
+      final int min, final int max, final Label dflt, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitTableSwitchInsn(min, max, dflt, labels);
+      return;
+    }
+
     checkVisitCodeCalled();
     checkVisitMaxsNotCalled();
     if (max < min) {
       throw new IllegalArgumentException(
           "Max = " + max + " must be greater than or equal to min = " + min);
     }
-    checkLabel(dflt, false, "default label");
-    if (labels == null || labels.length != max - min + 1) {
+    if (labels.size() != max - min + 1) {
       throw new IllegalArgumentException("There must be max - min + 1 labels");
     }
-    for (int i = 0; i < labels.length; ++i) {
-      checkLabel(labels[i], false, "label at index " + i);
+    checkLabel(dflt, false, "default label");
+    referencedLabels.add(dflt);
+    for (int i = 0; i < labels.size(); ++i) {
+      checkLabel(labels.get(i), false, "label at index " + i);
+      referencedLabels.add(labels.get(i));
     }
     super.visitTableSwitchInsn(min, max, dflt, labels);
-    for (Label label : labels) {
-      referencedLabels.add(label);
-    }
     ++insnCount;
   }
 
   @Override
-  public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
+  public void visitLookupSwitchInsn(
+      final Label dflt, final IntArray keys, final Array<Label> labels) {
+    if (api < Opcodes.ASM8 && labels.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitLookupSwitchInsn(dflt, keys, labels);
+      return;
+    }
+
     checkVisitMaxsNotCalled();
     checkVisitCodeCalled();
-    checkLabel(dflt, false, "default label");
-    if (keys == null || labels == null || keys.length != labels.length) {
+    if (keys == null || keys.size() != labels.size()) {
       throw new IllegalArgumentException("There must be the same number of keys and labels");
     }
-    for (int i = 0; i < labels.length; ++i) {
-      checkLabel(labels[i], false, "label at index " + i);
+    checkLabel(dflt, false, "default label");
+    referencedLabels.add(dflt);
+    for (int i = 0; i < labels.size(); ++i) {
+      checkLabel(labels.get(i), false, "label at index " + i);
+      referencedLabels.add(labels.get(i));
     }
     super.visitLookupSwitchInsn(dflt, keys, labels);
-    referencedLabels.add(dflt);
-    for (Label label : labels) {
-      referencedLabels.add(label);
-    }
     ++insnCount;
   }
 
@@ -959,11 +985,17 @@ public class CheckMethodAdapter extends MethodVisitor {
   public AnnotationVisitor visitLocalVariableAnnotation(
       final int typeRef,
       final TypePath typePath,
-      final Label[] start,
-      final Label[] end,
-      final int[] index,
+      final Array<Label> start,
+      final Array<Label> end,
+      final IntArray index,
       final String descriptor,
       final boolean visible) {
+    if (api < Opcodes.ASM8 && start.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      return super.visitLocalVariableAnnotation(
+          typeRef, typePath, start, end, index, descriptor, visible);
+    }
+
     checkVisitCodeCalled();
     checkVisitMaxsNotCalled();
     int sort = new TypeReference(typeRef).getSort();
@@ -972,20 +1004,16 @@ public class CheckMethodAdapter extends MethodVisitor {
     }
     CheckClassAdapter.checkTypeRef(typeRef);
     checkDescriptor(version, descriptor, false);
-    if (start == null
-        || end == null
-        || index == null
-        || end.length != start.length
-        || index.length != start.length) {
+    if (end.size() != start.size() || index.size() != start.size()) {
       throw new IllegalArgumentException(
           "Invalid start, end and index arrays (must be non null and of identical length");
     }
-    for (int i = 0; i < start.length; ++i) {
-      checkLabel(start[i], true, START_LABEL);
-      checkLabel(end[i], true, END_LABEL);
-      checkUnsignedShort(index[i], INVALID_LOCAL_VARIABLE_INDEX);
-      int startInsnIndex = labelInsnIndices.get(start[i]).intValue();
-      int endInsnIndex = labelInsnIndices.get(end[i]).intValue();
+    for (int i = 0; i < start.size(); ++i) {
+      checkLabel(start.get(i), true, START_LABEL);
+      checkLabel(end.get(i), true, END_LABEL);
+      checkUnsignedShort(index.get(i), INVALID_LOCAL_VARIABLE_INDEX);
+      int startInsnIndex = labelInsnIndices.get(start.get(i)).intValue();
+      int endInsnIndex = labelInsnIndices.get(end.get(i)).intValue();
       if (endInsnIndex < startInsnIndex) {
         throw new IllegalArgumentException(
             "Invalid start and end labels (end must be greater than start)");

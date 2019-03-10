@@ -72,10 +72,10 @@ public class AsmTestTest extends AsmTest {
 
   @Test
   public void testApi_allMethods() {
-    Api asm7 = Api.ASM7;
+    Api asm8 = Api.ASM8;
 
-    assertEquals(0x70000, asm7.value());
-    assertEquals("ASM7", asm7.toString());
+    assertEquals(0x80000, asm8.value());
+    assertEquals("ASM8", asm8.toString());
   }
 
   @Test
@@ -98,7 +98,7 @@ public class AsmTestTest extends AsmTest {
         new HashSet<Object>(Arrays.asList(PrecompiledClass.values())),
         allArguments.stream().map(arg -> arg.get()[0]).collect(Collectors.toSet()));
     assertEquals(
-        new HashSet<Object>(Arrays.asList(Api.ASM7)),
+        new HashSet<Object>(Arrays.asList(Api.ASM8)),
         allArguments.stream().map(arg -> arg.get()[1]).collect(Collectors.toSet()));
   }
 }

@@ -581,7 +581,7 @@ final class MethodWriter extends MethodVisitor {
    * @param name the method's name.
    * @param descriptor the method's descriptor (see {@link Type}).
    * @param signature the method's signature. May be {@literal null}.
-   * @param exceptions the internal names of the method's exceptions. May be {@literal null}.
+   * @param exceptionsArray the internal names of the method's exceptions.
    * @param compute indicates what must be computed (see #compute).
    */
   MethodWriter(
@@ -590,9 +590,9 @@ final class MethodWriter extends MethodVisitor {
       final String name,
       final String descriptor,
       final String signature,
-      final String[] exceptions,
+      final Array<String> exceptionsArray,
       final int compute) {
-    super(Opcodes.ASM7);
+    super(Opcodes.ASM8);
     this.symbolTable = symbolTable;
     this.accessFlags = "<init>".equals(name) ? access | Constants.ACC_CONSTRUCTOR : access;
     this.nameIndex = symbolTable.addConstantUtf8(name);
@@ -600,14 +600,14 @@ final class MethodWriter extends MethodVisitor {
     this.descriptorIndex = symbolTable.addConstantUtf8(descriptor);
     this.descriptor = descriptor;
     this.signatureIndex = signature == null ? 0 : symbolTable.addConstantUtf8(signature);
-    if (exceptions != null && exceptions.length > 0) {
-      numberOfExceptions = exceptions.length;
+    String[] exceptions = exceptionsArray.elements;
+    this.numberOfExceptions = exceptions.length;
+    if (numberOfExceptions > 0) {
       this.exceptionIndexTable = new int[numberOfExceptions];
       for (int i = 0; i < numberOfExceptions; ++i) {
         this.exceptionIndexTable[i] = symbolTable.addConstantClass(exceptions[i]).index;
       }
     } else {
-      numberOfExceptions = 0;
       this.exceptionIndexTable = null;
     }
     this.compute = compute;
@@ -731,13 +731,15 @@ final class MethodWriter extends MethodVisitor {
   public void visitFrame(
       final int type,
       final int numLocal,
-      final Object[] local,
+      final Array<Object> localArray,
       final int numStack,
-      final Object[] stack) {
+      final Array<Object> stackArray) {
     if (compute == COMPUTE_ALL_FRAMES) {
       return;
     }
 
+    Object[] local = localArray.elements;
+    Object[] stack = stackArray.elements;
     if (compute == COMPUTE_INSERTED_FRAMES) {
       if (currentBasicBlock.frame == null) {
         // This should happen only once, for the implicit first frame (which is explicitly visited
@@ -1062,12 +1064,12 @@ final class MethodWriter extends MethodVisitor {
       final String name,
       final String descriptor,
       final Handle bootstrapMethodHandle,
-      final Object... bootstrapMethodArguments) {
+      final Array<Object> bootstrapMethodArguments) {
     lastBytecodeOffset = code.length;
     // Add the instruction to the bytecode of the method.
     Symbol invokeDynamicSymbol =
         symbolTable.addConstantInvokeDynamic(
-            name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+            name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments.elements);
     code.put12(Opcodes.INVOKEDYNAMIC, invokeDynamicSymbol.index);
     code.putShort(0);
     // If needed, update the maximum stack size and number of locals, and stack map frames.
@@ -1327,12 +1329,13 @@ final class MethodWriter extends MethodVisitor {
 
   @Override
   public void visitTableSwitchInsn(
-      final int min, final int max, final Label dflt, final Label... labels) {
+      final int min, final int max, final Label dflt, final Array<Label> labelsArray) {
     lastBytecodeOffset = code.length;
     // Add the instruction to the bytecode of the method.
     code.putByte(Opcodes.TABLESWITCH).putByteArray(null, 0, (4 - code.length % 4) % 4);
     dflt.put(code, lastBytecodeOffset, true);
     code.putInt(min).putInt(max);
+    Label[] labels = labelsArray.elements;
     for (Label label : labels) {
       label.put(code, lastBytecodeOffset, true);
     }
@@ -1341,11 +1344,14 @@ final class MethodWriter extends MethodVisitor {
   }
 
   @Override
-  public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
+  public void visitLookupSwitchInsn(
+      final Label dflt, final IntArray keysArray, final Array<Label> labelsArray) {
     lastBytecodeOffset = code.length;
     // Add the instruction to the bytecode of the method.
     code.putByte(Opcodes.LOOKUPSWITCH).putByteArray(null, 0, (4 - code.length % 4) % 4);
     dflt.put(code, lastBytecodeOffset, true);
+    int[] keys = keysArray.elements;
+    Label[] labels = labelsArray.elements;
     code.putInt(labels.length);
     for (int i = 0; i < labels.length; ++i) {
       code.putInt(keys[i]);
@@ -1491,15 +1497,18 @@ final class MethodWriter extends MethodVisitor {
   public AnnotationVisitor visitLocalVariableAnnotation(
       final int typeRef,
       final TypePath typePath,
-      final Label[] start,
-      final Label[] end,
-      final int[] index,
+      final Array<Label> startArray,
+      final Array<Label> endArray,
+      final IntArray indexArray,
       final String descriptor,
       final boolean visible) {
     // Create a ByteVector to hold a 'type_annotation' JVMS structure.
     // See https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-4.html#jvms-4.7.20.
     ByteVector typeAnnotation = new ByteVector();
     // Write target_type, target_info, and target_path.
+    Label[] start = startArray.elements;
+    Label[] end = endArray.elements;
+    int[] index = indexArray.elements;
     typeAnnotation.putByte(typeRef >>> 24).putShort(start.length);
     for (int i = 0; i < start.length; ++i) {
       typeAnnotation

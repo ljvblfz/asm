@@ -234,7 +234,7 @@ public class ClassWriter extends ClassVisitor {
    *     maximum stack size nor the stack frames will be computed for these methods</i>.
    */
   public ClassWriter(final ClassReader classReader, final int flags) {
-    super(Opcodes.ASM7);
+    super(Opcodes.ASM8);
     symbolTable = classReader == null ? new SymbolTable(this) : new SymbolTable(this, classReader);
     if ((flags & COMPUTE_FRAMES) != 0) {
       this.compute = MethodWriter.COMPUTE_ALL_FRAMES;
@@ -256,7 +256,7 @@ public class ClassWriter extends ClassVisitor {
       final String name,
       final String signature,
       final String superName,
-      final String[] interfaces) {
+      final Array<String> interfacesArray) {
     this.version = version;
     this.accessFlags = access;
     this.thisClass = symbolTable.setMajorVersionAndClassName(version & 0xFFFF, name);
@@ -264,8 +264,9 @@ public class ClassWriter extends ClassVisitor {
       this.signatureIndex = symbolTable.addConstantUtf8(signature);
     }
     this.superClass = superName == null ? 0 : symbolTable.addConstantClass(superName).index;
-    if (interfaces != null && interfaces.length > 0) {
-      interfaceCount = interfaces.length;
+    String[] interfaces = interfacesArray.elements;
+    this.interfaceCount = interfaces.length;
+    if (interfaceCount > 0) {
       this.interfaces = new int[interfaceCount];
       for (int i = 0; i < interfaceCount; ++i) {
         this.interfaces[i] = symbolTable.addConstantClass(interfaces[i]).index;
@@ -400,7 +401,7 @@ public class ClassWriter extends ClassVisitor {
       final String name,
       final String descriptor,
       final String signature,
-      final String[] exceptions) {
+      final Array<String> exceptions) {
     MethodWriter methodWriter =
         new MethodWriter(symbolTable, access, name, descriptor, signature, exceptions, compute);
     if (firstMethod == null) {

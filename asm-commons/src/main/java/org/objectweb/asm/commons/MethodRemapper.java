@@ -29,7 +29,9 @@
 package org.objectweb.asm.commons;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Array;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.IntArray;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -53,7 +55,7 @@ public class MethodRemapper extends MethodVisitor {
    * @param remapper the remapper to use to remap the types in the visited method.
    */
   public MethodRemapper(final MethodVisitor methodVisitor, final Remapper remapper) {
-    this(Opcodes.ASM7, methodVisitor, remapper);
+    this(Opcodes.ASM8, methodVisitor, remapper);
   }
 
   /**
@@ -112,32 +114,28 @@ public class MethodRemapper extends MethodVisitor {
   public void visitFrame(
       final int type,
       final int numLocal,
-      final Object[] local,
+      final Array<Object> local,
       final int numStack,
-      final Object[] stack) {
-    super.visitFrame(
-        type,
-        numLocal,
-        remapFrameTypes(numLocal, local),
-        numStack,
-        remapFrameTypes(numStack, stack));
+      final Array<Object> stack) {
+    if (api < Opcodes.ASM8 && stack.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitFrame(type, numLocal, local, numStack, stack);
+      return;
+    }
+    super.visitFrame(type, numLocal, remapFrameTypes(local), numStack, remapFrameTypes(stack));
   }
 
-  private Object[] remapFrameTypes(final int numTypes, final Object[] frameTypes) {
-    if (frameTypes == null) {
-      return frameTypes;
-    }
-    Object[] remappedFrameTypes = null;
-    for (int i = 0; i < numTypes; ++i) {
-      if (frameTypes[i] instanceof String) {
+  private Array<Object> remapFrameTypes(final Array<Object> frameTypes) {
+    Array.Builder<Object> remappedFrameTypes = null;
+    for (int i = 0; i < frameTypes.size(); ++i) {
+      if (frameTypes.get(i) instanceof String) {
         if (remappedFrameTypes == null) {
-          remappedFrameTypes = new Object[numTypes];
-          System.arraycopy(frameTypes, 0, remappedFrameTypes, 0, numTypes);
+          remappedFrameTypes = frameTypes.toBuilder();
         }
-        remappedFrameTypes[i] = remapper.mapType((String) frameTypes[i]);
+        remappedFrameTypes.set(i, remapper.mapType((String) frameTypes.get(i)));
       }
     }
-    return remappedFrameTypes == null ? frameTypes : remappedFrameTypes;
+    return remappedFrameTypes == null ? frameTypes : remappedFrameTypes.build();
   }
 
   @Override
@@ -175,16 +173,22 @@ public class MethodRemapper extends MethodVisitor {
       final String name,
       final String descriptor,
       final Handle bootstrapMethodHandle,
-      final Object... bootstrapMethodArguments) {
-    Object[] remappedBootstrapMethodArguments = new Object[bootstrapMethodArguments.length];
-    for (int i = 0; i < bootstrapMethodArguments.length; ++i) {
-      remappedBootstrapMethodArguments[i] = remapper.mapValue(bootstrapMethodArguments[i]);
+      final Array<Object> bootstrapMethodArguments) {
+    if (api < Opcodes.ASM8 && bootstrapMethodArguments.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      super.visitInvokeDynamicInsn(
+          name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+      return;
+    }
+    Array.Builder<Object> remappedBootstrapMethodArguments = bootstrapMethodArguments.toBuilder();
+    for (int i = 0; i < bootstrapMethodArguments.size(); ++i) {
+      remappedBootstrapMethodArguments.set(i, remapper.mapValue(bootstrapMethodArguments.get(i)));
     }
     super.visitInvokeDynamicInsn(
         remapper.mapInvokeDynamicMethodName(name, descriptor),
         remapper.mapMethodDesc(descriptor),
         (Handle) remapper.mapValue(bootstrapMethodHandle),
-        remappedBootstrapMethodArguments);
+        remappedBootstrapMethodArguments.build());
   }
 
   @Override
@@ -249,11 +253,16 @@ public class MethodRemapper extends MethodVisitor {
   public AnnotationVisitor visitLocalVariableAnnotation(
       final int typeRef,
       final TypePath typePath,
-      final Label[] start,
-      final Label[] end,
-      final int[] index,
+      final Array<Label> start,
+      final Array<Label> end,
+      final IntArray index,
       final String descriptor,
       final boolean visible) {
+    if (api < Opcodes.ASM8 && start.isPublic()) {
+      // Redirect the call to the deprecated version of this method.
+      return super.visitLocalVariableAnnotation(
+          typeRef, typePath, start, end, index, descriptor, visible);
+    }
     AnnotationVisitor annotationVisitor =
         super.visitLocalVariableAnnotation(
             typeRef, typePath, start, end, index, remapper.mapDesc(descriptor), visible);
